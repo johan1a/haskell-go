@@ -25,6 +25,8 @@ import AST
     '*'     { TokenMul }
     '('     { TokenLParen }
     ')'     { TokenRParen }
+    '['     { TokenLBracket }
+    ']'     { TokenRBracket }
 
 %left '+' '-'
 %left '*'
@@ -35,7 +37,7 @@ Statements : Statement                                  { [$1] }
             | Statements Statement                      { $2 : $1 }
 
 Statement : Declaration                                 { Declaration $1 }
-          | Expr                                             { Expr $1 }
+          | Expr                                        { Expr $1 }
 
 Declaration : ConstDecl                                 { ConstDecl $1 }
             | TypeDecl                                  { TypeDecl $1 }
@@ -52,7 +54,18 @@ VarSpec : IdentifierList Type '=' ExpressionList        { VarSpec $1 $2 $4 }
 IdentifierList : VAR                                    { $1 }
 ExpressionList : Expr                                   { $1 }
 
-Type : VAR                                              { Type $1 }
+Type : TypeName                                         { $1 }
+     | TypeLit                                          { $1 }
+     | '(' Type ')'                                     { $2 }
+     | VAR                                              { Type $1 }
+
+TypeName : VAR                                          { TypeName (TypNameIdentifier $1) } 
+
+TypeLit : ArrayType                                     { TypeLit $1 } 
+
+ArrayType : '[' Expr ']' ElementType                    { ArrayType $2 $4 } 
+
+ElementType : Type                                      { $1 } 
 
 Expr : NUM                                              { Num $1 }
      | VAR                                              { Var $1 }

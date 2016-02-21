@@ -28,7 +28,9 @@ tokens :-
   \)                            { \s -> TokenRParen }
   "const"                       { \s -> TokenConst }
   "type"                        { \s -> TokenType }
-  "var"                        { \s -> TokenVar }
+  "var"                         { \s -> TokenVar }
+  "["                           { \s -> TokenLBracket }
+  "]"                           { \s -> TokenRBracket }
   $alpha [$alpha $digit \_ \']* { \s -> TokenSym s }
 
 {
@@ -48,6 +50,8 @@ data Token = TokenLet
            | TokenMul
            | TokenLParen
            | TokenRParen
+           | TokenLBracket
+           | TokenRBracket
            deriving (Eq,Show)
 
 scanTokens = alexScanTokens

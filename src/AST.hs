@@ -4,8 +4,28 @@ type Id = String
 
 data Op = Add | Sub | Mul deriving (Eq,Show)
 
-data Type = Type Id
+data Type = TypeName TypeName 
+          | TypeLit TypeLit
+          | Type Id
            deriving (Eq, Show)
+
+data TypeName = TypNameIdentifier Id
+          deriving (Eq, Show)
+              -- | QualifiedIdent QualifiedIdent
+
+data TypeLit = ArrayType ArrayLength ElementType
+          deriving (Eq, Show)
+        --      | StructType ArrayType
+        --      | PointerType ArrayType
+        --      | FunctionType ArrayType
+        --      | InterfaceType ArrayType
+       --       | SliceType ArrayType
+          --    | MapType ArrayType
+           --   | ChannelType ArrayType
+
+type ArrayLength = Expr
+type ElementType = Type
+
 
 data Statement = Expr Expr
           | Declaration Declaration
@@ -22,6 +42,7 @@ data ConstDecl = ConstSpec Id Type Expr
 
 data TypeDecl = TypeSpec Id Type  --id type
                 deriving (Eq, Show)
+
 data VarSpec = VarSpec Id Type Expr
 
 data Expr = Abs Id Expr
