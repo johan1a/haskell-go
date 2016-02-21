@@ -2,8 +2,6 @@ module AST where
 
 type Id = String
 
-data Op = Add | Sub | Mul deriving (Eq,Show)
-
 data Type = TypeName TypeName 
           | TypeLit TypeLit
           | Type Id
@@ -31,7 +29,41 @@ type ElementType = Type
 
 
 data Statement = Expr Expr
-          | Declaration Declaration
+              | Declaration Declaration
+              | SimpleStmt SimpleStmt
+          deriving (Eq, Show)
+              
+       --       | LabeledStmt 
+      --        | GoStmt 
+     --         | ReturnStmt 
+           --   | BreakStmt 
+          --    | ContinueStmt 
+         --     | GotoStmt 
+           --   | FallthroughStmt 
+          --    | Block 
+         --     | IfStmt 
+        --      | SwitchStmt 
+       --       | SelectStmt 
+      --        | ForStmt 
+             -- | DeferStmt 
+
+data SimpleStmt = EmptyStmt 
+                | ExpressionStmt Expr
+        --        | SendStmt 
+                | IncDecStmt Expr
+                | Assignment Assignment
+                | ShortVarDecl [Id] [Expr]  
+          deriving (Eq, Show)
+
+data IncStmt = IncStmt Expr
+             | DecStmt Expr
+                deriving (Eq, Show)
+
+data Assignment = Assign [Expr] [Expr]
+              --  | OpAssign Op [Expr] [Expr]
+                deriving (Eq, Show)
+
+data Op = Op String
           deriving (Eq, Show)
 
 type Statements = [Statement]
@@ -40,18 +72,19 @@ data Declaration = ConstDecl ConstDecl
                  | TypeDecl TypeDecl
                   deriving (Eq, Show)
 
-data ConstDecl = ConstSpec Id Type Expr
+type IdentifierList = [Id]
+
+type ExpressionList = [Expr]
+
+data ConstDecl = ConstSpec [Id] Type [Expr]     -- [id]   [expr]
                 deriving (Eq, Show)
 
 data TypeDecl = TypeSpec Id Type  --id type
                 deriving (Eq, Show)
 
-data VarSpec = VarSpec Id Type Expr
+data VarSpec = VarSpec [Id] Type [Expr]
 
-data Expr = Abs Id Expr
-          | App Statement Expr
-          | Num Int
+data Expr = Num Int
           | Var Id
-          | Binop Op Expr Expr
           deriving (Eq, Show)
 

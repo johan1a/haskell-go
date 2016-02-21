@@ -32,7 +32,22 @@ tokens :-
   "const"                       { \s -> TokenConst }
   "type"                        { \s -> TokenType }
   "var"                         { \s -> TokenVar }
-  $alpha [$alpha $digit \_ \']* { \s -> TokenSym s }
+    "."                         { \s -> TokenDot }
+    "+"                         { \s -> TokenOpAdd }
+    "-"                         { \s -> TokenOpSub }
+    "|"                         { \s -> TokenOpPipe }
+    "^"                         { \s -> TokenOpUpArrow }
+    "*"                         { \s -> TokenOpMul }
+    "/"                         { \s -> TokenOpSlash }
+    "%"                         { \s -> TokenOpModulo }
+    "<<"                        { \s -> TokenOpLeftStream }
+    ">>"                        { \s -> TokenOpRightStream }
+    "&"                         { \s -> TokenOpAnd }
+    "&^"                        { \s -> TokenOpAndUp }
+    ":="                        { \s -> TokenShortVarDecl }
+    "++"                        { \s -> TokenInc }
+    "--"                        { \s -> TokenDec }
+  $alpha [$alpha $digit \_ \"]* { \s -> TokenSym s }
 
 {
 
@@ -53,7 +68,21 @@ data Token = TokenLet
            | TokenRParen
            | TokenLBracket
            | TokenRBracket
-           | TokenDot
+           | TokenDot 
+           | TokenOpAdd
+           | TokenOpSub 
+           | TokenOpPipe 
+           | TokenOpUpArrow 
+           | TokenOpMul 
+           | TokenOpSlash 
+           | TokenOpModulo 
+           | TokenOpLeftStream 
+           | TokenOpRightStream 
+           | TokenOpAnd
+           | TokenOpAndUp 
+           | TokenShortVarDecl
+           | TokenInc
+           | TokenDec
            deriving (Eq,Show)
 
 scanTokens = alexScanTokens
