@@ -26,6 +26,7 @@ import AST
     '['     { TokenLBracket }
     ']'     { TokenRBracket }
     '.'     { TokenDot }
+    ','     { TokenComma }
     '+'     { TokenOpAdd }
     '-'     { TokenOpSub }
     '|'     { TokenOpPipe }
@@ -50,20 +51,19 @@ Statements : Statement                                  { [$1] }
            | Statements Statement                      { $2 : $1 }
 
 Statement : Declaration                                 { Declaration $1 }
-          | Expr                                        { Expr $1 }
           | SimpleStmt                                  {  SimpleStmt $1 }
 
-SimpleStmt :  --{- empty -}                               { EmptyStmt }
-             Expr                                      { ExpressionStmt $1 }
-     --        | SendStmt   
-      --     | IncDecStmt Expr                            { IncDecStmt $2 }
-      --     | Assignment Assignment                      { Assignment $2 }
-        --   | ShortVarDecl IdentifierList ExpressionList { ShortVarDecl $2 $3 }
+SimpleStmt :  {- empty -}                               { EmptyStmt }
+        --    | SendStmt   
+           | IncDecStmt                                 { IncDecStmt $1 }
+           | Assignment Assignment                      { Assignment $2 }
+           | ShortVarDecl IdentifierList ExpressionList { ShortVarDecl $2 $3 }
+           | Expr                                      { ExpressionStmt $1 }
 
 ShortVarDecl : IdentifierList ":=" ExpressionList       { ShortVarDecl $1 $3 }
 
 Assignment : ExpressionList '=' ExpressionList          { Assign $1 $3 }
-        --   | ExpressionList Op '=' ExpressionList       { OpAssign $2 $1 $4 }
+           | ExpressionList Op '=' ExpressionList       { OpAssign $2 $1 $4 }
  
 Op : OP                                                 { Op $1 }
 
@@ -98,10 +98,10 @@ VarDecl : "var" VarSpec                                 { $2 }
 VarSpec : IdentifierList Type '=' ExpressionList        { VarSpec $1 $2 $4 }
 
 IdentifierList : VAR                                    { [$1] }
-               | IdentifierList VAR                     { $2 : $1 }
+               | IdentifierList ',' VAR                 { $3 : $1 }
 
 ExpressionList : Expr                                   { [$1] }
-               | ExpressionList Expr                    {   $2 : $1 } 
+               | ExpressionList ',' Expr                {   $3 : $1 } 
 
 Type : TypeName                                         { TypeName $1 }
      | TypeLit                                          { $1 }

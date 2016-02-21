@@ -33,6 +33,7 @@ tokens :-
   "type"                        { \s -> TokenType }
   "var"                         { \s -> TokenVar }
     "."                         { \s -> TokenDot }
+    ","                         { \s -> TokenComma }
     "+"                         { \s -> TokenOpAdd }
     "-"                         { \s -> TokenOpSub }
     "|"                         { \s -> TokenOpPipe }
@@ -69,6 +70,7 @@ data Token = TokenLet
            | TokenLBracket
            | TokenRBracket
            | TokenDot 
+           | TokenComma
            | TokenOpAdd
            | TokenOpSub 
            | TokenOpPipe 

@@ -50,17 +50,17 @@ data Statement = Expr Expr
 data SimpleStmt = EmptyStmt 
                 | ExpressionStmt Expr
         --        | SendStmt 
-                | IncDecStmt Expr
+                | IncDecStmt IncDecStmt
                 | Assignment Assignment
                 | ShortVarDecl [Id] [Expr]  
           deriving (Eq, Show)
 
-data IncStmt = IncStmt Expr
-             | DecStmt Expr
+data IncDecStmt = IncStmt Expr
+                | DecStmt Expr
                 deriving (Eq, Show)
 
 data Assignment = Assign [Expr] [Expr]
-              --  | OpAssign Op [Expr] [Expr]
+                | OpAssign Op [Expr] [Expr]
                 deriving (Eq, Show)
 
 data Op = Op String
@@ -76,10 +76,10 @@ type IdentifierList = [Id]
 
 type ExpressionList = [Expr]
 
-data ConstDecl = ConstSpec [Id] Type [Expr]     -- [id]   [expr]
+data ConstDecl = ConstSpec [Id] Type [Expr]  
                 deriving (Eq, Show)
 
-data TypeDecl = TypeSpec Id Type  --id type
+data TypeDecl = TypeSpec Id Type 
                 deriving (Eq, Show)
 
 data VarSpec = VarSpec [Id] Type [Expr]
