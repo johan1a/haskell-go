@@ -1,7 +1,7 @@
 {
 {-# OPTIONS_GHC -w #-}
 module AlexToken (Token(..),scanTokens) where
-import Expr
+import AST
 }
 
 %wrapper "basic"
@@ -26,12 +26,14 @@ tokens :-
   [\*]                          { \s -> TokenMul }
   \(                            { \s -> TokenLParen }
   \)                            { \s -> TokenRParen }
+  "const"                       { \s -> TokenConst }
   $alpha [$alpha $digit \_ \']* { \s -> TokenSym s }
 
 {
 
 data Token = TokenLet
            | TokenIn
+           | TokenConst
            | TokenLambda
            | TokenNum Int
            | TokenSym String
