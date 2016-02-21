@@ -53,12 +53,13 @@ Statements : Statement                                  { [$1] }
 Statement : Declaration                                 { Declaration $1 }
           | SimpleStmt                                  {  SimpleStmt $1 }
 
-SimpleStmt :  {- empty -}                               { EmptyStmt }
+SimpleStmt : 
+            Assignment                                  { Assignment $1 }
         --    | SendStmt   
            | IncDecStmt                                 { IncDecStmt $1 }
-           | Assignment Assignment                      { Assignment $2 }
-           | ShortVarDecl IdentifierList ExpressionList { ShortVarDecl $2 $3 }
+           | ShortVarDecl                                { $1 }
            | Expr                                      { ExpressionStmt $1 }
+           |  {- empty -}                               { EmptyStmt }
 
 ShortVarDecl : IdentifierList ":=" ExpressionList       { ShortVarDecl $1 $3 }
 
@@ -66,6 +67,9 @@ Assignment : ExpressionList '=' ExpressionList          { Assign $1 $3 }
            | ExpressionList Op '=' ExpressionList       { OpAssign $2 $1 $4 }
  
 Op : OP                                                 { Op $1 }
+
+--op är fel
+
 
  {-
 add_op     : TokenAdd                                        { Op $1 }
@@ -101,7 +105,7 @@ IdentifierList : VAR                                    { [$1] }
                | IdentifierList ',' VAR                 { $3 : $1 }
 
 ExpressionList : Expr                                   { [$1] }
-               | ExpressionList ',' Expr                {   $3 : $1 } 
+               | ExpressionList ',' Expr                { $3 : $1 } 
 
 Type : TypeName                                         { TypeName $1 }
      | TypeLit                                          { $1 }
