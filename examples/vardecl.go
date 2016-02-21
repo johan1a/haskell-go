@@ -1,0 +1,1 @@
+var b Thing = 666

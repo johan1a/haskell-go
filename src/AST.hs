@@ -73,7 +73,6 @@ data Declaration = ConstDecl ConstDecl
                  | VarDecl VarSpec
                   deriving (Eq, Show)
 
-
 data VarSpec     = VarSpec [Id] Type [Expr]
                   deriving (Eq, Show)
 
