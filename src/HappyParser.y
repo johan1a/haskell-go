@@ -31,9 +31,15 @@ import AST
 --Declaration : "const" VAR                               {  Bajs $2 }
 
 
-Stmt : Expr                                        { ExprStmt $1 }
+Stmt : Expr                                             { Expr $1 }
 
-Declaration : VAR Expr                                  { Decl $1 $2 }
+Declaration : ConstDecl                                 { $1 }
+
+ConstDecl : "const" ConstSpec                           { $2 }
+ConstSpec : IdentifierList Type '=' ExpressionList      { Decl $1 $2 $4 }
+IdentifierList : VAR                                    { $1 }
+ExpressionList : Expr                                   { $1 }
+Type : VAR                                              { $1 }
 
 Expr : NUM                                              { Num $1 }
      | VAR                                              { Var $1 }
@@ -45,12 +51,6 @@ Expr : NUM                                              { Num $1 }
 --          | Expr                                        { $1 }
     
 
-
---Declaration : ConstDecl                                 { $1 }
-
---ConstDecl : "const" ConstSpec                           { $2 }
-
---ConstSpec : IdentifierList Type '=' ExpressionList      { Decl $1 $2 $4 }
 --ConstSpec : IdentifierList VAR '=' Expr                 { Bajs $1 }
 
 

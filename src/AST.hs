@@ -6,8 +6,8 @@ data Op = Add | Sub | Mul deriving (Eq,Show)
 
 
 
-data Stmt = ExprStmt Expr
-          | Decl Id Expr
+data Stmt = Expr Expr
+          | Decl Id Id Expr
           deriving (Eq, Show)
 
 
