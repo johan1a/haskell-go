@@ -16,6 +16,9 @@ tokens :-
   $white+                       ;
   "#".*                         ;
   let                           { \s -> TokenLet }
+  "]"                           { \s -> TokenRBracket }
+  "["                           { \s -> TokenLBracket } 
+  "."                           { \s -> TokenDot }
   in                            { \s -> TokenIn }
   $digit+                       { \s -> TokenNum (read s) }
   "->"                          { \s -> TokenArrow }
@@ -29,8 +32,6 @@ tokens :-
   "const"                       { \s -> TokenConst }
   "type"                        { \s -> TokenType }
   "var"                         { \s -> TokenVar }
-  "["                           { \s -> TokenLBracket }
-  "]"                           { \s -> TokenRBracket }
   $alpha [$alpha $digit \_ \']* { \s -> TokenSym s }
 
 {
@@ -52,6 +53,7 @@ data Token = TokenLet
            | TokenRParen
            | TokenLBracket
            | TokenRBracket
+           | TokenDot
            deriving (Eq,Show)
 
 scanTokens = alexScanTokens

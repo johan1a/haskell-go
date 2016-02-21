@@ -10,9 +10,12 @@ data Type = TypeName TypeName
            deriving (Eq, Show)
 
 data TypeName = TypNameIdentifier Id
-          deriving (Eq, Show)
-              -- | QualifiedIdent QualifiedIdent
+              | TypeNameQualifiedIdent QualifiedIdent
+              deriving (Eq, Show)
 
+data QualifiedIdent = QualifiedIdent PackageName Id
+              deriving (Eq, Show)
+type PackageName = Id
 data TypeLit = ArrayType ArrayLength ElementType
           deriving (Eq, Show)
         --      | StructType ArrayType
