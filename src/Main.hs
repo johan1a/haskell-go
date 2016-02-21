@@ -1,5 +1,6 @@
 import qualified HappyParser
 import Expr
+import Pretty
 
 runEvalWith :: (String -> Expr) -> String -> IO ()
 runEvalWith parseExpr input = do
