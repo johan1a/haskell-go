@@ -12,7 +12,7 @@ import AST
 %token
     "const" { TokenConst }
     "type"  { TokenType }
-    "var"  { TokenVar }
+    "var"   { TokenVar }
     let     { TokenLet }
     in      { TokenIn }
     NUM     { TokenNum $$ }
@@ -30,8 +30,12 @@ import AST
 %left '*'
 %%
 
-Statement : Declaration                                      { Declaration $1 }
-     | Expr                                             { Expr $1 }
+
+Statements : Statement                                  { [$1] }
+            | Statements Statement                      { $2 : $1 }
+
+Statement : Declaration                                 { Declaration $1 }
+          | Expr                                             { Expr $1 }
 
 Declaration : ConstDecl                                 { ConstDecl $1 }
             | TypeDecl                                  { TypeDecl $1 }
@@ -83,6 +87,6 @@ Atom : '(' Expr ')'                                     { $2 }
 parseError :: [Token] -> a
 parseError _ = error "Parse error"
 
-parseExpr :: String -> Statement
+parseExpr :: String -> [Statement]
 parseExpr = stmt . scanTokens
 }
