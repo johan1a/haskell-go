@@ -31,7 +31,13 @@ import AST
 --Declaration : "const" VAR                               {  Bajs $2 }
 
 
-Stmt : Expr                                        { $1 }
+Stmt : Expr                                        { ExprStmt $1 }
+
+Declaration : VAR Expr                                  { Decl $1 $2 }
+
+Expr : NUM                                              { Num $1 }
+     | VAR                                              { Var $1 }
+
 --Type : VAR                                              { Var $1 }
 
 
@@ -47,12 +53,8 @@ Stmt : Expr                                        { $1 }
 --ConstSpec : IdentifierList Type '=' ExpressionList      { Decl $1 $2 $4 }
 --ConstSpec : IdentifierList VAR '=' Expr                 { Bajs $1 }
 
-IdentifierList : VAR                                    { $1 }
 
-ExpressionList : Expr                                   { $1 }
-
-Type : VAR                                              { $1 }
-
+{-
 Expr : let VAR '=' Expr in Expr                         { App (Abs $2 $6) $4 }
      | '\\' VAR '->' Expr                               { Abs $2 $4 }
      | Form                                             { $1 }
@@ -69,6 +71,9 @@ Juxt : Juxt Atom                                        { App $1 $2 }
 Atom : '(' Expr ')'                                     { $2 }
      | NUM                                              { Num $1 }
      | VAR                                              { Var $1 }
+
+
+-}
 
 {
 parseError :: [Token] -> a

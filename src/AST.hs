@@ -5,16 +5,18 @@ type Id = String
 data Op = Add | Sub | Mul deriving (Eq,Show)
 
 
-data Decl =  Id 
 
-data Stmt = Abs Id Stmt
-          | App Stmt Stmt
-          | Var Id
+data Stmt = ExprStmt Expr
+          | Decl Id Expr
+          deriving (Eq, Show)
+
+
+data Expr = Abs Id Expr
+          | App Stmt Expr
           | Num Int
-          | Binop Op Stmt Stmt
-          | Bajs Id
-          deriving (Eq,Show)
-
+          | Var Id
+          | Binop Op Expr Expr
+          deriving (Eq, Show)
 
 --data Statement      = Declaration 
   --                    deriving (Eq, Show)
