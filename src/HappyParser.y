@@ -31,7 +31,8 @@ import AST
 --Declaration : "const" VAR                               {  Bajs $2 }
 
 
-Stmt : Expr                                             { Expr $1 }
+Stmt : Declaration                                      { $1 }
+     | Expr                                             { Expr $1 }
 
 Declaration : ConstDecl                                 { $1 }
 

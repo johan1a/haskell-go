@@ -8,6 +8,7 @@ runEvalWith parseExpr input = do
 
 main :: IO ()
 main = do
+  putStrLn "Enter stuff:"
   input <- getContents
   putStrLn "Input:"
   putStrLn input

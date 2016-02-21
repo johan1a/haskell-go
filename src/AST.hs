@@ -4,10 +4,10 @@ type Id = String
 
 data Op = Add | Sub | Mul deriving (Eq,Show)
 
-
+type Type = Id
 
 data Stmt = Expr Expr
-          | Decl Id Id Expr
+          | Decl Id Type Expr
           deriving (Eq, Show)
 
 
