@@ -27,6 +27,7 @@ tokens :-
   \(                            { \s -> TokenLParen }
   \)                            { \s -> TokenRParen }
   "const"                       { \s -> TokenConst }
+  "type"                        { \s -> TokenType }
   $alpha [$alpha $digit \_ \']* { \s -> TokenSym s }
 
 {
@@ -34,6 +35,7 @@ tokens :-
 data Token = TokenLet
            | TokenIn
            | TokenConst
+           | TokenType
            | TokenLambda
            | TokenNum Int
            | TokenSym String
