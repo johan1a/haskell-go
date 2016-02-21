@@ -7,9 +7,11 @@ data Op = Add | Sub | Mul deriving (Eq,Show)
 data Type = Type Id
            deriving (Eq, Show)
 
-data Stmt = Expr Expr
+data Statement = Expr Expr
           | Declaration Declaration
           deriving (Eq, Show)
+
+type Statements = [Statement]
 
 data Declaration = ConstDecl ConstDecl
                  | TypeDecl TypeDecl
@@ -20,9 +22,10 @@ data ConstDecl = ConstSpec Id Type Expr
 
 data TypeDecl = TypeSpec Id Type  --id type
                 deriving (Eq, Show)
+data VarSpec = VarSpec Id Type Expr
 
 data Expr = Abs Id Expr
-          | App Stmt Expr
+          | App Statement Expr
           | Num Int
           | Var Id
           | Binop Op Expr Expr
