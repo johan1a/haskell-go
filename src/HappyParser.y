@@ -54,10 +54,10 @@ Statement : Declaration                                 { Declaration $1 }
           | SimpleStmt                                  {  SimpleStmt $1 }
 
 SimpleStmt : 
-            Assignment                                  { Assignment $1 }
+           ShortVarDecl                                { $1 }
+           |  Assignment                                  { Assignment $1 }
         --    | SendStmt   
            | IncDecStmt                                 { IncDecStmt $1 }
-           | ShortVarDecl                                { $1 }
            | Expr                                      { ExpressionStmt $1 }
            |  {- empty -}                               { EmptyStmt }
 
@@ -91,6 +91,7 @@ IncDecStmt : Expr "++"                                  { IncStmt $1 }
 
 Declaration : ConstDecl                                 { ConstDecl $1 }
             | TypeDecl                                  { TypeDecl $1 }
+            | VarDecl                                   { $1 }
 
 ConstDecl : "const" ConstSpec                           { $2 }
 ConstSpec : IdentifierList Type '=' ExpressionList      { ConstSpec $1 $2 $4 }
@@ -98,7 +99,7 @@ ConstSpec : IdentifierList Type '=' ExpressionList      { ConstSpec $1 $2 $4 }
 TypeDecl : "type" TypeSpec                              { $2 }
 TypeSpec : VAR Type                                     { TypeSpec $1 $2 }
 
-VarDecl : "var" VarSpec                                 { $2 }
+VarDecl : "var" VarSpec                                 { VarDecl $2 }
 VarSpec : IdentifierList Type '=' ExpressionList        { VarSpec $1 $2 $4 }
 
 IdentifierList : VAR                                    { [$1] }

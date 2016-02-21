@@ -70,6 +70,11 @@ type Statements = [Statement]
 
 data Declaration = ConstDecl ConstDecl
                  | TypeDecl TypeDecl
+                 | VarDecl VarSpec
+                  deriving (Eq, Show)
+
+
+data VarSpec     = VarSpec [Id] Type [Expr]
                   deriving (Eq, Show)
 
 type IdentifierList = [Id]
@@ -82,7 +87,6 @@ data ConstDecl = ConstSpec [Id] Type [Expr]
 data TypeDecl = TypeSpec Id Type 
                 deriving (Eq, Show)
 
-data VarSpec = VarSpec [Id] Type [Expr]
 
 data Expr = Num Int
           | Var Id
