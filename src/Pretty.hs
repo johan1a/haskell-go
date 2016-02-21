@@ -1,4 +1,5 @@
 module Pretty where
+import Expr
 
 pretty :: Expr -> String
 pretty expr = case expr of
