@@ -5,7 +5,7 @@ runEvalWith :: (String -> Expr) -> String -> IO ()
 runEvalWith parseExpr input = do
   let ast = parseExpr input
   putStrLn $ "AST: " ++ (show ast)
-  putStrLn $ "Source: " ++ (source ast)
+  putStrLn $ "Source: " ++ (pretty ast)
 
 main :: IO ()
 main = do

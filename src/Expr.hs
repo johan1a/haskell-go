@@ -11,11 +11,11 @@ data Expr = Abs Id Expr
           | Binop Op Expr Expr
           deriving (Eq,Show)
 
-source :: Expr -> String
-source expr = case expr of
-  (Abs x e) -> parens $ "\\" ++ x ++ " -> " ++ source e
-  (App e1 e2) -> parens $ source e1 ++ " " ++ source e2
-  (Binop op e1 e2) -> parens $ source e1 ++ sourceOp op ++ source e2
+pretty :: Expr -> String
+pretty expr = case expr of
+  (Abs x e) -> parens $ "\\" ++ x ++ " -> " ++ pretty e
+  (App e1 e2) -> parens $ pretty e1 ++ " " ++ pretty e2
+  (Binop op e1 e2) -> parens $ pretty e1 ++ sourceOp op ++ pretty e2
   (Var x) -> x
   (Num n) -> show n
   where sourceOp Add = " + "

@@ -7,7 +7,7 @@ import Expr
 %wrapper "basic"
 
 $digit = 0-9
-$alpha = [a-zA-Z]
+$alpha = [a-zA-ZåäöÅÄÖ]
 $eol   = [\n]
 
 tokens :-
