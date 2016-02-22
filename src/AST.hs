@@ -2,6 +2,8 @@ module AST where
 
 type Id = String
 
+data Block = Block [Statement]
+
 data Type = TypeName TypeName 
           | TypeLit TypeLit
           | Type Id
@@ -31,8 +33,6 @@ type ElementType = Type
 data Statement = Expr Expr
               | Declaration Declaration
               | SimpleStmt SimpleStmt
-          deriving (Eq, Show)
-              
        --       | LabeledStmt 
       --        | GoStmt 
      --         | ReturnStmt 
@@ -41,11 +41,19 @@ data Statement = Expr Expr
          --     | GotoStmt 
            --   | FallthroughStmt 
           --    | Block 
-         --     | IfStmt 
+                | IfStmt IfStmt
         --      | SwitchStmt 
        --       | SelectStmt 
       --        | ForStmt 
              -- | DeferStmt 
+                deriving (Eq, Show)
+
+-- "if" [ SimpleStmt ";" ] Expression Block [ "else" ( IfStmt | Block ) ] .
+data IfStmt = IfStmt1 SimpleStmt Expression Block [IfStmtOrBlock]
+            | IfStmt2 Expression Block [IfStmtOrBlock]
+
+data IfStmtOrBlock = IfStmtOrBlock1 IfStmt
+                   | IfStmtOrBlock2 Block
 
 data SimpleStmt = EmptyStmt 
                 | ExpressionStmt Expr
@@ -53,7 +61,7 @@ data SimpleStmt = EmptyStmt
                 | IncDecStmt IncDecStmt
                 | Assignment Assignment
                 | ShortVarDecl [Id] [Expr]  
-          deriving (Eq, Show)
+                deriving (Eq, Show)
 
 data IncDecStmt = IncStmt Expr
                 | DecStmt Expr
@@ -63,8 +71,18 @@ data Assignment = Assign [Expr] [Expr]
                 | OpAssign Op [Expr] [Expr]
                 deriving (Eq, Show)
 
-data Op = Op String
-          deriving (Eq, Show)
+data Op = AddOp
+        | SubOp
+        | PipeOp
+        | UpOp
+        | MulOp
+        | DivOp
+        | ModOp
+        | LeftOp
+        | RightOp
+        | AmpOp
+        | AmpUpOp
+        deriving (Eq, Show)
 
 type Statements = [Statement]
 

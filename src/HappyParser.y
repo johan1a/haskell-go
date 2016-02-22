@@ -46,45 +46,46 @@ import AST
 %left '*'
 %%
 
+-- Should really be StatementList with fancy semicolon insertion
+Block : '{' Statements '}'                           { $2 }
 
 Statements : Statement                                  { [$1] }
-           | Statements Statement                      { $2 : $1 }
+           | Statements Statement                       { $1 ++ [$2]}
 
 Statement : Declaration                                 { Declaration $1 }
-          | SimpleStmt                                  {  SimpleStmt $1 }
+          | SimpleStmt                                  { SimpleStmt $1 }
+          | IfStmt                                      { IfStmt $1 }
 
 SimpleStmt : 
-           ShortVarDecl                                { $1 }
-           |  Assignment                                  { Assignment $1 }
+           ShortVarDecl                                 { $1 }
+           |  Assignment                                { Assignment $1 }
         --    | SendStmt   
            | IncDecStmt                                 { IncDecStmt $1 }
-           | Expr                                      { ExpressionStmt $1 }
+           | Expr                                       { ExpressionStmt $1 }
            |  {- empty -}                               { EmptyStmt }
+
+IfStmt : 
 
 ShortVarDecl : IdentifierList ":=" ExpressionList       { ShortVarDecl $1 $3 }
 
 Assignment : ExpressionList '=' ExpressionList          { Assign $1 $3 }
-           | ExpressionList Op '=' ExpressionList       { OpAssign $2 $1 $4 }
+           | ExpressionList AssignOp '=' ExpressionList { OpAssign $2 $1 $4 }
  
-Op : OP                                                 { Op $1 }
+AssignOp : AddOp '='                                    { $1 }
+         | MulOp '='                                    { $1 }
 
---op är fel
+AddOp   : '+'                                           { AddOp }
+        | '-'                                           { SubOp }
+        | '|'                                           { PipeOp }
+        | '^'                                           { UpOp }
 
-
- {-
-add_op     : TokenAdd                                        { Op $1 }
-            | '-'                                       { Op $1 }
-            | '|'                                       { Op $1 }
-            | '^'                                       { Op $1 }
-
-mul_op     : '*'                                        { Op $1 }
-           | '/'                                        { Op $1 }  
-           | '%'                                        { Op $1 }
-           | "<<"                                       { Op $1 } 
-           | ">>"                                       { Op $1 }
-           | '&'                                        { Op $1 }
-           | "&^"                                       { Op $1 }
--}
+MulOp  : '*'                                            { MulOp }
+       | '/'                                            { DivOp }  
+       | '%'                                            { ModOp }
+       | "<<"                                           { LeftOp } 
+       | ">>"                                           { RightOp }
+       | '&'                                            { AmpOp }
+       | "&^"                                           { AmpUpOp }
 
 IncDecStmt : Expr "++"                                  { IncStmt $1 }
            | Expr "--"                                  { DecStmt $1 }
@@ -103,10 +104,10 @@ VarDecl : "var" VarSpec                                 { VarDecl $2 }
 VarSpec : IdentifierList Type '=' ExpressionList        { VarSpec $1 $2 $4 }
 
 IdentifierList : VAR                                    { [$1] }
-               | IdentifierList ',' VAR                 { $3 : $1 }
+               | IdentifierList ',' VAR                 { $1 ++ [$3] }
 
 ExpressionList : Expr                                   { [$1] }
-               | ExpressionList ',' Expr                { $3 : $1 } 
+               | ExpressionList ',' Expr                { $1 ++ [$3] } 
 
 Type : TypeName                                         { TypeName $1 }
      | TypeLit                                          { $1 }
