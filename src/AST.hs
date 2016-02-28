@@ -72,8 +72,19 @@ data Assignment = Assign [Expr] [Expr]
                 | OpAssign Op [Expr] [Expr]
                 deriving (Eq, Show)
 
-data Op = Op String
-          deriving (Eq, Show)
+data Op = AddOp
+        | SubOp
+        | PipeOp
+        | UpOp
+        | MulOp
+        | DivOp
+        | ModOp
+        | LeftOp
+        | RightOp
+        | AmpOp
+        | AmpUpOp
+        deriving (Eq, Show)
+
 
 type Statements = [Statement]
 

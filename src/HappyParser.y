@@ -41,10 +41,14 @@ import AST
     ":="    { TokenShortVarDecl }
     "++"    { TokenInc }
     "--"    { TokenDec }
+    '{'     { TokenLCParen }
+    '}'     { TokenRCParen }
 
 %left '+' '-'
 %left '*'
 %%
+
+Block : '{' Statements '}'                           { $2 }
 
 
 Statements : Statement                                  { [$1] }
@@ -64,27 +68,25 @@ SimpleStmt :
 ShortVarDecl : IdentifierList ":=" ExpressionList       { ShortVarDecl $1 $3 }
 
 Assignment : ExpressionList '=' ExpressionList          { Assign $1 $3 }
-           | ExpressionList Op '=' ExpressionList       { OpAssign $2 $1 $4 }
+           | ExpressionList AssignOp '=' ExpressionList { OpAssign $2 $1 $4 }
+
  
-Op : OP                                                 { Op $1 }
+AssignOp : AddOp '='                                    { $1 }
+         | MulOp '='                                    { $1 }
 
---op är fel
+AddOp   : '+'                                           { AddOp }
+        | '-'                                           { SubOp }
+        | '|'                                           { PipeOp }
+        | '^'                                           { UpOp }
 
+MulOp  : '*'                                            { MulOp }
+       | '/'                                            { DivOp }
+       | '%'                                            { ModOp }
+       | "<<"                                           { LeftOp }
+       | ">>"                                           { RightOp }
+       | '&'                                            { AmpOp }
+       | "&^"                                           { AmpUpOp }
 
- {-
-add_op     : TokenAdd                                        { Op $1 }
-            | '-'                                       { Op $1 }
-            | '|'                                       { Op $1 }
-            | '^'                                       { Op $1 }
-
-mul_op     : '*'                                        { Op $1 }
-           | '/'                                        { Op $1 }  
-           | '%'                                        { Op $1 }
-           | "<<"                                       { Op $1 } 
-           | ">>"                                       { Op $1 }
-           | '&'                                        { Op $1 }
-           | "&^"                                       { Op $1 }
--}
 
 IncDecStmt : Expr "++"                                  { IncStmt $1 }
            | Expr "--"                                  { DecStmt $1 }
