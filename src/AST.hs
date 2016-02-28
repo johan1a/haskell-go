@@ -3,7 +3,7 @@ module AST where
 type Id = String
 
 data Block = Block [Statement]
-        deriving (Eq, Show)
+           deriving (Eq, Show)
 
 data Type = TypeName TypeName 
           | TypeLit TypeLit
@@ -49,13 +49,16 @@ data Statement = Expr Expr
              -- | DeferStmt 
               deriving (Eq, Show)
 
-data IfStmt = Ifstmt1 SimpleStmt Expr Block [IfStmtOrBlock]
-            | IfStmt2 Expr Block [IfStmtOrBlock]
+-- "if" [ SimpleStmt ";" ] Expression Block [ "else" ( IfStmt | Block ) ] .
+data IfStmt = Ifstmt1 Expr Block
+            | Ifstmt2 Expr Block Else
+            | Ifstmt3 SimpleStmt Expr Block 
+            | Ifstmt4 SimpleStmt Expr Block Else
             deriving (Eq, Show)
 
-data IfStmtOrBlock = IfStmtOrBlock1 IfStmt
-                    | IfStmtOrBlock2 Block
-                    deriving (Eq, Show)
+data Else = Else1 IfStmt
+          | Else2 Block
+          deriving (Eq, Show)
 data SimpleStmt = EmptyStmt 
                 | ExpressionStmt Expr
         --        | SendStmt 
