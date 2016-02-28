@@ -2,6 +2,9 @@ module AST where
 
 type Id = String
 
+data Block = Block [Statement]
+        deriving (Eq, Show)
+
 data Type = TypeName TypeName 
           | TypeLit TypeLit
           | Type Id
@@ -31,8 +34,6 @@ type ElementType = Type
 data Statement = Expr Expr
               | Declaration Declaration
               | SimpleStmt SimpleStmt
-          deriving (Eq, Show)
-              
        --       | LabeledStmt 
       --        | GoStmt 
      --         | ReturnStmt 
@@ -41,12 +42,20 @@ data Statement = Expr Expr
          --     | GotoStmt 
            --   | FallthroughStmt 
           --    | Block 
-         --     | IfStmt 
+                | IfStmt IfStmt
         --      | SwitchStmt 
        --       | SelectStmt 
       --        | ForStmt 
              -- | DeferStmt 
+              deriving (Eq, Show)
 
+data IfStmt = Ifstmt1 SimpleStmt Expr Block [IfStmtOrBlock]
+            | IfStmt2 Expr Block [IfStmtOrBlock]
+            deriving (Eq, Show)
+
+data IfStmtOrBlock = IfStmtOrBlock1 IfStmt
+                    | IfStmtOrBlock2 Block
+                    deriving (Eq, Show)
 data SimpleStmt = EmptyStmt 
                 | ExpressionStmt Expr
         --        | SendStmt 
