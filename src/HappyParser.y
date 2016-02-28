@@ -52,7 +52,7 @@ Block : '{' Statements '}'                           { $2 }
 
 
 Statements : Statement                                  { [$1] }
-           | Statements Statement                      { $2 : $1 }
+           | Statements Statement                      { $1 ++ [$2] }
 
 Statement : Declaration                                 { Declaration $1 }
           | SimpleStmt                                  {  SimpleStmt $1 }
@@ -105,10 +105,10 @@ VarDecl : "var" VarSpec                                 { VarDecl $2 }
 VarSpec : IdentifierList Type '=' ExpressionList        { VarSpec $1 $2 $4 }
 
 IdentifierList : VAR                                    { [$1] }
-               | IdentifierList ',' VAR                 { $3 : $1 }
+               | IdentifierList ',' VAR                 { $1 ++ [$3] }
 
 ExpressionList : Expr                                   { [$1] }
-               | ExpressionList ',' Expr                { $3 : $1 } 
+               | ExpressionList ',' Expr                { $1 ++ [$3] } 
 
 Type : TypeName                                         { TypeName $1 }
      | TypeLit                                          { $1 }

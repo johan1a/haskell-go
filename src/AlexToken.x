@@ -48,7 +48,7 @@ tokens :-
     ":="                        { \s -> TokenShortVarDecl }
     "++"                        { \s -> TokenInc }
     "--"                        { \s -> TokenDec }
-    "{"                        { \s -> TokenLCParen }
+    "{"                         { \s -> TokenLCParen }
     "}"                         { \s -> TokenRCParen }
   $alpha [$alpha $digit \_ \"]* { \s -> TokenSym s }
 
