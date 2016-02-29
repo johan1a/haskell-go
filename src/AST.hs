@@ -59,6 +59,7 @@ data IfStmt = Ifstmt1 Expr Block
 data Else = Else1 IfStmt
           | Else2 Block
           deriving (Eq, Show)
+          
 data SimpleStmt = EmptyStmt 
                 | ExpressionStmt Expr
         --        | SendStmt 
