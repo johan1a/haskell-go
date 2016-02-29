@@ -2,11 +2,26 @@ module Main where
 
 import AST
 import Test.HUnit
+import System.Exit
 
-tests = TestList [TestLabel "test1" test1]
-test1 = TestCase (assertEqual "for (foo 3)," (1 + 2) (3))
 
 main :: IO ()
-main = do _ <- runTestTT $ tests
-          return ()
+main = do
+  results <- runTestTT $ tests
+  if (errors results + failures results == 0)
+    then
+      exitWith ExitSuccess
+    else
+      exitWith (ExitFailure 1)
 
+tests = TestList $ map TestCase testCases 
+
+testCases = 
+    [assertEqual "Num" "Num 1" $ show $ num,
+    assertEqual "Var" "Var \"s\"" $ show $ var,
+    assertEqual "" "Type \"type\"" $ show $ Type "type",
+    assertEqual "" "TypeSpec \"id\" (Type \"type\")" $ show ( TypeSpec "id" (Type "type") )
+      ]
+
+num  = Num 1
+var = Var "s"

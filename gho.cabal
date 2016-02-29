@@ -8,7 +8,7 @@ Build-Type:     Simple
   
 Executable gho
   Main-Is:        Main.hs
-  Other-modules:  AlexToken,HappyParser
+  Other-modules:  AlexToken,HappyParser, Verify
   Hs-Source-Dirs: src
   Build-Depends:  base >= 4,parsec >= 3,array
   GHC-Options:    -Wall
