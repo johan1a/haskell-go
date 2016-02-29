@@ -13,3 +13,8 @@ Executable gho
   Build-Depends:  base >= 4,parsec >= 3,array
   GHC-Options:    -Wall
 
+test-suite tests
+    type:       exitcode-stdio-1.0
+    Hs-Source-Dirs: test
+    main-is:    MainTest.hs
+    build-depends: base, HUnit
