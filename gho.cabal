@@ -14,7 +14,10 @@ Executable gho
   GHC-Options:    -Wall
 
 test-suite tests
-    type:       exitcode-stdio-1.0
-    Hs-Source-Dirs: test
-    main-is:    MainTest.hs
-    build-depends: base, HUnit
+    type:           exitcode-stdio-1.0
+    Hs-Source-Dirs: test, src
+    main-is:        MainTest.hs
+    build-depends:  base, 
+                    HUnit, 
+                    parsec >= 3,
+                    array
