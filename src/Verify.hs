@@ -24,7 +24,7 @@ testLabel x = do
 
 makeTest :: String -> IO Test
 makeTest path = do
-    x <- readFile $ "test/" ++ path ++ ".in"
+    x <- readFile $ "test/" ++ path ++ ".go"
     expected <- readFile $ "test/" ++ path ++ ".expected"
     let a = TestCase (assertEqual path expected $ testParse x)
     return a
