@@ -6,7 +6,11 @@ import Test.HUnit
 
 
 testFiles :: [String]
-testFiles = ["var1"]
+testFiles = ["var1",
+            "num1",
+            "varDecl1",
+            "constDecl1",
+            "typeDecl1"]
 
 testList :: [String] -> IO Test
 testList xs = do
