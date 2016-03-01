@@ -52,6 +52,7 @@ tokens :-
     "}"                         { \s -> TokenRCParen }
     "if"                        { \s -> TokenIf }
     "else"                      { \s -> TokenElse }
+    ";"                         { \s -> TokenSemiColon }
   $alpha [$alpha $digit \_ \"]* { \s -> TokenSym s }
 
 {
@@ -91,6 +92,7 @@ data Token = TokenLet
            | TokenDec
            | TokenLCParen
            | TokenRCParen
+           | TokenSemiColon
            | TokenIf
            | TokenElse
            deriving (Eq,Show)

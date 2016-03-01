@@ -10,8 +10,10 @@ testFiles = ["var1",
             "num1",
             "varDecl1",
             "constDecl1",
-            "typeDecl1"]
-
+            "typeDecl1",
+            "ifStmt1",
+            "block1"]
+ 
 testList :: [String] -> IO Test
 testList xs = do
     list <- mapM testLabel xs
