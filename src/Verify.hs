@@ -42,3 +42,6 @@ verify = do
 testNum = do
     let actual = show (Num 1)
     TestCase (assertEqual "for (foo 3)," "dsa" actual)
+
+
+    
