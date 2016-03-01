@@ -53,16 +53,16 @@ import AST
 
 
 Statements : Statement                                  { [$1] }
-           | Statements Statement                      { $1 ++ [$2] }
-
--- Should really be StatementList with fancy semicolon insertion
-Block : '{' Statements '}'                           { Block $2 }
-
+           | Statements Statement                       { $1 ++ [$2] }
 
 Statement : Declaration                                 { Declaration $1 }
-          | SimpleStmt                                  {  SimpleStmt $1 }
+          | SimpleStmt                                  { SimpleStmt $1 }
+          | Block                                       { BlockStmt $1 }
           | IfStmt                                      { IfStmt $1 }
 
+
+-- Should really be StatementList with fancy semicolon insertion
+Block : '{' Statements '}'                              { Block $2 }
 
 SimpleStmt : 
            ShortVarDecl                                 { $1 }
@@ -147,6 +147,7 @@ TypeLit : ArrayType                                     { TypeLit $1 }
 ArrayType : '[' Expr ']' ElementType                    { ArrayType $2 $4 } 
 
 ElementType : Type                                      { $1 } 
+
 
 Expr : NUM                                              { Num $1 }
      | VAR                                              { Var $1 }

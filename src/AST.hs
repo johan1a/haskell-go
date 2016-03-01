@@ -41,7 +41,7 @@ data Statement = Expr Expr
           --    | ContinueStmt 
          --     | GotoStmt 
            --   | FallthroughStmt 
-          --    | Block 
+                | BlockStmt Block 
                 | IfStmt IfStmt
         --      | SwitchStmt 
        --       | SelectStmt 
