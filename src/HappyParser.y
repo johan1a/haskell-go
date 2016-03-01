@@ -41,20 +41,26 @@ import AST
     ":="    { TokenShortVarDecl }
     "++"    { TokenInc }
     "--"    { TokenDec }
+    '{'     { TokenLCParen }
+    '}'     { TokenRCParen }
+    ';'     { TokenRCParen }
+    "if"    { TokenIf }
+    "else"  { TokenElse }
 
 %left '+' '-'
 %left '*'
 %%
 
 -- Should really be StatementList with fancy semicolon insertion
-Block : '{' Statements '}'                           { $2 }
+--Block : '{' Statements '}'                           { $2 }
 
 Statements : Statement                                  { [$1] }
-           | Statements Statement                       { $1 ++ [$2]}
+           | Statements Statement                      { $1 ++ [$2] }
 
 Statement : Declaration                                 { Declaration $1 }
-          | SimpleStmt                                  { SimpleStmt $1 }
-          | IfStmt                                      { IfStmt $1 }
+          | SimpleStmt                                  {  SimpleStmt $1 }
+         -- | IfStmt                                      { IfStmt $1 }
+
 
 SimpleStmt : 
            ShortVarDecl                                 { $1 }
@@ -64,8 +70,21 @@ SimpleStmt :
            | Expr                                       { ExpressionStmt $1 }
            |  {- empty -}                               { EmptyStmt }
 
-IfStmt : 
+{-
+IfStmt : "if" Expr Block                                { Ifstmt1 ( $2) (Block $3) }
+       | "if" Expr Block "else" Else                    { Ifstmt2 ( $2) (Block $3) $5 }
+       | "if" SimpleStmt ';' Expr Block                 { Ifstmt3 $2 ($4) (Block $5) }
+       | "if" SimpleStmt ';' Expr Block "else" Else     { Ifstmt4 $2 ( $4) (Block $5) $7 }
+-}
+SimpleStmts : SimpleStmt ';'                            { [$1] }
+            | SimpleStmts SimpleStmt ';'                { $1 ++ [$2] }
+{-
+ElseList : Else                                         { [$1] }
+         | ElseList Else                                { $1 ++ [$2] }
 
+Else : "else" IfStmt                                    { Else1 $2 }
+     | "else" Block                                     { Else2 (Block $2) }
+-}
 ShortVarDecl : IdentifierList ":=" ExpressionList       { ShortVarDecl $1 $3 }
 
 Assignment : ExpressionList '=' ExpressionList          { Assign $1 $3 }
@@ -80,12 +99,13 @@ AddOp   : '+'                                           { AddOp }
         | '^'                                           { UpOp }
 
 MulOp  : '*'                                            { MulOp }
-       | '/'                                            { DivOp }  
+       | '/'                                            { DivOp }
        | '%'                                            { ModOp }
-       | "<<"                                           { LeftOp } 
+       | "<<"                                           { LeftOp }
        | ">>"                                           { RightOp }
        | '&'                                            { AmpOp }
        | "&^"                                           { AmpUpOp }
+
 
 IncDecStmt : Expr "++"                                  { IncStmt $1 }
            | Expr "--"                                  { DecStmt $1 }

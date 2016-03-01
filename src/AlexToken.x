@@ -48,6 +48,10 @@ tokens :-
     ":="                        { \s -> TokenShortVarDecl }
     "++"                        { \s -> TokenInc }
     "--"                        { \s -> TokenDec }
+    "{"                         { \s -> TokenLCParen }
+    "}"                         { \s -> TokenRCParen }
+    "if"                        { \s -> TokenIf }
+    "else"                      { \s -> TokenElse }
   $alpha [$alpha $digit \_ \"]* { \s -> TokenSym s }
 
 {
@@ -85,6 +89,10 @@ data Token = TokenLet
            | TokenShortVarDecl
            | TokenInc
            | TokenDec
+           | TokenLCParen
+           | TokenRCParen
+           | TokenIf
+           | TokenElse
            deriving (Eq,Show)
 
 scanTokens = alexScanTokens
