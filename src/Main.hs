@@ -19,4 +19,6 @@ main = do
   putStrLn "\nUsing Happy:"
   runEvalWith HappyParser.parseExpr input
 
+
+parse :: String -> String
 parse = show . HappyParser.parseExpr 

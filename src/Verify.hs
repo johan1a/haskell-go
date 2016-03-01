@@ -5,43 +5,40 @@ import AST
 import Test.HUnit
 
 
+testFiles :: [String]
+testFiles = ["var1"]
 
-parse = show . HappyParser.parseExpr 
+testList :: [String] -> IO Test
+testList xs = do
+    list <- mapM testLabel xs
+    return $ TestList list
+    
+testLabel :: String -> IO Test
+testLabel x = do
+    test <- makeTest x
+    return $ TestLabel x test
 
-
-
-
-testParse input = show $ HappyParser.parseExpr input
-
-mapTuple f (a1, a2) = (f a1 a2)
-
-inputPars = [("bla", "tmp")]
-
-makeTests inputPairs = mapTuple doTest inputPairs
-
-tests = do
-    test1 <- (doTest "bla" "tmp")
-    return $ TestList [TestLabel "test1" test1]
-
-doTest expectedPath inputPath = do
-    input <- readFile inputPath
-    expected <- readFile expectedPath
-    let a = TestCase (assertEqual inputPath expected $ testParse input)
+makeTest :: String -> IO Test
+makeTest path = do
+    x <- readFile $ "test/" ++ path ++ ".in"
+    expected <- readFile $ "test/" ++ path ++ ".expected"
+    let a = TestCase (assertEqual path expected $ testParse x)
     return a
+
+tests :: IO Test
+tests = do 
+    test1 <- makeTest "var1"
+    return $ TestList [TestLabel "test1" test1]
 
 verify :: IO ()
 verify = do 
-    tests1 <- tests
+    tests1 <- testList testFiles
     _ <- runTestTT $ tests1
     return ()
 
+testParse :: String -> String
+testParse = show . HappyParser.parseExpr
 
 
 
 
-testNum = do
-    let actual = show (Num 1)
-    TestCase (assertEqual "for (foo 3)," "dsa" actual)
-
-
-    
