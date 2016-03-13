@@ -1,1 +1,1 @@
-[SimpleStmt (ExpressionStmt (Var "a"))]
+[SimpleStmt (ExpressionStmt (IdUse "a"))]

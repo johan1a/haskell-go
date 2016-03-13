@@ -1,1 +1,1 @@
-[IfStmt (Ifstmt1 (Var "b") (Block [SimpleStmt (ExpressionStmt (Var "a"))]))]
+[IfStmt (Ifstmt1 (IdUse "b") (Block [SimpleStmt (ExpressionStmt (IdUse "a"))]))]
