@@ -50,10 +50,10 @@ bind :: Expr -> Expr -> State -> State
 bind id val state = 
     case id of
         Num x -> error "x"
-        Var name -> Map.insert name val state
+        IdUse name -> Map.insert name val state
 
 env state x = fromJust  $ Map.lookup x state
 
 lookup :: State -> Expr -> Expr
-lookup state (Var x) = env state x
+lookup state (IdUse x) = env state x
 lookup _ (Num n) = (Num n)

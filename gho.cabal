@@ -8,12 +8,13 @@ Build-Type:     Simple
   
 Executable gho
   Main-Is:          Main.hs
-  Other-modules:    AlexToken
+  Other-modules:    AlexToken, HappyParser
   exposed-modules:  Eval, AST
   Hs-Source-Dirs:   src
   Build-Depends:    base >= 4,
                     parsec >= 3,
                     array,
+                    HUnit,
                     containers
 
   GHC-Options:    -Wall

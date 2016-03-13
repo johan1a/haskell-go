@@ -111,8 +111,7 @@ data TypeDecl = TypeSpec Name Type
 
 
 data Expr = Num Int
-          | Var Name
+          | IdUse Name
           deriving (Eq, Show)
 
-data Id = IdUse Name
 data IdDecl = IdDecl Name

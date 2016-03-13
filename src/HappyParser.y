@@ -150,7 +150,7 @@ ElementType : Type                                      { $1 }
 
 
 Expr : NUM                                              { Num $1 }
-     | VAR                                              { Var $1 }
+     | VAR                                              { IdUse $1 }
 
 
 
