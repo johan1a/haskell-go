@@ -91,24 +91,14 @@ data Op = AddOp
 
 type Statements = [Statement]
 
-data Declaration = ConstDecl ConstDecl
-                 | TypeDecl TypeDecl
-                 | VarDecl VarSpec
-                  deriving (Eq, Show)
-
-data VarSpec     = VarSpec [IdDecl] Type [Expr]
+data Declaration = ConstDecl [IdDecl] Type [Expr]  
+                 | TypeDecl Name Type 
+                 | VarDecl [IdDecl] Type [Expr]
                   deriving (Eq, Show)
 
 type IdentifierList = [Name]
 
 type ExpressionList = [Expr]
-
-data ConstDecl = ConstSpec [IdDecl] Type [Expr]  
-                deriving (Eq, Show)
-
-data TypeDecl = TypeSpec Name Type 
-                deriving (Eq, Show)
-
 
 data Expr = Num Int
           | IdUse Name

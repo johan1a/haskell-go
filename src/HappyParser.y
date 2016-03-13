@@ -113,18 +113,18 @@ MulOp  : '*'                                            { MulOp }
 IncDecStmt : Expr "++"                                  { IncStmt $1 }
            | Expr "--"                                  { DecStmt $1 }
 
-Declaration : ConstDecl                                 { ConstDecl $1 }
-            | TypeDecl                                  { TypeDecl $1 }
+Declaration : ConstDecl                                 { $1 }
+            | TypeDecl                                  { $1 }
             | VarDecl                                   { $1 }
 
 ConstDecl : "const" ConstSpec                           { $2 }
-ConstSpec : IdentifierList Type '=' ExpressionList      { ConstSpec $1 $2 $4 }
+ConstSpec : IdentifierList Type '=' ExpressionList      { ConstDecl $1 $2 $4 }
 
 TypeDecl : "type" TypeSpec                              { $2 }
-TypeSpec : VAR Type                                     { TypeSpec $1 $2 }
+TypeSpec : VAR Type                                     { TypeDecl $1 $2 }
 
-VarDecl : "var" VarSpec                                 { VarDecl $2 }
-VarSpec : IdentifierList Type '=' ExpressionList        { VarSpec $1 $2 $4 }
+VarDecl : "var" VarSpec                                 { $2 }
+VarSpec : IdentifierList Type '=' ExpressionList        { VarDecl $1 $2 $4 }
 
 IdentifierList : VAR                                    { [(IdDecl $1)] }
                | IdentifierList ',' VAR                 { $1 ++ [(IdDecl $3)] }
