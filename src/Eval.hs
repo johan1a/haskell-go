@@ -2,22 +2,21 @@ module Eval where
 import Data.Map (Map)
 import qualified Data.Map as Map
 import AST
+import Data.Maybe
 
 data Val = FunVal Expr
          | NumVal Int
 
 type Env = Name -> Val
-
+{-
 empty :: Env
 empty = \_ -> error "Not found!"
 
 eval :: Expr -> Val
 eval = evalIn empty
 
-evalIn :: Env -> Expr -> Val
-evalIn env (Var x) = env x
-evalIn _ (Num n) = NumVal n
 
+-}
 --evalStmt :: Statement -> Env
 --evalStmt stmt = 
 --    case stmt of 
@@ -44,9 +43,17 @@ executeAssign  stmt state =
 
 type State = Map Name Expr
 
+empty :: State
+empty = Map.empty
 
 bind :: Expr -> Expr -> State -> State
 bind id val state = 
     case id of
         Num x -> error "x"
         Var name -> Map.insert name val state
+
+env state x = fromJust  $ Map.lookup x state
+
+lookup :: State -> Expr -> Expr
+lookup state (Var x) = env state x
+lookup _ (Num n) = (Num n)
