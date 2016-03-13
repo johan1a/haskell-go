@@ -65,7 +65,7 @@ data SimpleStmt = EmptyStmt
         --        | SendStmt 
                 | IncDecStmt IncDecStmt
                 | Assignment Assignment
-                | ShortVarDecl [Name] [Expr]  
+                | ShortVarDecl [IdDecl] [Expr]  
                 deriving (Eq, Show)
 
 data IncDecStmt = IncStmt Expr
@@ -96,14 +96,14 @@ data Declaration = ConstDecl ConstDecl
                  | VarDecl VarSpec
                   deriving (Eq, Show)
 
-data VarSpec     = VarSpec [Name] Type [Expr]
+data VarSpec     = VarSpec [IdDecl] Type [Expr]
                   deriving (Eq, Show)
 
 type IdentifierList = [Name]
 
 type ExpressionList = [Expr]
 
-data ConstDecl = ConstSpec [Name] Type [Expr]  
+data ConstDecl = ConstSpec [IdDecl] Type [Expr]  
                 deriving (Eq, Show)
 
 data TypeDecl = TypeSpec Name Type 
@@ -115,3 +115,4 @@ data Expr = Num Int
           deriving (Eq, Show)
 
 data IdDecl = IdDecl Name
+            deriving (Eq, Show)
