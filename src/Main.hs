@@ -4,6 +4,7 @@ import qualified HappyParser
 import AST
 import Test.HUnit
 import Verify
+import Eval
 
 runEvalWith :: (String -> [Statement]) -> String -> IO ()
 runEvalWith parseExpr input = do
