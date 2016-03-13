@@ -1,15 +1,12 @@
 module Eval where
+import Data.Map (Map)
 import qualified Data.Map as Map
 import AST
 
-data Val = FunVal Env Id Expr
+data Val = FunVal Expr
          | NumVal Int
 
-instance Show Val where
-  show (FunVal _ _ _) = "<fun>"
-  show (NumVal n) = show n
-
-type Env = Id -> Val
+type Env = Name -> Val
 
 empty :: Env
 empty = \_ -> error "Not found!"
@@ -29,17 +26,27 @@ evalIn _ (Num n) = NumVal n
 
 --state, program state
 
+execute :: SimpleStmt -> State -> State
 execute stmt state = 
     case stmt of
         Assignment a -> executeAssign a state
         _ -> error "ey"
 
+
+-- TODO assigns first in lhs to first in rhs.
+-- does not yet support multiple declarations at once
+executeAssign :: Assignment -> State -> State
 executeAssign  stmt state =
     case stmt of
-        Assign lhs rhs -> 2 --bind lhs rhs state 
+        Assign lhs rhs -> bind (lhs !! 0) (rhs !! 0) state 
         --OpAssign op e1 e2 -> 3
         _ -> error "ey"
 
---type state = Map
+type State = Map Name Expr
 
-bind id val state = Map.insert id val state
+
+bind :: Expr -> Expr -> State -> State
+bind id val state = 
+    case id of
+        Num x -> error "x"
+        Var name -> Map.insert name val state

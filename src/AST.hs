@@ -1,22 +1,22 @@
 module AST where
 
-type Id = String
+type Name = String
 
 data Block = Block [Statement]
            deriving (Eq, Show)
 
 data Type = TypeName TypeName 
           | TypeLit TypeLit
-          | Type Id
+          | Type Name
            deriving (Eq, Show)
 
-data TypeName = TypNameIdentifier Id
+data TypeName = TypNameIdentifier Name
               | TypeNameQualifiedIdent QualifiedIdent
               deriving (Eq, Show)
 
-data QualifiedIdent = QualifiedIdent PackageName Id
+data QualifiedIdent = QualifiedIdent PackageName Name
               deriving (Eq, Show)
-type PackageName = Id
+type PackageName = Name
 data TypeLit = ArrayType ArrayLength ElementType
           deriving (Eq, Show)
         --      | StructType ArrayType
@@ -65,7 +65,7 @@ data SimpleStmt = EmptyStmt
         --        | SendStmt 
                 | IncDecStmt IncDecStmt
                 | Assignment Assignment
-                | ShortVarDecl [Id] [Expr]  
+                | ShortVarDecl [Name] [Expr]  
                 deriving (Eq, Show)
 
 data IncDecStmt = IncStmt Expr
@@ -96,21 +96,23 @@ data Declaration = ConstDecl ConstDecl
                  | VarDecl VarSpec
                   deriving (Eq, Show)
 
-data VarSpec     = VarSpec [Id] Type [Expr]
+data VarSpec     = VarSpec [Name] Type [Expr]
                   deriving (Eq, Show)
 
-type IdentifierList = [Id]
+type IdentifierList = [Name]
 
 type ExpressionList = [Expr]
 
-data ConstDecl = ConstSpec [Id] Type [Expr]  
+data ConstDecl = ConstSpec [Name] Type [Expr]  
                 deriving (Eq, Show)
 
-data TypeDecl = TypeSpec Id Type 
+data TypeDecl = TypeSpec Name Type 
                 deriving (Eq, Show)
 
 
 data Expr = Num Int
-          | Var Id
+          | Var Name
           deriving (Eq, Show)
 
+data Id = IdUse Name
+data IdDecl = IdDecl Name
