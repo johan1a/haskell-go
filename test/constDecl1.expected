@@ -1,1 +1,1 @@
-[Declaration (ConstDecl (ConstSpec [IdDecl "x"] (TypeName (TypNameIdentifier "int")) [Num 2]))]
+[Declaration (ConstDecl [IdDecl "x"] (TypeName (TypNameIdentifier "int")) [Num 2])]

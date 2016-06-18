@@ -14,11 +14,11 @@ runEvalWith parseExpr input = do
 main :: IO ()
 main = do
   putStrLn "Enter stuff:"
-  input <- getContents
+  input <- getLine  
   putStrLn "Input:"
-  putStrLn input
   putStrLn "\nUsing Happy:"
   runEvalWith HappyParser.parseExpr input
+  return ()
 
 
 parse :: String -> String
