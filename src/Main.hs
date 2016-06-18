@@ -1,6 +1,7 @@
 module Main where
 
 import qualified HappyParser
+import Data.Map
 import System.Environment
 import AST
 import Test.HUnit
@@ -17,7 +18,6 @@ badRepl = do
   putStrLn "Enter stuff:"
   input <- getLine  
   putStrLn "Input:"
-  putStrLn "\nUsing Happy:"
   runEvalWith HappyParser.parseExpr input
   return ()
 
@@ -25,7 +25,8 @@ main :: IO ()
 main = do 
     args <- getArgs
     content <- readFile $ args !! 0
-    runProgram $ HappyParser.parseExpr content
+    state <- runProgram $ HappyParser.parseExpr content
+    putStrLn $ showTree state
     return ()
 
 parse :: String -> String
