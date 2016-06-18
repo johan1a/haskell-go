@@ -26,8 +26,10 @@ eval = evalIn empty
 
 --state, program state
 
---run :: [Statement] -> State
---run 
+runProgram :: [Statement] -> IO ()
+runProgram stmts = do
+    putStrLn $ show stmts
+    return ()
 
 execStmt :: State -> Statement -> State
 execStmt state (Expr e) = state
