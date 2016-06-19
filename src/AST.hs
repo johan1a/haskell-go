@@ -107,6 +107,9 @@ data Expr = Num Int
 
 data BinExpr = AddExpr Expr Expr
              | SubExpr Expr Expr
+             | MulExpr Expr Expr
+             | DivExpr Expr Expr
+             | ModExpr Expr Expr
             deriving (Eq, Show)
 
 data IdDecl = IdDecl Name

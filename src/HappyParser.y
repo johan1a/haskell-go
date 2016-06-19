@@ -158,7 +158,10 @@ Expr : NUM                                              { Num $1 }
      | BinExpr                                          { BinExpr $1}
 
 BinExpr : Expr '+' Expr                                 { AddExpr $1 $3 }
-
+        | Expr '-' Expr                                  { SubExpr $1 $3 }
+        | Expr '*' Expr                                  { MulExpr $1 $3 }
+        | Expr '/' Expr                                  { DivExpr $1 $3 }
+        | Expr '%' Expr                                  { ModExpr $1 $3 }
 
 
 {-
