@@ -9,6 +9,7 @@ import AST
 
 main = parseTests >>= defaultMain
 
+parseTests :: IO [Test.Framework.Test]
 parseTests = do
     t <- testList testFiles
     return $ hUnitTestToTests t
@@ -22,10 +23,12 @@ testFiles = ["var1",
             "ifStmt1",
             "block1"]
  
+testList :: [String] -> IO Test.HUnit.Test
 testList xs = do
     list <- mapM testLabel xs
     return $ TestList list
     
+testLabel :: [Char] -> IO Test.HUnit.Test
 testLabel x = do
     test <- makeTest x
     return $ TestLabel x test
