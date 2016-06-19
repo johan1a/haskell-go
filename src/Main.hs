@@ -5,7 +5,6 @@ import Data.Map
 import System.Environment
 import AST
 import Test.HUnit
-import Verify
 import Eval
 
 runEvalWith :: (String -> [Statement]) -> String -> IO ()

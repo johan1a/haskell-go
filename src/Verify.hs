@@ -1,8 +1,17 @@
-module Verify where
+module Main where
 
+import Test.Framework
+import Test.Framework.Providers.HUnit
+import Test.HUnit
 import qualified HappyParser
 import AST
-import Test.HUnit
+
+
+main = parseTests >>= defaultMain
+
+parseTests = do
+    t <- testList testFiles
+    return $ hUnitTestToTests t
 
 
 testFiles :: [String]
@@ -13,27 +22,20 @@ testFiles = ["var1",
             "ifStmt1",
             "block1"]
  
-testList :: [String] -> IO Test
 testList xs = do
     list <- mapM testLabel xs
     return $ TestList list
     
-testLabel :: String -> IO Test
 testLabel x = do
     test <- makeTest x
     return $ TestLabel x test
 
-makeTest :: String -> IO Test
 makeTest path = do
     x <- readFile $ "test/" ++ path ++ ".go"
     expected <- readFile $ "test/" ++ path ++ ".expected"
     let a = TestCase (assertEqual path expected $ testParse x)
     return a
 
-tests :: IO Test
-tests = do 
-    test1 <- makeTest "var1"
-    return $ TestList [TestLabel "test1" test1]
 
 verify :: IO ()
 verify = do 
