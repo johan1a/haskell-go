@@ -102,7 +102,12 @@ type ExpressionList = [Expr]
 
 data Expr = Num Int
           | IdUse Name
+          | BinExpr BinExpr
           deriving (Eq, Show)
+
+data BinExpr = AddExpr Expr Expr
+             | SubExpr Expr Expr
+            deriving (Eq, Show)
 
 data IdDecl = IdDecl Name
             deriving (Eq, Show)

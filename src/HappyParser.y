@@ -96,6 +96,7 @@ Assignment : ExpressionList '=' ExpressionList          { Assign $1 $3 }
 AssignOp : AddOp '='                                    { $1 }
          | MulOp '='                                    { $1 }
 
+
 AddOp   : '+'                                           { AddOp }
         | '-'                                           { SubOp }
         | '|'                                           { PipeOp }
@@ -108,6 +109,9 @@ MulOp  : '*'                                            { MulOp }
        | ">>"                                           { RightOp }
        | '&'                                            { AmpOp }
        | "&^"                                           { AmpUpOp }
+
+Op : AddOp                                              { $1 }
+   | MulOp                                              { $1 }
 
 
 IncDecStmt : Expr "++"                                  { IncStmt $1 }
@@ -151,9 +155,9 @@ ElementType : Type                                      { $1 }
 
 Expr : NUM                                              { Num $1 }
      | VAR                                              { IdUse $1 }
+     | BinExpr                                          { BinExpr $1}
 
-
-
+BinExpr : Expr '+' Expr                                 { AddExpr $1 $3 }
 
 
 
