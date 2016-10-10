@@ -4,11 +4,8 @@ import qualified Data.Map as Map
 import AST
 import Data.Maybe
 
-data Val = FunVal Expr
-         | NumVal Int
-         deriving (Show, Eq)
 
-type Env = Name -> Val
+type Env = Name -> Expr
 {-
 empty :: Env
 empty = \_ -> error "Not found!"
@@ -56,14 +53,12 @@ execSimpleStmt state stmt =
 -- TODO assigns first in lhs to first in rhs.
 -- does not yet support multiple declarations at once
 executeAssign :: State -> Assignment -> State
-executeAssign  state stmt =
-    case stmt of
-        Assign lhs rhs -> bindAssign state (lhs !! 0) (rhs !! 0)
-        --OpAssign op e1 e2 -> 3
-        _ -> error "ey"
+executeAssign  state (Assign lhs rhs) = bindAssign state (lhs !! 0) (rhs !! 0)
+executeAssign state  _ = error "ey"
 
 
-bindAssign state (IdUse name) rhs = bind state name rhs
+bindAssign :: State -> Expr -> Expr -> State
+bindAssign state (IdUse name) rhs = bind state name $ eval state rhs
 bindAssign state _ rhs = error "TODO"
 
 type State = Map Name Expr
@@ -86,12 +81,30 @@ lookup1 state (IdUse x) = env state x
 lookup1 _ (Num n) = error "not an idUse"
 
 
-eval :: State -> Expr -> Val
+eval :: State -> Expr -> Expr
 eval state (IdUse x) = eval state $ lookup1 state (IdUse x)
-eval _ (Num n) = NumVal n 
+eval state (BinExpr e ) = evalBin state e
+eval _ (Num n) = Num n 
 
+evalBin :: State -> BinExpr -> Expr
+evalBin state (AddExpr l r) = add (eval state l) (eval state r) 
+evalBin _ _ = error "ToDO"
 
+add :: Expr -> Expr -> Expr
+add (Num l) (Num r) = (Num (l + r))
+add _ _ = error "todo"
 
+sub :: Expr -> Expr -> Expr
+sub (Num l) (Num r) = (Num (l - r))
+sub _ _ = error "todo"
+
+mul :: Expr -> Expr -> Expr
+mul (Num l) (Num r) = (Num (l * r))
+mul _ _ = error "todo"
+
+div :: Expr -> Expr -> Expr
+--div (Num l) (Num r) = (Num (l / r))
+div  _ _ = error "todo"
 
 {-
 TODO add tests for  
