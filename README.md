@@ -10,5 +10,4 @@ To run tests:
 
 cabal install --enable-tests --only-dependencies
 
-> cabal repl
-> verify
+cabal test

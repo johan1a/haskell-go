@@ -1,10 +1,12 @@
 module Main where
 
+import Data.Char (isSpace)
 import Test.Framework
 import Test.Framework.Providers.HUnit
 import Test.HUnit
 import qualified HappyParser
 import AST
+
 
 
 main = parseTests >>= defaultMain
@@ -36,7 +38,7 @@ testLabel x = do
 makeTest path = do
     x <- readFile $ "test/" ++ path ++ ".go"
     expected <- readFile $ "test/" ++ path ++ ".expected"
-    let a = TestCase (assertEqual path expected $ testParse x)
+    let a = TestCase (assertEqual path (rstrip expected) $ testParse x)
     return a
 
 
@@ -50,5 +52,5 @@ testParse :: String -> String
 testParse = show . HappyParser.parseExpr
 
 
-
-
+rstrip :: String -> String 
+rstrip = reverse . dropWhile isSpace . reverse
