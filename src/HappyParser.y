@@ -27,7 +27,7 @@ import AST
     ']'     { TokenRBracket }
     '.'     { TokenDot }
     ','     { TokenComma }
-    '+'     { TokenOpAdd }
+    '+'     { TokenAdd }
     '-'     { TokenOpSub }
     '|'     { TokenOpPipe }
     '^'     { TokenOpUpArrow }
@@ -89,6 +89,10 @@ Else : "else" IfStmt                                    { Else1 $2 }
      | "else" Block                                     { Else2 $2 }
 
 ShortVarDecl : IdentifierList ":=" ExpressionList       { ShortVarDecl $1 $3 }
+
+Expr : BinExpr                                          { BinExpr $1}
+     | VAR                                              { IdUse $1 }
+     | NUM                                              { Num $1 }
 
 Assignment : ExpressionList '=' ExpressionList          { Assign $1 $3 }
            | ExpressionList AssignOp '=' ExpressionList { OpAssign $2 $1 $4 }
@@ -153,9 +157,6 @@ ArrayType : '[' Expr ']' ElementType                    { ArrayType $2 $4 }
 ElementType : Type                                      { $1 } 
 
 
-Expr : NUM                                              { Num $1 }
-     | VAR                                              { IdUse $1 }
-     | BinExpr                                          { BinExpr $1}
 
 BinExpr : Expr '+' Expr                                 { AddExpr $1 $3 }
         | Expr '-' Expr                                  { SubExpr $1 $3 }

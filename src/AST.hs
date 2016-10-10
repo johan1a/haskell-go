@@ -100,10 +100,10 @@ type IdentifierList = [Name]
 
 type ExpressionList = [Expr]
 
-data Expr = Num Int
+data Expr =  BinExpr BinExpr
+          | Num Int
           | IdUse Name
-          | BinExpr BinExpr
-          deriving (Eq, Show)
+           deriving (Eq, Show)
 
 data BinExpr = AddExpr Expr Expr
              | SubExpr Expr Expr
