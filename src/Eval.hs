@@ -28,33 +28,30 @@ runProgram stmts = return $ execStmts empty stmts
 
 execStmts :: State -> [Statement] -> State
 execStmts state [] = state
-execStmts state (s:ss) = execStmts (execStmt state s) ss
+execStmts state (s:ss) = execStmts (execStmt s state) ss
 
-execStmt :: State -> Statement -> State
-execStmt state (Expr e) = state
-execStmt state (Declaration decl) = execDecl state decl
-execStmt state (SimpleStmt simpleStmt) = execSimpleStmt state simpleStmt
-execStmt state (BlockStmt block) = error "TODO execute stmts in block"
-execStmt state (IfStmt ifStmt) = error "TODO"
+execStmt :: Statement -> State -> State
+execStmt (Expr e) =  error "todo"
+execStmt (Declaration decl) = execDecl decl 
+execStmt (SimpleStmt simpleStmt) = execSimpleStmt simpleStmt
+execStmt (BlockStmt block) = error "TODO execute stmts in block"
+execStmt (IfStmt ifStmt) = error "TODO"
 
 --TODO implement types, multiple declarations
-execDecl :: State -> Declaration -> State
-execDecl state (ConstDecl idDecls type_ exprs) = bind state (getName $ idDecls !! 0) (exprs !! 0)
-execDecl state (TypeDecl name type_) = error "Types not implemented"
-execDecl state (VarDecl idDecls type_ exprs) = bind state (getName $ idDecls !! 0) (exprs !! 0)
+execDecl :: Declaration -> State -> State
+execDecl (ConstDecl idDecls type_ exprs) state = bind state (getName $ idDecls !! 0) (exprs !! 0)
+execDecl (TypeDecl name type_) state = error "Types not implemented"
+execDecl (VarDecl idDecls type_ exprs) state = bind state (getName $ idDecls !! 0) (exprs !! 0)
 
-execSimpleStmt :: State -> SimpleStmt -> State
-execSimpleStmt state stmt = 
-    case stmt of
-        Assignment a -> executeAssign state a 
-        _ -> error "ey"
+execSimpleStmt :: SimpleStmt -> State -> State
+execSimpleStmt (Assignment a) = executeAssign a
 
 
 -- TODO assigns first in lhs to first in rhs.
 -- does not yet support multiple declarations at once
-executeAssign :: State -> Assignment -> State
-executeAssign  state (Assign lhs rhs) = bindAssign state (lhs !! 0) (rhs !! 0)
-executeAssign state  _ = error "ey"
+executeAssign :: Assignment -> State -> State
+executeAssign (Assign lhs rhs) state = bindAssign state (lhs !! 0) (rhs !! 0)
+executeAssign _ state = error "ey"
 
 
 bindAssign :: State -> Expr -> Expr -> State
