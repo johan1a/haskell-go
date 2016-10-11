@@ -40,16 +40,12 @@ getParams (State _ params _) = params
 getFunctions :: State -> Functions
 getFunctions (State _ _ funcs)= funcs
 
-getParamNames :: Name -> State -> [Name] 
-getParamNames = stateLookup getParams 
-
-getVarValue :: Name -> State -> Expr
-getVarValue = stateLookup getValues
-
 getFunction :: Name -> State -> [Statement]
 getFunction = stateLookup getFunctions
 
 stateLookup getFunc name state  = fromJust $ Map.lookup name $ getFunc state
+
+lookup2 name map  = fromJust $ Map.lookup name map
 
 
 
@@ -85,7 +81,7 @@ execExprStmt :: Expr  -> State -> State
 execExprStmt (Call name e) = execFunc name e 
 
 execFunc :: Name -> [Expr] -> State -> State
-execFunc name args state = execStmts (getFunction name state) (bindArgs name args state)
+execFunc name args (State v p f) = execStmts (lookup2 name f) (bindArgs name args (State v p f))
 
 
 -- TODO assigns first in lhs to first in rhs.
@@ -108,7 +104,7 @@ bindMany (n:nn) (a:aa) state = bindMany nn aa $ bindVal n a state
 bindMany _ _ state = state
 
 bindArgs :: Name -> [Expr] -> State -> State
-bindArgs funcName args (State v p f) = bindMany (getParamNames funcName (State v p f)) args (State v p f)
+bindArgs funcName args (State v p f) = bindMany (lookup2 funcName p) args (State v p f)
 
 bindVal :: Name -> Expr -> State -> State
 bindVal name val (State v p f) = State (Map.insert name val v) p f
@@ -117,7 +113,7 @@ bindVal name val (State v p f) = State (Map.insert name val v) p f
 -- TODO should only work with id use?
 -- maybe name instead of iduse?
 lookup1 :: Expr -> State -> Expr
-lookup1 (IdUse name) state = getVarValue name state
+lookup1 (IdUse name) (State v p f) = lookup2 name v
 lookup1 (Num n) _ = error "not an idUse"
 
 
