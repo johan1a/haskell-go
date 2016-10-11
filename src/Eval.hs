@@ -28,7 +28,7 @@ runProgram stmts = return $ execStmts stmts empty
 
 execStmts :: [Statement] -> State -> State
 execStmts [] state = state
-execStmts (s:ss) state = execStmts ss (execStmt s state)
+execStmts (s:ss) state= execStmts ss $ execStmt s state
 
 execStmt :: Statement -> State -> State
 execStmt (Expr e) =  error "todo"
@@ -39,9 +39,9 @@ execStmt (IfStmt ifStmt) = error "TODO"
 
 --TODO implement types, multiple declarations
 execDecl :: Declaration -> State -> State
-execDecl (ConstDecl idDecls type_ exprs) state = bind (getName $ idDecls !! 0) (exprs !! 0) state 
-execDecl (TypeDecl name type_) state = error "Types not implemented"
-execDecl (VarDecl idDecls type_ exprs) state = bind (getName $ idDecls !! 0) (exprs !! 0) state 
+execDecl (ConstDecl idDecls type_ exprs) = bind (getName $ idDecls !! 0) (exprs !! 0) 
+execDecl (TypeDecl name type_) = error "Types not implemented"
+execDecl (VarDecl idDecls type_ exprs) = bind (getName $ idDecls !! 0) (exprs !! 0)
 
 execSimpleStmt :: SimpleStmt -> State -> State
 execSimpleStmt (Assignment a) = executeAssign a
@@ -50,8 +50,8 @@ execSimpleStmt (Assignment a) = executeAssign a
 -- TODO assigns first in lhs to first in rhs.
 -- does not yet support multiple declarations at once
 executeAssign :: Assignment -> State -> State
-executeAssign (Assign lhs rhs) state = bindAssign (lhs !! 0) (rhs !! 0) state 
-executeAssign _ state = error "ey"
+executeAssign (Assign lhs rhs) = bindAssign (lhs !! 0) (rhs !! 0) 
+executeAssign _ = error "ey"
 
 
 bindAssign :: Expr -> Expr -> State -> State
@@ -67,14 +67,14 @@ empty = Map.empty
 getName (IdDecl name) = name
 
 bind :: Name -> Expr -> State -> State
-bind name val state = Map.insert name val state
+bind name val = Map.insert name val
 
-env state x = fromJust $ Map.lookup x state
+env x state = fromJust $ Map.lookup x state
 
 -- TODO should only work with id use?
 -- maybe name instead of iduse?
 lookup1 :: State -> Expr -> Expr
-lookup1 state (IdUse x) = env state x
+lookup1 state (IdUse x) = env x state
 lookup1 _ (Num n) = error "not an idUse"
 
 
