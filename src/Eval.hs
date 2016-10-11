@@ -31,20 +31,6 @@ type Functions = Map Name [Statement]
 
 data State = State Values Parameters Functions
 
-getValues :: State -> Values
-getValues (State values _ _) = values
-
-getParams :: State -> Parameters
-getParams (State _ params _) = params
-
-getFunctions :: State -> Functions
-getFunctions (State _ _ funcs)= funcs
-
-getFunction :: Name -> State -> [Statement]
-getFunction = stateLookup getFunctions
-
-stateLookup getFunc name state  = fromJust $ Map.lookup name $ getFunc state
-
 lookup2 name map  = fromJust $ Map.lookup name map
 
 
