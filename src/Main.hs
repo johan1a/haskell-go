@@ -25,7 +25,7 @@ main = do
     args <- getArgs
     content <- readFile $ args !! 0
     state <- runProgram $ HappyParser.parseExpr content
-    putStrLn $ showTree state
+    -- putStrLn $ showTree state
     return ()
 
 parse :: String -> String

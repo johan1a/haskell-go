@@ -5,8 +5,8 @@ import AST
 import Data.Maybe
 
 
-type Env = Name -> Expr
 {-
+type Env = Name -> Expr
 empty :: Env
 empty = \_ -> error "Not found!"
 
@@ -23,6 +23,39 @@ eval = evalIn empty
 
 --state, program state
 
+type Values = Map Name Expr
+
+type Parameters = Map Name [Name]
+
+type Functions = Map Name [Statement]
+
+data State = State Values Parameters Functions
+
+getValues :: State -> Values
+getValues (State values _ _) = values
+
+getParams :: State -> Parameters
+getParams (State _ params _) = params
+
+getFunctions :: State -> Functions
+getFunctions (State _ _ funcs)= funcs
+
+getParamNames :: Name -> State -> [Name] 
+getParamNames = stateLookup getParams 
+
+getVarValue :: Name -> State -> Expr
+getVarValue = stateLookup getValues
+
+getFunction :: Name -> State -> [Statement]
+getFunction = stateLookup getFunctions
+
+stateLookup getFunc name state  = fromJust $ Map.lookup name $ getFunc state
+
+
+
+empty :: State
+empty = State Map.empty Map.empty Map.empty
+
 runProgram :: [Statement] -> IO (State)
 runProgram stmts = return $ execStmts stmts empty
 
@@ -34,52 +67,65 @@ execStmt :: Statement -> State -> State
 execStmt (Expr e) =  error "todo"
 execStmt (Declaration decl) = execDecl decl 
 execStmt (SimpleStmt simpleStmt) = execSimpleStmt simpleStmt
-execStmt (BlockStmt block) = error "TODO execute stmts in block"
+execStmt (BlockStmt block) = error "TODO exec stmts in block"
 execStmt (IfStmt ifStmt) = error "TODO"
 
 --TODO implement types, multiple declarations
 execDecl :: Declaration -> State -> State
-execDecl (ConstDecl idDecls type_ exprs) = bind (getName $ idDecls !! 0) (exprs !! 0) 
+execDecl (ConstDecl idDecls type_ exprs) = bindVal (getName $ idDecls !! 0) (exprs !! 0) 
 execDecl (TypeDecl name type_) = error "Types not implemented"
-execDecl (VarDecl idDecls type_ exprs) = bind (getName $ idDecls !! 0) (exprs !! 0)
+execDecl (VarDecl idDecls type_ exprs) = bindVal (getName $ idDecls !! 0) (exprs !! 0)
 
 execSimpleStmt :: SimpleStmt -> State -> State
-execSimpleStmt (Assignment a) = executeAssign a
+execSimpleStmt (Assignment a) = execAssign a
+execSimpleStmt (ExpressionStmt e) = execExprStmt e
+
+
+execExprStmt :: Expr  -> State -> State
+execExprStmt (Call name e) = execFunc name e 
+
+execFunc :: Name -> [Expr] -> State -> State
+execFunc name args state = execStmts (getFunction name state) (bindArgs name args state)
 
 
 -- TODO assigns first in lhs to first in rhs.
 -- does not yet support multiple declarations at once
-executeAssign :: Assignment -> State -> State
-executeAssign (Assign lhs rhs) = bindAssign (lhs !! 0) (rhs !! 0) 
-executeAssign _ = error "ey"
+execAssign :: Assignment -> State -> State
+execAssign (Assign lhs rhs) = bindAssign (lhs !! 0) (rhs !! 0) 
+execAssign _ = error "ey"
 
 
 bindAssign :: Expr -> Expr -> State -> State
-bindAssign (IdUse name) rhs state = bind name (eval rhs state) state
+bindAssign (IdUse name) rhs state = bindVal name (eval rhs state) state
 bindAssign _ rhs state = error "TODO"
-
-type State = Map Name Expr
-
-empty :: State
-empty = Map.empty
 
 
 getName (IdDecl name) = name
 
-bind :: Name -> Expr -> State -> State
-bind name val = Map.insert name val
 
-env x state = fromJust $ Map.lookup x state
+bindMany :: [Name] -> [Expr] -> State -> State
+bindMany (n:nn) (a:aa) state = bindMany nn aa $ bindVal n a state
+bindMany _ _ state = state
+
+bindArgs :: Name -> [Expr] -> State -> State
+bindArgs funcName args (State v p f) = bindMany (getParamNames funcName (State v p f)) args (State v p f)
+
+bindVal :: Name -> Expr -> State -> State
+bindVal name val (State v p f) = State (Map.insert name val v) p f
+
 
 -- TODO should only work with id use?
 -- maybe name instead of iduse?
-lookup1 :: State -> Expr -> Expr
-lookup1 state (IdUse x) = env x state
-lookup1 _ (Num n) = error "not an idUse"
+lookup1 :: Expr -> State -> Expr
+lookup1 (IdUse name) state = getVarValue name state
+lookup1 (Num n) _ = error "not an idUse"
+
+
+
 
 
 eval :: Expr -> State -> Expr
-eval (IdUse x) state  = eval (lookup1 state (IdUse x)) state
+eval (IdUse x) state  = eval (lookup1 (IdUse x) state ) state
 eval (BinExpr e ) state = evalBin e state
 eval (Num n) _ = Num n 
 

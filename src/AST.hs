@@ -100,8 +100,8 @@ type IdentifierList = [Name]
 
 type ExpressionList = [Expr]
 
-data Expr =  BinExpr BinExpr
-		  | Call Name [Expr]
+data Expr = BinExpr BinExpr
+          | Call Name [Expr]
           | Num Int
           | IdUse Name
            deriving (Eq, Show)
