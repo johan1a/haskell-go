@@ -16,7 +16,7 @@ import AST
     let     { TokenLet }
     in      { TokenIn }
     NUM     { TokenNum $$ }
-    VAR     { TokenSym $$ }
+    NAME     { TokenSym $$ }
     OP      { TokenSym $$ }
     '\\'    { TokenLambda }
     '->'    { TokenArrow }
@@ -91,7 +91,8 @@ Else : "else" IfStmt                                    { Else1 $2 }
 ShortVarDecl : IdentifierList ":=" ExpressionList       { ShortVarDecl $1 $3 }
 
 Expr : BinExpr                                          { BinExpr $1}
-     | VAR                                              { IdUse $1 }
+	 | NAME '(' ExpressionList ')' 						{ Call $1 $3 } 
+     | NAME                                             { IdUse $1 }
      | NUM                                              { Num $1 }
 
 Assignment : ExpressionList '=' ExpressionList          { Assign $1 $3 }
@@ -129,13 +130,13 @@ ConstDecl : "const" ConstSpec                           { $2 }
 ConstSpec : IdentifierList Type '=' ExpressionList      { ConstDecl $1 $2 $4 }
 
 TypeDecl : "type" TypeSpec                              { $2 }
-TypeSpec : VAR Type                                     { TypeDecl $1 $2 }
+TypeSpec : NAME Type                                     { TypeDecl $1 $2 }
 
 VarDecl : "var" VarSpec                                 { $2 }
 VarSpec : IdentifierList Type '=' ExpressionList        { VarDecl $1 $2 $4 }
 
-IdentifierList : VAR                                    { [(IdDecl $1)] }
-               | IdentifierList ',' VAR                 { $1 ++ [(IdDecl $3)] }
+IdentifierList : NAME                                    { [(IdDecl $1)] }
+               | IdentifierList ',' NAME                 { $1 ++ [(IdDecl $3)] }
 
 ExpressionList : Expr                                   { [$1] }
                | ExpressionList ',' Expr                { $1 ++ [$3] } 
@@ -143,12 +144,12 @@ ExpressionList : Expr                                   { [$1] }
 Type : TypeName                                         { TypeName $1 }
      | TypeLit                                          { $1 }
      | '(' Type ')'                                     { $2 }
-     | VAR                                              { Type $1 }
+     | NAME                                              { Type $1 }
 
-TypeName : VAR                                          { TypNameIdentifier $1 } 
+TypeName : NAME                                          { TypNameIdentifier $1 } 
          | QualifiedIdent                               { TypeNameQualifiedIdent $1 }
 
-QualifiedIdent : VAR '.' VAR                            { QualifiedIdent  $1 $3 }
+QualifiedIdent : NAME '.' NAME                            { QualifiedIdent  $1 $3 }
 
 TypeLit : ArrayType                                     { TypeLit $1 } 
 
@@ -166,8 +167,8 @@ BinExpr : Expr '+' Expr                                 { AddExpr $1 $3 }
 
 
 {-
-Expr : let VAR '=' Expr in Expr                         { App (Abs $2 $6) $4 }
-     | '\\' VAR '->' Expr                               { Abs $2 $4 }
+Expr : let NAME '=' Expr in Expr                         { App (Abs $2 $6) $4 }
+     | '\\' NAME '->' Expr                               { Abs $2 $4 }
      | Form                                             { $1 }
 
 
@@ -181,7 +182,7 @@ Juxt : Juxt Atom                                        { App $1 $2 }
 
 Atom : '(' Expr ')'                                     { $2 }
      | NUM                                              { Num $1 }
-     | VAR                                              { Var $1 }
+     | NAME                                              { Var $1 }
 
 
 -}
