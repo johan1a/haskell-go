@@ -13,6 +13,7 @@ import AST
     "const" { TokenConst }
     "type"  { TokenType }
     "var"   { TokenVar }
+    "print" { TokenPrint }
     let     { TokenLet }
     in      { TokenIn }
     NUM     { TokenNum $$ }
@@ -91,6 +92,7 @@ Else : "else" IfStmt                                    { Else1 $2 }
 ShortVarDecl : IdentifierList ":=" ExpressionList       { ShortVarDecl $1 $3 }
 
 Expr : BinExpr                                          { BinExpr $1}
+     | "print" '(' ExpressionList ')'			{ PrintCall $3 }
      | NAME '(' ExpressionList ')' 			{ Call $1 $3 } 
      | NAME                                             { IdUse $1 }
      | NUM                                              { Num $1 }

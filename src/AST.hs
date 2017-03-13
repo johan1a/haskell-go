@@ -101,6 +101,7 @@ type IdentifierList = [Name]
 type ExpressionList = [Expr]
 
 data Expr = BinExpr BinExpr
+          | PrintCall [Expr]
           | Call Name [Expr]
           | Num Int
           | IdUse Name

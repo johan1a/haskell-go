@@ -7,17 +7,17 @@ import AST
 import Test.HUnit
 import Eval
 
-runEvalWith :: (String -> [Statement]) -> String -> IO ()
-runEvalWith parseExpr input = do
-  let ast = parseExpr input
+runAndShow :: String -> IO ()
+runAndShow input = do
+  let ast = HappyParser.parseExpr input
+  what <- runProgram ast
   putStrLn $ "AST: " ++ (show ast)
 
 badRepl :: IO ()
 badRepl = do
   putStrLn "Enter stuff:"
   input <- getLine  
-  putStrLn "Input:"
-  runEvalWith HappyParser.parseExpr input
+  runAndShow input
   return ()
 
 main :: IO ()

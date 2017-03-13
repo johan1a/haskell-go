@@ -3,6 +3,7 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 import AST
 import Data.Maybe
+import Debug.Trace
 
 
 {-
@@ -30,24 +31,26 @@ type Parameters = Map Name [Name]
 type Functions = Map Name [Statement]
 
 data State = State Values Parameters Functions
+	deriving (Show)
 
-lookup2 name map  = fromJust $ Map.lookup name map
+lookup2 name map_  = fromJust $ Map.lookup name map_
 
 
 
 empty :: State
 empty = State Map.empty Map.empty Map.empty
 
-runProgram :: [Statement] -> IO (State)
-runProgram stmts = return $ execStmts stmts empty
+runProgram :: [Statement] -> IO State
+runProgram [] = return empty
+runProgram stmts = execStmts stmts empty  
 
-execStmts :: [Statement] -> State -> State
-execStmts [] state = state
-execStmts (s:ss) state= execStmts ss $ execStmt s state
+execStmts :: [Statement] -> State -> IO State
+execStmts [] state = return state
+execStmts (s:ss) state = execStmt s state >>= execStmts ss 
 
-execStmt :: Statement -> State -> State
+execStmt :: Statement -> State -> IO State
 execStmt (Expr e) =  error "todo"
-execStmt (Declaration decl) = execDecl decl 
+execStmt (Declaration decl) = return . execDecl decl  
 execStmt (SimpleStmt simpleStmt) = execSimpleStmt simpleStmt
 execStmt (BlockStmt block) = error "TODO exec stmts in block"
 execStmt (IfStmt ifStmt) = error "TODO"
@@ -58,15 +61,17 @@ execDecl (ConstDecl idDecls type_ exprs) = bindVal (getName $ idDecls !! 0) (exp
 execDecl (TypeDecl name type_) = error "Types not implemented"
 execDecl (VarDecl idDecls type_ exprs) = bindVal (getName $ idDecls !! 0) (exprs !! 0)
 
-execSimpleStmt :: SimpleStmt -> State -> State
-execSimpleStmt (Assignment a) = execAssign a
-execSimpleStmt (ExpressionStmt e) = execExprStmt e
+execSimpleStmt :: SimpleStmt -> State -> IO State
+execSimpleStmt (Assignment a) = return . execAssign a
+execSimpleStmt (ExpressionStmt e) = execExprStmt e 
 
+execExprStmt :: Expr  -> State -> IO State
+execExprStmt (PrintCall e) st = do 
+			putStrLn $ show $ eval (e !! 0 ) st --Print multiple
+			return st 
+execExprStmt (Call name e) st = execFunc name e st
 
-execExprStmt :: Expr  -> State -> State
-execExprStmt (Call name e) = execFunc name e 
-
-execFunc :: Name -> [Expr] -> State -> State
+execFunc :: Name -> [Expr] -> State -> IO State
 execFunc name args (State v p f) = execStmts (lookup2 name f) (bindArgs name args (State v p f))
 
 
@@ -81,9 +86,7 @@ bindAssign :: Expr -> Expr -> State -> State
 bindAssign (IdUse name) rhs state = bindVal name (eval rhs state) state
 bindAssign _ rhs state = error "TODO"
 
-
 getName (IdDecl name) = name
-
 
 bindMany :: [Name] -> [Expr] -> State -> State
 bindMany (n:nn) (a:aa) state = bindMany nn aa $ bindVal n a state

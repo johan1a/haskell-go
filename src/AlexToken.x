@@ -29,6 +29,7 @@ tokens :-
   [\*]                          { \s -> TokenMul }
   \(                            { \s -> TokenLParen }
   \)                            { \s -> TokenRParen }
+  "print" 			{ \s -> TokenPrint }
   "const"                       { \s -> TokenConst }
   "type"                        { \s -> TokenType }
   "var"                         { \s -> TokenVar }
@@ -87,6 +88,7 @@ data Token = TokenLet
            | TokenOpRightStream 
            | TokenOpAnd
            | TokenOpAndUp 
+           | TokenPrint 
            | TokenShortVarDecl
            | TokenInc
            | TokenDec
