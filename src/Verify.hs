@@ -12,9 +12,7 @@ import AST
 main = parseTests >>= defaultMain
 
 parseTests :: IO [Test.Framework.Test]
-parseTests = do
-    t <- testList testFiles
-    return $ hUnitTestToTests t
+parseTests = testList testFiles >>= return . hUnitTestToTests
 
 
 testFiles :: [String]
