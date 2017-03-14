@@ -52,8 +52,9 @@ execStmt :: Statement -> State -> IO State
 execStmt (Expr e) =  error "todo"
 execStmt (Declaration decl) = return . execDecl decl  
 execStmt (SimpleStmt simpleStmt) = execSimpleStmt simpleStmt
-execStmt (BlockStmt block) = error "TODO exec stmts in block"
+execStmt (BlockStmt (Block stmts)) = execStmts stmts
 execStmt (IfStmt ifStmt) = error "TODO"
+
 
 --TODO implement types, multiple declarations
 execDecl :: Declaration -> State -> State
@@ -70,6 +71,7 @@ execExprStmt (PrintCall e) st = do
 			putStrLn $ show $ eval (e !! 0 ) st --Print multiple
 			return st 
 execExprStmt (Call name e) st = execFunc name e st
+execExprStmt (Num n) st = return st
 
 execFunc :: Name -> [Expr] -> State -> IO State
 execFunc name args (State v p f) = execStmts (lookup2 name f) (bindArgs name args (State v p f))
