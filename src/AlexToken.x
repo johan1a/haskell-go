@@ -22,6 +22,12 @@ tokens :-
   in                            { \s -> TokenIn }
   $digit+                       { \s -> TokenNum (read s) }
   "->"                          { \s -> TokenArrow }
+  "=="    			{ \s -> TokenEq2 }
+  "!="    			{ \s -> TokenNeq }
+  "<"     			{ \s -> TokenLess }
+  "<="    			{ \s -> TokenLessEq }
+  ">"     			{ \s -> TokenGreater }
+  ">="    			{ \s -> TokenGreaterEq }
   \=                            { \s -> TokenEq }
   \\                            { \s -> TokenLambda }
   [\+]                          { \s -> TokenAdd }
@@ -60,6 +66,12 @@ tokens :-
 
 data Token = TokenLet
            | TokenIn
+	   | TokenEq2
+	   | TokenNeq
+	   | TokenLess
+	   | TokenLessEq
+	   | TokenGreater
+	   | TokenGreaterEq
            | TokenConst
            | TokenType
            | TokenVar

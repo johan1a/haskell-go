@@ -107,12 +107,26 @@ data Expr = BinExpr BinExpr
           | IdUse Name
            deriving (Eq, Show)
 
-data BinExpr = AddExpr Expr Expr
-             | SubExpr Expr Expr
-             | MulExpr Expr Expr
-             | DivExpr Expr Expr
-             | ModExpr Expr Expr
+data BinExpr = AritmExpr AritmExpr
+	     | CondExpr CondExpr
             deriving (Eq, Show)
+		
+data AritmExpr = AddExpr Expr Expr
+               | SubExpr Expr Expr
+               | MulExpr Expr Expr
+               | DivExpr Expr Expr
+               | ModExpr Expr Expr
+            	deriving (Eq, Show)
+
+data CondExpr = Eq_ Expr Expr
+	      | Neq Expr Expr
+	      | Less Expr Expr
+	      | LessEq Expr Expr
+	      | Greater Expr Expr
+	      | GreaterEq Expr Expr
+            	deriving (Eq, Show)
+
+		
 
 data IdDecl = IdDecl Name
             deriving (Eq, Show)

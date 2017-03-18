@@ -52,8 +52,15 @@ execStmt :: Statement -> State -> IO State
 execStmt (Expr e) =  error "todo"
 execStmt (Declaration decl) = return . execDecl decl  
 execStmt (SimpleStmt simpleStmt) = execSimpleStmt simpleStmt
-execStmt (BlockStmt (Block stmts)) = execStmts stmts
-execStmt (IfStmt ifStmt) = error "TODO"
+execStmt (BlockStmt block) = execBlock block
+execStmt (IfStmt ifStmt) = execIfStmt ifStmt
+
+execElse (Else1 ifStmt) = execIfStmt ifStmt
+execElse (Else2 block) = execBlock block 
+
+execBlock :: Block -> State -> IO State
+execBlock (Block []) = return
+execBlock (Block stmts) = execStmts stmts
 
 
 --TODO implement types, multiple declarations
@@ -65,6 +72,17 @@ execDecl (VarDecl idDecls type_ exprs) = bindVal (getName $ idDecls !! 0) (exprs
 execSimpleStmt :: SimpleStmt -> State -> IO State
 execSimpleStmt (Assignment a) = return . execAssign a
 execSimpleStmt (ExpressionStmt e) = execExprStmt e 
+
+
+execIfStmt :: IfStmt -> State -> IO State
+execIfStmt (Ifstmt1 (Num n) block)  
+	| n == 1 = execBlock block
+	| otherwise = return
+execIfStmt (Ifstmt2 (Num n) block els)
+	| n == 1 = execBlock block
+	| otherwise = execElse els
+
+
 
 execExprStmt :: Expr  -> State -> IO State
 execExprStmt (PrintCall e) st = do 

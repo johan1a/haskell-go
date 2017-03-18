@@ -1,0 +1,2 @@
+[IfStmt (Ifstmt1 (BinExpr (CondExpr (Eq_ (IdUse "a") (IdUse "b")))) (Block [SimpleStmt (ExpressionStmt (IdUse "c"))]))]
+

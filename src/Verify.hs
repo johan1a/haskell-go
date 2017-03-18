@@ -21,6 +21,7 @@ testFiles = ["var1",
             "constDecl1",
             "typeDecl1",
             "ifStmt1",
+            "ifStmt2",
             "block1"]
  
 testList :: [String] -> IO Test.HUnit.Test

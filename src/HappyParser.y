@@ -17,10 +17,16 @@ import AST
     let     { TokenLet }
     in      { TokenIn }
     NUM     { TokenNum $$ }
-    NAME     { TokenSym $$ }
+    NAME    { TokenSym $$ }
     OP      { TokenSym $$ }
     '\\'    { TokenLambda }
     '->'    { TokenArrow }
+    "=="    { TokenEq2 }
+    "!="    { TokenNeq }
+    "<"     { TokenLess }
+    "<="    { TokenLessEq }
+    ">"     { TokenGreater }
+    ">="    { TokenGreaterEq }
     '='     { TokenEq }
     '('     { TokenLParen }
     ')'     { TokenRParen }
@@ -56,10 +62,10 @@ import AST
 Statements : Statement                                  { [$1] }
            | Statements Statement                       { $1 ++ [$2] }
 
-Statement : Declaration                                 { Declaration $1 }
-          | SimpleStmt                                  { SimpleStmt $1 }
+Statement : IfStmt                                      { IfStmt $1 }
           | Block                                       { BlockStmt $1 }
-          | IfStmt                                      { IfStmt $1 }
+ 	  | SimpleStmt                                  { SimpleStmt $1 }
+	  | Declaration                                 { Declaration $1 }
 
 
 -- Should really be StatementList with fancy semicolon insertion
@@ -160,12 +166,22 @@ ArrayType : '[' Expr ']' ElementType                    { ArrayType $2 $4 }
 ElementType : Type                                      { $1 } 
 
 
+BinExpr : AritmExpr                                     { AritmExpr $1 } 
+	| CondExpr                                      { CondExpr $1 } 
 
-BinExpr : Expr '+' Expr                                 { AddExpr $1 $3 }
+
+AritmExpr : Expr '+' Expr                                { AddExpr $1 $3 }
         | Expr '-' Expr                                  { SubExpr $1 $3 }
         | Expr '*' Expr                                  { MulExpr $1 $3 }
         | Expr '/' Expr                                  { DivExpr $1 $3 }
         | Expr '%' Expr                                  { ModExpr $1 $3 }
+
+CondExpr : Expr "==" Expr                                { Eq_ $1 $3 }
+        | Expr "!=" Expr                                  { Neq $1 $3 }
+        | Expr "<" Expr                                  { Less $1 $3 }
+        | Expr "<=" Expr                                  { LessEq $1 $3 }
+        | Expr ">" Expr                                  { Greater $1 $3 }
+        | Expr ">=" Expr                                  { GreaterEq $1 $3 }
 
 
 {-
