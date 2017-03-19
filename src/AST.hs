@@ -110,6 +110,7 @@ data Value = NumVal Int
 data Expr = BinExpr BinExpr
           | PrintCall [Expr]
           | Call Name [Expr]
+	  | BoolExpr Bool 
           | Num Int
           | IdUse Name
            deriving (Eq, Show)

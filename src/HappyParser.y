@@ -10,6 +10,8 @@ import AST
 %error { parseError }
 
 %token
+    "true"  { TokenTrue }
+    "false" { TokenFalse }
     "const" { TokenConst }
     "type"  { TokenType }
     "var"   { TokenVar }
@@ -101,6 +103,8 @@ ShortVarDecl : IdentifierList ":=" ExpressionList       { ShortVarDecl $1 $3 }
 Expr : BinExpr                                          { BinExpr $1}
      | "print" '(' ExpressionList ')'			{ PrintCall $3 }
      | NAME '(' ExpressionList ')' 			{ Call $1 $3 } 
+     | "true" 						{ BoolExpr True }
+     | "false" 						{ BoolExpr False }
      | NAME                                             { IdUse $1 }
      | NUM                                              { Num $1 }
 

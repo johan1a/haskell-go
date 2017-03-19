@@ -28,6 +28,8 @@ tokens :-
   "<="    			{ \s -> TokenLessEq }
   ">"     			{ \s -> TokenGreater }
   ">="    			{ \s -> TokenGreaterEq }
+  "true"    			{ \s -> TokenTrue }
+  "false"    			{ \s -> TokenFalse }
   \=                            { \s -> TokenEq }
   \\                            { \s -> TokenLambda }
   [\+]                          { \s -> TokenAdd }
@@ -65,6 +67,8 @@ tokens :-
 {
 
 data Token = TokenLet
+           | TokenTrue
+           | TokenFalse
            | TokenIn
 	   | TokenEq2
 	   | TokenNeq

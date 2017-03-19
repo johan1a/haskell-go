@@ -1,0 +1,1 @@
+[IfStmt (Ifstmt2 (BoolExpr True) (Block [SimpleStmt (ExpressionStmt (PrintCall [Num 1]))]) (Else2 (Block [SimpleStmt (ExpressionStmt (PrintCall [Num 2]))])))]

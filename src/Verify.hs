@@ -24,6 +24,8 @@ testFiles = ["var1",
             "ifStmt2",
             "ifStmt3",
             "ifStmt4",
+            "ifStmt5",
+            "ifStmt6",
             "block1"]
  
 testList :: [String] -> IO Test.HUnit.Test
