@@ -68,8 +68,6 @@ Statement : IfStmt                                      { IfStmt $1 }
 	  | Declaration                                 { Declaration $1 }
 
 
--- Should really be StatementList with fancy semicolon insertion
-Block : '{' Statements '}'                              { Block $2 }
 
 SimpleStmt : 
            ShortVarDecl                                 { $1 }
@@ -81,10 +79,13 @@ SimpleStmt :
 
 
 
-IfStmt : "if" Expr Block                                { Ifstmt1 ( $2) $3 }
-       | "if" Expr Block "else" Else                    { Ifstmt2 ( $2)  $3 $5 }
-       | "if" SimpleStmt ';' Expr Block                 { Ifstmt3 $2 ($4)  $5 }
-       | "if" SimpleStmt ';' Expr Block "else" Else     { Ifstmt4 $2 ( $4)  $5 $7 }
+IfStmt : "if" Expr Block Else                           { Ifstmt2 $2 $3 $4 }
+       | "if" Expr Block                                { Ifstmt1 $2 $3 }
+       | "if" SimpleStmt ';' Expr Block Else            { Ifstmt4 $2 $4 $5 $6 }
+       | "if" SimpleStmt ';' Expr Block                 { Ifstmt3 $2 $4 $5 }
+
+-- Should really be StatementList with fancy semicolon insertion
+Block : '{' Statements '}'                              { Block $2 }
 
 SimpleStmts : SimpleStmt ';'                            { [$1] }
             | SimpleStmts SimpleStmt ';'                { $1 ++ [$2] }
