@@ -139,6 +139,7 @@ eval (IdUse x) state  = eval (lookupExpr (IdUse x) state ) state
 eval (BinExpr e ) state = evalBin e state
 eval (Num n) _ = NumVal n 
 eval (BoolExpr b) _ = BoolVal b
+eval (StringExpr s) _ = StringVal s
 
 evalBin :: BinExpr -> State -> Value
 evalBin (AritmExpr a) state = evalAritm a state
