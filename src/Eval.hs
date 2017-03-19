@@ -71,7 +71,6 @@ execSimpleStmt :: SimpleStmt -> State -> IO State
 execSimpleStmt (Assignment a) = return . execAssign a
 execSimpleStmt (ExpressionStmt e) = execExprStmt e 
 
-
 execIfStmt :: IfStmt -> State -> IO State
 execIfStmt (Ifstmt1 expr block)  state
 	| evalBool expr state = execBlock block state
@@ -148,6 +147,9 @@ evalBin _ _ = error "ToDO"
 
 evalAritm :: AritmExpr -> State -> Value
 evalAritm (AddExpr l r) state = add (eval l state) (eval r state) 
+evalAritm (SubExpr l r) state = sub (eval l state) (eval r state) 
+evalAritm (MulExpr l r) state = mul (eval l state) (eval r state) 
+evalAritm (DivExpr l r) state = div_ (eval l state) (eval r state) 
 
 evalCond :: CondExpr -> State -> Value
 evalCond (Eq_ l r) state = BoolVal $ (eval l state) == (eval r state)
@@ -164,9 +166,9 @@ mul :: Value -> Value -> Value
 mul (NumVal l) (NumVal r) = (NumVal (l * r))
 mul _ _ = error "todo"
 
-div :: Value -> Value -> Value
+div_ :: Value -> Value -> Value
 --div (Num l) (Num r) = (Num (l / r))
-div  _ _ = error "todo"
+div_  _ _ = error "todo"
 
 {-
 TODO add tests for  

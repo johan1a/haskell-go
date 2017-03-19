@@ -32,9 +32,6 @@ tokens :-
   "false"    			{ \s -> TokenFalse }
   \=                            { \s -> TokenEq }
   \\                            { \s -> TokenLambda }
-  [\+]                          { \s -> TokenAdd }
-  [\-]                          { \s -> TokenSub }
-  [\*]                          { \s -> TokenMul }
   \(                            { \s -> TokenLParen }
   \)                            { \s -> TokenRParen }
   "print" 			{ \s -> TokenPrint }
@@ -43,7 +40,8 @@ tokens :-
   "var"                         { \s -> TokenVar }
     "."                         { \s -> TokenDot }
     ","                         { \s -> TokenComma }
-    "+"                         { \s -> TokenOpAdd }
+    "+"                         { \s -> TokenAdd }
+    "-"                         { \s -> TokenSub }
     "|"                         { \s -> TokenOpPipe }
     "^"                         { \s -> TokenOpUpArrow }
     "*"                         { \s -> TokenOpMul }
@@ -61,14 +59,26 @@ tokens :-
     "if"                        { \s -> TokenIf }
     "else"                      { \s -> TokenElse }
     ";"                         { \s -> TokenSemiColon }
-  $alpha [$alpha $digit \_ \"]* { \s -> TokenSym s }
+    \"$alpha [$white $alpha $digit \_ ]*\"             { \s -> TokenString (stripQuotes s) }
+    $alpha [$alpha $digit \_ ]*   { \s -> TokenSym s }
 
 {
+
+stripQuotes :: String -> String
+stripQuotes s@[c]                     = s 
+stripQuotes ('"':s)  | last s == '"'  = init s
+            | otherwise      	      = s
+stripQuotes ('\'':s) | last s == '\'' = init s
+            | otherwise               = s
+stripQuotes s                         = s
+
+
 
 data Token = TokenLet
            | TokenTrue
            | TokenFalse
            | TokenIn
+	   | TokenString String
 	   | TokenEq2
 	   | TokenNeq
 	   | TokenLess
@@ -83,16 +93,14 @@ data Token = TokenLet
            | TokenSym String
            | TokenArrow
            | TokenEq
-           | TokenAdd
-           | TokenSub
-           | TokenMul
            | TokenLParen
            | TokenRParen
            | TokenLBracket
            | TokenRBracket
            | TokenDot 
            | TokenComma
-           | TokenOpAdd
+           | TokenAdd
+           | TokenSub
            | TokenOpPipe 
            | TokenOpUpArrow 
            | TokenOpMul 

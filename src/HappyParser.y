@@ -18,9 +18,9 @@ import AST
     "print" { TokenPrint }
     let     { TokenLet }
     in      { TokenIn }
+    STRING  { TokenString $$ }
     NUM     { TokenNum $$ }
     NAME    { TokenSym $$ }
-    OP      { TokenSym $$ }
     '\\'    { TokenLambda }
     '->'    { TokenArrow }
     "=="    { TokenEq2 }
@@ -108,6 +108,7 @@ Expr : BinExpr                                          { BinExpr $1}
      | NAME '(' ExpressionList ')' 			{ Call $1 $3 } 
      | "true" 						{ BoolExpr True }
      | "false" 						{ BoolExpr False }
+     | STRING 						{ StringExpr $1 }
      | NAME                                             { IdUse $1 }
      | NUM                                              { Num $1 }
 

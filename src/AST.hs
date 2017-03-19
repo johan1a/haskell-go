@@ -113,6 +113,7 @@ data Expr = BinExpr BinExpr
 	  | BoolExpr Bool 
           | Num Int
           | IdUse Name
+          | StringExpr String
            deriving (Eq, Show)
 
 data BinExpr = AritmExpr AritmExpr
