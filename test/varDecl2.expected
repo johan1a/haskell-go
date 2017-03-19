@@ -1,0 +1,1 @@
+[Declaration (VarDecl [IdDecl "abc1"] (TypeName (TypNameIdentifier "int")) [Num 3]),Declaration (VarDecl [IdDecl "abc2"] (TypeName (TypNameIdentifier "int")) [Num 2]),SimpleStmt (ExpressionStmt (PrintCall [BinExpr (AritmExpr (AddExpr (IdUse "abc1") (IdUse "abc2")))]))]

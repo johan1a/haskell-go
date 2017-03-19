@@ -18,6 +18,8 @@ parseTests = testList testFiles >>= return . hUnitTestToTests
 testFiles :: [String]
 testFiles = ["var1",
             "varDecl1",
+            "varDecl2",
+            "varDecl3",
             "constDecl1",
             "typeDecl1",
             "ifStmt1",
