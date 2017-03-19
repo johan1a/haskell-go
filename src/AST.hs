@@ -1,5 +1,7 @@
 module AST where
 
+import Data.Bool
+
 type Name = String
 
 data Block = Block [Statement]
@@ -100,6 +102,11 @@ type IdentifierList = [Name]
 
 type ExpressionList = [Expr]
 
+data Value = NumVal Int
+	 | BoolVal Bool
+	 | StringVal String
+	 deriving (Eq, Show)
+
 data Expr = BinExpr BinExpr
           | PrintCall [Expr]
           | Call Name [Expr]
@@ -125,8 +132,6 @@ data CondExpr = Eq_ Expr Expr
 	      | Greater Expr Expr
 	      | GreaterEq Expr Expr
             	deriving (Eq, Show)
-
-		
 
 data IdDecl = IdDecl Name
             deriving (Eq, Show)

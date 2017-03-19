@@ -24,6 +24,7 @@ eval = evalIn empty
 
 --state, program state
 
+-- rename to exprs?
 type Values = Map Name Expr
 
 type Parameters = Map Name [Name]
@@ -55,9 +56,6 @@ execStmt (SimpleStmt simpleStmt) = execSimpleStmt simpleStmt
 execStmt (BlockStmt block) = execBlock block
 execStmt (IfStmt ifStmt) = execIfStmt ifStmt
 
-execElse (Else1 ifStmt) = execIfStmt ifStmt
-execElse (Else2 block) = execBlock block 
-
 execBlock :: Block -> State -> IO State
 execBlock (Block []) = return
 execBlock (Block stmts) = execStmts stmts
@@ -65,9 +63,9 @@ execBlock (Block stmts) = execStmts stmts
 
 --TODO implement types, multiple declarations
 execDecl :: Declaration -> State -> State
-execDecl (ConstDecl idDecls type_ exprs) = bindVal (getName $ idDecls !! 0) (exprs !! 0) 
-execDecl (TypeDecl name type_) = error "Types not implemented"
-execDecl (VarDecl idDecls type_ exprs) = bindVal (getName $ idDecls !! 0) (exprs !! 0)
+execDecl (ConstDecl idDecls type_ exprs) state = bindVal (getName $ idDecls !! 0) ( (exprs !! 0) ) state
+execDecl (TypeDecl name type_) state = error "Types not implemented"
+execDecl (VarDecl idDecls type_ exprs) state = bindVal (getName $ idDecls !! 0) ( (exprs !! 0) ) state
 
 execSimpleStmt :: SimpleStmt -> State -> IO State
 execSimpleStmt (Assignment a) = return . execAssign a
@@ -75,12 +73,16 @@ execSimpleStmt (ExpressionStmt e) = execExprStmt e
 
 
 execIfStmt :: IfStmt -> State -> IO State
-execIfStmt (Ifstmt1 (Num n) block)  
-	| n == 1 = execBlock block
-	| otherwise = return
-execIfStmt (Ifstmt2 (Num n) block els)
-	| n == 1 = execBlock block
-	| otherwise = execElse els
+execIfStmt (Ifstmt1 expr block)  state
+	| evalBool expr state = execBlock block state
+	| otherwise = return state-- TODO error?
+execIfStmt (Ifstmt2 expr block els) state
+	| evalBool expr state = execBlock block state
+	| otherwise = execElse els state
+
+execElse :: Else -> State -> IO State
+execElse (Else1 ifStmt) = execIfStmt ifStmt
+execElse (Else2 block) = execBlock block 
 
 
 
@@ -103,7 +105,7 @@ execAssign _ = error "ey"
 
 
 bindAssign :: Expr -> Expr -> State -> State
-bindAssign (IdUse name) rhs state = bindVal name (eval rhs state) state
+bindAssign (IdUse name) rhs state = bindVal name rhs state
 bindAssign _ rhs state = error "TODO"
 
 getName (IdDecl name) = name
@@ -121,36 +123,48 @@ bindVal name val (State v p f) = State (Map.insert name val v) p f
 
 -- TODO should only work with id use?
 -- maybe name instead of iduse?
-lookup1 :: Expr -> State -> Expr
-lookup1 (IdUse name) (State v p f) = lookup2 name v
-lookup1 (Num n) _ = error "not an idUse"
+lookupExpr :: Expr -> State -> Expr
+lookupExpr (IdUse name) (State v p f) = lookup2 name v
+lookupExpr (Num n) _ = error "not an idUse"
 
 
+evalBool :: Expr -> State -> Bool --TODO return state?
+evalBool expr state = asBoolVal (eval expr state)
 
+asBoolVal :: Value -> Bool
+asBoolVal (BoolVal v) = v
+asBoolVal (NumVal _) = error "not a bool"
+asBoolVal (StringVal _) = error "not a bool"
 
-
-eval :: Expr -> State -> Expr
-eval (IdUse x) state  = eval (lookup1 (IdUse x) state ) state
+eval :: Expr -> State -> Value
+eval (IdUse x) state  = eval (lookupExpr (IdUse x) state ) state
 eval (BinExpr e ) state = evalBin e state
-eval (Num n) _ = Num n 
+eval (Num n) _ = NumVal n 
 
-evalBin :: BinExpr -> State -> Expr
-evalBin (AddExpr l r) state = add (eval l state) (eval r state) 
+evalBin :: BinExpr -> State -> Value
+evalBin (AritmExpr a) state = evalAritm a state
+evalBin (CondExpr c) state = evalCond c state
 evalBin _ _ = error "ToDO"
 
-add :: Expr -> Expr -> Expr
-add (Num l) (Num r) = (Num (l + r))
+evalAritm :: AritmExpr -> State -> Value
+evalAritm (AddExpr l r) state = add (eval l state) (eval r state) 
+
+evalCond :: CondExpr -> State -> Value
+evalCond (Eq_ l r) state = BoolVal $ (eval l state) == (eval r state)
+
+add :: Value -> Value -> Value
+add (NumVal l) (NumVal r) = NumVal (l + r)
 add _ _ = error "todo"
 
-sub :: Expr -> Expr -> Expr
-sub (Num l) (Num r) = (Num (l - r))
+sub :: Value -> Value -> Value
+sub (NumVal l) (NumVal r) = (NumVal (l - r))
 sub _ _ = error "todo"
 
-mul :: Expr -> Expr -> Expr
-mul (Num l) (Num r) = (Num (l * r))
+mul :: Value -> Value -> Value
+mul (NumVal l) (NumVal r) = (NumVal (l * r))
 mul _ _ = error "todo"
 
-div :: Expr -> Expr -> Expr
+div :: Value -> Value -> Value
 --div (Num l) (Num r) = (Num (l / r))
 div  _ _ = error "todo"
 
