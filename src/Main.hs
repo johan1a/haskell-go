@@ -30,3 +30,10 @@ main = do
 
 parse :: String -> String
 parse = show . HappyParser.parseExpr 
+
+parseFile :: String -> IO ()
+parseFile fileName = do 
+    content <- readFile $ fileName
+    let ast = HappyParser.parseExpr content
+    putStrLn $ "AST: " ++ (show ast)
+    return ()
