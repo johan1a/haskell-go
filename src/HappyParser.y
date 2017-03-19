@@ -37,7 +37,7 @@ import AST
     '.'     { TokenDot }
     ','     { TokenComma }
     '+'     { TokenAdd }
-    '-'     { TokenOpSub }
+    '-'     { TokenSub }
     '|'     { TokenOpPipe }
     '^'     { TokenOpUpArrow }
     '*'     { TokenOpMul }
@@ -100,6 +100,9 @@ Else : "else" IfStmt                                    { Else1 $2 }
 
 ShortVarDecl : IdentifierList ":=" ExpressionList       { ShortVarDecl $1 $3 }
 
+BinExpr : AritmExpr                                     { AritmExpr $1 } 
+	| CondExpr                                      { CondExpr $1 } 
+
 Expr : BinExpr                                          { BinExpr $1}
      | "print" '(' ExpressionList ')'			{ PrintCall $3 }
      | NAME '(' ExpressionList ')' 			{ Call $1 $3 } 
@@ -115,18 +118,6 @@ AssignOp : AddOp '='                                    { $1 }
          | MulOp '='                                    { $1 }
 
 
-AddOp   : '+'                                           { AddOp }
-        | '-'                                           { SubOp }
-        | '|'                                           { PipeOp }
-        | '^'                                           { UpOp }
-
-MulOp  : '*'                                            { MulOp }
-       | '/'                                            { DivOp }
-       | '%'                                            { ModOp }
-       | "<<"                                           { LeftOp }
-       | ">>"                                           { RightOp }
-       | '&'                                            { AmpOp }
-       | "&^"                                           { AmpUpOp }
 
 Op : AddOp                                              { $1 }
    | MulOp                                              { $1 }
@@ -171,8 +162,6 @@ ArrayType : '[' Expr ']' ElementType                    { ArrayType $2 $4 }
 ElementType : Type                                      { $1 } 
 
 
-BinExpr : AritmExpr                                     { AritmExpr $1 } 
-	| CondExpr                                      { CondExpr $1 } 
 
 
 AritmExpr : Expr '+' Expr                                { AddExpr $1 $3 }
@@ -187,6 +176,19 @@ CondExpr : Expr "==" Expr                                { Eq_ $1 $3 }
         | Expr "<=" Expr                                  { LessEq $1 $3 }
         | Expr ">" Expr                                  { Greater $1 $3 }
         | Expr ">=" Expr                                  { GreaterEq $1 $3 }
+
+AddOp   : '+'                                           { AddOp }
+        | '-'                                           { SubOp }
+        | '|'                                           { PipeOp }
+        | '^'                                           { UpOp }
+
+MulOp  : '*'                                            { MulOp }
+       | '/'                                            { DivOp }
+       | '%'                                            { ModOp }
+       | "<<"                                           { LeftOp }
+       | ">>"                                           { RightOp }
+       | '&'                                            { AmpOp }
+       | "&^"                                           { AmpUpOp }
 
 
 {-

@@ -44,7 +44,6 @@ tokens :-
     "."                         { \s -> TokenDot }
     ","                         { \s -> TokenComma }
     "+"                         { \s -> TokenOpAdd }
-    "-"                         { \s -> TokenOpSub }
     "|"                         { \s -> TokenOpPipe }
     "^"                         { \s -> TokenOpUpArrow }
     "*"                         { \s -> TokenOpMul }
@@ -94,7 +93,6 @@ data Token = TokenLet
            | TokenDot 
            | TokenComma
            | TokenOpAdd
-           | TokenOpSub 
            | TokenOpPipe 
            | TokenOpUpArrow 
            | TokenOpMul 
