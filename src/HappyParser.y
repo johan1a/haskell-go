@@ -14,6 +14,7 @@ import AST
     "false" { TokenFalse }
     "const" { TokenConst }
     "type"  { TokenType }
+    "func"  { TokenFunc }
     "var"   { TokenVar }
     "print" { TokenPrint }
     let     { TokenLet }
@@ -34,6 +35,7 @@ import AST
     ')'     { TokenRParen }
     '['     { TokenLBracket }
     ']'     { TokenRBracket }
+    "..."   { TokenDots }
     '.'     { TokenDot }
     ','     { TokenComma }
     '+'     { TokenAdd }
@@ -66,8 +68,8 @@ Statements : Statement                                  { [$1] }
 
 Statement : IfStmt                                      { IfStmt $1 }
           | Block                                       { BlockStmt $1 }
- 	  | SimpleStmt                                  { SimpleStmt $1 }
-	  | Declaration                                 { Declaration $1 }
+          | SimpleStmt                                  { SimpleStmt $1 }
+          | Declaration                                 { Declaration $1 }
 
 
 
@@ -101,14 +103,14 @@ Else : "else" IfStmt                                    { Else1 $2 }
 ShortVarDecl : IdentifierList ":=" ExpressionList       { ShortVarDecl $1 $3 }
 
 BinExpr : AritmExpr                                     { AritmExpr $1 } 
-	| CondExpr                                      { CondExpr $1 } 
+    | CondExpr                                          { CondExpr $1 } 
 
 Expr : BinExpr                                          { BinExpr $1}
-     | "print" '(' ExpressionList ')'			{ PrintCall $3 }
-     | NAME '(' ExpressionList ')' 			{ Call $1 $3 } 
-     | "true" 						{ BoolExpr True }
-     | "false" 						{ BoolExpr False }
-     | STRING 						{ StringExpr $1 }
+     | "print" '(' ExpressionList ')'                   { PrintCall $3 }
+     | NAME '(' ExpressionList ')'                      { Call $1 $3 } 
+     | "true"                                           { BoolExpr True }
+     | "false"                                          { BoolExpr False }
+     | STRING                                           { StringExpr $1 }
      | NAME                                             { IdUse $1 }
      | NUM                                              { Num $1 }
 
@@ -126,6 +128,41 @@ Op : AddOp                                              { $1 }
 
 IncDecStmt : Expr "++"                                  { IncStmt $1 }
            | Expr "--"                                  { DecStmt $1 }
+
+{-- FunctionType : "func" Signature --}
+
+{-- TODO support functions without bodies --}
+FunctionDecl : "func" FunctionName Function             { FunctionDecl1 $2 $3 }
+             | "func" FunctionName Signature            { FunctionDecl2 $2 $3 }
+
+FunctionName : NAME                                     { $1 }
+
+Function : Signature FunctionBody                       { Function $1 $2 }
+
+FunctionBody : Block                                    { $1 }
+
+
+Signature : '(' ')'                                     { Signature1 }
+          | '(' Parameters ')'                          { Signature2 $2 }
+          | '(' Parameters Result ')'                   { Signature3 $2 $3 }
+
+Result : '(' ')'                                        { Result1 }
+       | '(' Parameters ')'                             { Result2 $2 }
+       | '(' Type ')'                                   { Result3 $2 }
+
+{-- TODO should there be 0..n lists  --}
+Parameters : '(' ParameterList ')'                      { $2 }
+           | '(' ParameterList ',' ')'                  { $2 }
+
+ParameterList : ParameterDecl                           { [$1] }
+              | ParameterList ',' ParameterDecl         { $1 ++ [$3] }
+
+ParameterDecl : Type                                    { ParameterDecl1 $1 }
+              | IdentifierList Type                     { ParameterDecl2 $1 $2 }
+              | IdentifierList "..." Type               { ParameterDecl2 $1 $3 }
+
+
+
 
 Declaration : ConstDecl                                 { $1 }
             | TypeDecl                                  { $1 }

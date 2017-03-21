@@ -30,6 +30,7 @@ tokens :-
   ">="    			{ \s -> TokenGreaterEq }
   "true"    			{ \s -> TokenTrue }
   "false"    			{ \s -> TokenFalse }
+  "func"    			{ \s -> TokenFunc }
   \=                            { \s -> TokenEq }
   \\                            { \s -> TokenLambda }
   \(                            { \s -> TokenLParen }
@@ -38,6 +39,7 @@ tokens :-
   "const"                       { \s -> TokenConst }
   "type"                        { \s -> TokenType }
   "var"                         { \s -> TokenVar }
+  "..."                         { \s -> TokenDots }
     "."                         { \s -> TokenDot }
     ","                         { \s -> TokenComma }
     "+"                         { \s -> TokenAdd }
@@ -85,41 +87,43 @@ data Token = TokenLet
 	   | TokenLessEq
 	   | TokenGreater
 	   | TokenGreaterEq
-           | TokenConst
-           | TokenType
-           | TokenVar
-           | TokenLambda
-           | TokenNum Int
-           | TokenSym String
-           | TokenArrow
-           | TokenEq
-           | TokenLParen
-           | TokenRParen
-           | TokenLBracket
-           | TokenRBracket
-           | TokenDot 
-           | TokenComma
-           | TokenAdd
-           | TokenSub
-           | TokenOpPipe 
-           | TokenOpUpArrow 
-           | TokenOpMul 
-           | TokenOpSlash 
-           | TokenOpModulo 
-           | TokenOpLeftStream 
-           | TokenOpRightStream 
-           | TokenOpAnd
-           | TokenOpAndUp 
-           | TokenPrint 
-           | TokenShortVarDecl
-           | TokenInc
-           | TokenDec
-           | TokenLCParen
-           | TokenRCParen
-           | TokenSemiColon
-           | TokenIf
-           | TokenElse
-           deriving (Eq,Show)
+	   | TokenFunc
+       | TokenConst
+       | TokenType
+       | TokenVar
+       | TokenLambda
+       | TokenNum Int
+       | TokenSym String
+       | TokenArrow
+       | TokenEq
+       | TokenLParen
+       | TokenRParen
+       | TokenLBracket
+       | TokenRBracket
+       | TokenDots
+       | TokenDot 
+       | TokenComma
+       | TokenAdd
+       | TokenSub
+       | TokenOpPipe 
+       | TokenOpUpArrow 
+       | TokenOpMul 
+       | TokenOpSlash 
+       | TokenOpModulo 
+       | TokenOpLeftStream 
+       | TokenOpRightStream 
+       | TokenOpAnd
+       | TokenOpAndUp 
+       | TokenPrint 
+       | TokenShortVarDecl
+       | TokenInc
+       | TokenDec
+       | TokenLCParen
+       | TokenRCParen
+       | TokenSemiColon
+       | TokenIf
+       | TokenElse
+       deriving (Eq,Show)
 
 scanTokens = alexScanTokens
 

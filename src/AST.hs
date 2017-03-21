@@ -93,6 +93,37 @@ data Op = AddOp
 
 type Statements = [Statement]
 
+
+data FunctionDecl = FunctionDecl1 FunctionName Function
+                  | FunctionDecl2 FunctionName Signature
+                  deriving (Eq, Show)
+
+type FunctionName = String
+
+data Function = Function Signature FunctionBody
+              deriving (Eq, Show)
+
+data Signature = Signature1
+               | Signature2 [ParameterDecl]
+               | Signature3 [ParameterDecl] Result
+               deriving (Eq, Show)
+
+type FunctionBody = Block
+
+data Result = Result1
+            | Result2 [ParameterDecl]
+            | Result3 Type
+            deriving (Eq, Show)
+
+data ParameterDecl = ParameterDecl1 Type
+                   | ParameterDecl2 [IdDecl] Type
+                   deriving (Eq, Show)
+
+
+
+
+
+
 data Declaration = ConstDecl [IdDecl] Type [Expr]  
                  | TypeDecl Name Type 
                  | VarDecl [IdDecl] Type [Expr]
@@ -103,37 +134,37 @@ type IdentifierList = [Name]
 type ExpressionList = [Expr]
 
 data Value = NumVal Int
-	 | BoolVal Bool
-	 | StringVal String
-	 deriving (Eq, Show)
+     | BoolVal Bool
+     | StringVal String
+     deriving (Eq, Show)
 
 data Expr = BinExpr BinExpr
           | PrintCall [Expr]
           | Call Name [Expr]
-	  | BoolExpr Bool 
+          | BoolExpr Bool 
           | Num Int
           | IdUse Name
           | StringExpr String
            deriving (Eq, Show)
 
 data BinExpr = AritmExpr AritmExpr
-	     | CondExpr CondExpr
+             | CondExpr CondExpr
             deriving (Eq, Show)
-		
+        
 data AritmExpr = AddExpr Expr Expr
                | SubExpr Expr Expr
                | MulExpr Expr Expr
                | DivExpr Expr Expr
                | ModExpr Expr Expr
-            	deriving (Eq, Show)
+                deriving (Eq, Show)
 
 data CondExpr = Eq_ Expr Expr
-	      | Neq Expr Expr
-	      | Less Expr Expr
-	      | LessEq Expr Expr
-	      | Greater Expr Expr
-	      | GreaterEq Expr Expr
-            	deriving (Eq, Show)
+          | Neq Expr Expr
+          | Less Expr Expr
+          | LessEq Expr Expr
+          | Greater Expr Expr
+          | GreaterEq Expr Expr
+            deriving (Eq, Show)
 
 data IdDecl = IdDecl Name
             deriving (Eq, Show)
