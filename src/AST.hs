@@ -4,6 +4,11 @@ import Data.Bool
 
 type Name = String
 
+type SourceFile = [TopLevelDecl]
+
+data TopLevelDecl = Declaration | FunctionDecl -- TODO  | MethodDecl 
+
+
 data Block = Block [Statement]
            deriving (Eq, Show)
 
@@ -18,7 +23,9 @@ data TypeName = TypNameIdentifier Name
 
 data QualifiedIdent = QualifiedIdent PackageName Name
               deriving (Eq, Show)
+
 type PackageName = Name
+
 data TypeLit = ArrayType ArrayLength ElementType
           deriving (Eq, Show)
         --      | StructType ArrayType
@@ -34,7 +41,7 @@ type ElementType = Type
 
 
 data Statement = Expr Expr
-              | Declaration Declaration
+              | DeclarationStmt Declaration
               | SimpleStmt SimpleStmt
        --       | LabeledStmt 
       --        | GoStmt 
@@ -94,8 +101,9 @@ data Op = AddOp
 type Statements = [Statement]
 
 
-data FunctionDecl = FunctionDecl1 FunctionName Function
-                  | FunctionDecl2 FunctionName Signature
+data FunctionDecl = FunctionDecl1 FunctionName Signature
+                  | FunctionDecl2 FunctionName Function
+                  | FunctionDecl3
                   deriving (Eq, Show)
 
 type FunctionName = String
@@ -149,7 +157,7 @@ data Expr = BinExpr BinExpr
 
 data BinExpr = AritmExpr AritmExpr
              | CondExpr CondExpr
-            deriving (Eq, Show)
+             deriving (Eq, Show)
         
 data AritmExpr = AddExpr Expr Expr
                | SubExpr Expr Expr

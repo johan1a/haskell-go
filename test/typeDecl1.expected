@@ -1,1 +1,1 @@
-[Declaration (TypeDecl "kustom" (TypeName (TypNameIdentifier "balbal")))]
+[DeclarationStmt (TypeDecl "kustom" (TypeName (TypNameIdentifier "balbal")))]

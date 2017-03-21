@@ -69,7 +69,7 @@ Statements : Statement                                  { [$1] }
 Statement : IfStmt                                      { IfStmt $1 }
           | Block                                       { BlockStmt $1 }
           | SimpleStmt                                  { SimpleStmt $1 }
-          | Declaration                                 { Declaration $1 }
+          | Declaration                                 { DeclarationStmt $1 }
 
 
 
@@ -132,9 +132,9 @@ IncDecStmt : Expr "++"                                  { IncStmt $1 }
 {-- FunctionType : "func" Signature --}
 
 {-- TODO support functions without bodies --}
-FunctionDecl : "func" FunctionName Function             { FunctionDecl1 $2 $3 }
-             | "func" FunctionName Signature            { FunctionDecl2 $2 $3 }
-
+FunctionDecl : "func" FunctionName Signature            { FunctionDecl1 $2 $3 }
+             | "func" FunctionName Function             { FunctionDecl2 $2 $3 }
+             
 FunctionName : NAME                                     { $1 }
 
 Function : Signature FunctionBody                       { Function $1 $2 }

@@ -51,7 +51,7 @@ execStmts (s:ss) state = execStmt s state >>= execStmts ss
 
 execStmt :: Statement -> State -> IO State
 execStmt (Expr e) =  error "todo"
-execStmt (Declaration decl) = return . execDecl decl  
+execStmt (DeclarationStmt decl) = return . execDecl decl  
 execStmt (SimpleStmt simpleStmt) = execSimpleStmt simpleStmt
 execStmt (BlockStmt block) = execBlock block
 execStmt (IfStmt ifStmt) = execIfStmt ifStmt
