@@ -6,7 +6,9 @@ type Name = String
 
 type SourceFile = [TopLevelDecl]
 
-data TopLevelDecl = Declaration | FunctionDecl -- TODO  | MethodDecl 
+data TopLevelDecl = TopLevelDecl1 Declaration 
+                  | TopLevelDecl2 FunctionDecl -- TODO  | MethodDecl 
+                  deriving (Eq, Show)
 
 
 data Block = Block [Statement]
@@ -102,14 +104,10 @@ type Statements = [Statement]
 
 
 data FunctionDecl = FunctionDecl1 FunctionName Signature
-                  | FunctionDecl2 FunctionName Function
-                  | FunctionDecl3
+                  | FunctionDecl2 FunctionName Signature FunctionBody
                   deriving (Eq, Show)
 
 type FunctionName = String
-
-data Function = Function Signature FunctionBody
-              deriving (Eq, Show)
 
 data Signature = Signature1
                | Signature2 [ParameterDecl]

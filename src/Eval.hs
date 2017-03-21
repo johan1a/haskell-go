@@ -29,10 +29,12 @@ type Values = Map Name Expr
 
 type Parameters = Map Name [Name]
 
-type Functions = Map Name [Statement]
+type Declarations = Map Name TopLevelDecl
 
-data State = State Values Parameters Functions
-	deriving (Show)
+data State = State { values :: Values,
+                     params :: Parameters, 
+                     decls  :: Declarations
+                   } deriving (Show)
 
 lookup2 name map_  = fromJust $ Map.lookup name map_
 
@@ -41,9 +43,52 @@ lookup2 name map_  = fromJust $ Map.lookup name map_
 empty :: State
 empty = State Map.empty Map.empty Map.empty
 
-runProgram :: [Statement] -> IO State
-runProgram [] = return empty
-runProgram stmts = execStmts stmts empty  
+runProgram :: SourceFile -> IO State
+runProgram decls = readTopLevelDecls decls empty >>= runMain
+
+runMain :: State -> IO State
+runMain state = runFuncDecl (getFuncDecl "main" state) state
+
+runFuncDecl :: FunctionDecl -> State -> IO State
+runFuncDecl (FunctionDecl1 _ _ ) = error "No function body!"
+runFuncDecl (FunctionDecl2 name signature body) = execFunc name signature body
+-- TODO lookup parameters parameters
+
+getFuncDecl :: FunctionName -> State -> FunctionDecl
+getFuncDecl name state = asFuncDecl (lookup2 name $ decls state)
+
+asFuncDecl :: TopLevelDecl -> FunctionDecl
+asFuncDecl (TopLevelDecl1 _) = error "Not a function declaration!"
+asFuncDecl (TopLevelDecl2 funcDecl) = funcDecl
+
+readTopLevelDecls :: [TopLevelDecl] -> State -> IO State
+readTopLevelDecls [] state = return state
+readTopLevelDecls (s:ss) state = readTopLevelDecl s state >>= readTopLevelDecls ss 
+
+readTopLevelDecl :: TopLevelDecl -> State -> IO State
+readTopLevelDecl decl state = return $ storeTopDecl decl (topDeclName decl) state
+
+storeTopDecl :: TopLevelDecl -> String -> State -> State
+storeTopDecl decl name (State v p d) = State v p (Map.insert name decl d)
+
+topDeclName :: TopLevelDecl -> String
+topDeclName (TopLevelDecl1 decl) = declName decl
+topDeclName (TopLevelDecl2 funcDecl) = funcDeclName funcDecl
+
+funcDeclName :: FunctionDecl -> FunctionName
+funcDeclName (FunctionDecl1 name _) = name
+funcDeclName (FunctionDecl2 name _ _) = name
+
+declName :: Declaration -> String
+declName (ConstDecl idDecls _ _) = idDeclName $ idDecls !! 0 -- TODO all names etc blabla
+declName (TypeDecl name _ ) = name
+declName (VarDecl idDecls _ _) = idDeclName $ idDecls !! 0
+
+idDeclName (IdDecl name) = name
+
+readDeclaration :: Declaration -> State -> IO State
+readDeclaration decl state = error "TODO"
+
 
 execStmts :: [Statement] -> State -> IO State
 execStmts [] state = return state
@@ -88,12 +133,17 @@ execExprStmt :: Expr  -> State -> IO State
 execExprStmt (PrintCall e) st = do 
 			putStrLn $ show $ eval (e !! 0 ) st --Print multiple
 			return st 
-execExprStmt (Call name e) st = execFunc name e st
+execExprStmt (Call name e) st = execFuncCall name e st
 execExprStmt (Num n) st = return st
 
-execFunc :: Name -> [Expr] -> State -> IO State
-execFunc name args (State v p f) = execStmts (lookup2 name f) (bindArgs name args (State v p f))
+execFuncCall :: Name -> [Expr] -> State -> IO State
+execFuncCall name args state = 
+                            let state2 = bindArgs name args state  
+                            in runFuncDecl (getFuncDecl name state2) state2
 
+
+execFunc :: FunctionName -> Signature -> FunctionBody -> State -> IO State
+execFunc name sig body state = execBlock body state
 
 -- TODO assigns first in lhs to first in rhs.
 -- does not yet support multiple declarations at once

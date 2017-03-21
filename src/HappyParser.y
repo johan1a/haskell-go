@@ -5,7 +5,7 @@ import AlexToken
 import AST
 }
 
-%name stmt
+%name parse
 %tokentype { Token }
 %error { parseError }
 
@@ -63,6 +63,14 @@ import AST
 %%
 
 
+SourceFile : TopLevelDecls                              { $1 }
+
+TopLevelDecls : TopLevelDecl                            { [$1] }
+              | TopLevelDecls TopLevelDecl              { $1 ++ [$2] }
+
+TopLevelDecl : Declaration                              { TopLevelDecl1 $1 }
+             | FunctionDecl                             { TopLevelDecl2 $1 }
+
 Statements : Statement                                  { [$1] }
            | Statements Statement                       { $1 ++ [$2] }
 
@@ -70,8 +78,6 @@ Statement : IfStmt                                      { IfStmt $1 }
           | Block                                       { BlockStmt $1 }
           | SimpleStmt                                  { SimpleStmt $1 }
           | Declaration                                 { DeclarationStmt $1 }
-
-
 
 SimpleStmt : 
            ShortVarDecl                                 { $1 }
@@ -133,11 +139,9 @@ IncDecStmt : Expr "++"                                  { IncStmt $1 }
 
 {-- TODO support functions without bodies --}
 FunctionDecl : "func" FunctionName Signature            { FunctionDecl1 $2 $3 }
-             | "func" FunctionName Function             { FunctionDecl2 $2 $3 }
+             | "func" FunctionName Signature FunctionBody { FunctionDecl2 $2 $3 $4 }
              
 FunctionName : NAME                                     { $1 }
-
-Function : Signature FunctionBody                       { Function $1 $2 }
 
 FunctionBody : Block                                    { $1 }
 
@@ -254,6 +258,6 @@ Atom : '(' Expr ')'                                     { $2 }
 parseError :: [Token] -> a
 parseError tokens = error $ "Parse error " ++ (show tokens)
 
-parseExpr :: String -> [Statement]
-parseExpr = stmt . scanTokens
+parseExpr :: String -> SourceFile
+parseExpr = parse . scanTokens
 }
