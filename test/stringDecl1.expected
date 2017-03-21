@@ -1,1 +1,1 @@
-[DeclarationStmt (VarDecl [IdDecl "x"] (TypeName (TypNameIdentifier "string")) [StringExpr "Hello World"])]
+[TopLevelDecl1 (VarDecl [IdDecl "x"] (TypeName (TypNameIdentifier "string")) [StringExpr "Hello World"])]
