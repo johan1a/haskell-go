@@ -29,19 +29,18 @@ type Values = Map Name Expr
 
 type Parameters = Map Name [Name]
 
-type Declarations = Map Name TopLevelDecl
-
 data State = State { values :: Values,
                      params :: Parameters, 
-                     decls  :: Declarations
+                     decls  :: Map Name Expr, --TODO types
+                     funcs :: Map Name FunctionDecl
                    } deriving (Show)
 
-lookup2 name map_  = fromJust $ Map.lookup name map_
+lookup2 name map_ = traceShow map_ $ fromJust $ Map.lookup name map_
 
 
 
 empty :: State
-empty = State Map.empty Map.empty Map.empty
+empty = State Map.empty Map.empty Map.empty Map.empty
 
 runProgram :: SourceFile -> IO State
 runProgram decls = readTopLevelDecls decls empty >>= runMain
@@ -55,21 +54,39 @@ runFuncDecl (FunctionDecl2 name signature body) = execFunc name signature body
 -- TODO lookup parameters parameters
 
 getFuncDecl :: FunctionName -> State -> FunctionDecl
-getFuncDecl name state = asFuncDecl (lookup2 name $ decls state)
-
-asFuncDecl :: TopLevelDecl -> FunctionDecl
-asFuncDecl (TopLevelDecl1 _) = error "Not a function declaration!"
-asFuncDecl (TopLevelDecl2 funcDecl) = funcDecl
+getFuncDecl name state = lookup2 name $ funcs state
 
 readTopLevelDecls :: [TopLevelDecl] -> State -> IO State
 readTopLevelDecls [] state = return state
 readTopLevelDecls (s:ss) state = readTopLevelDecl s state >>= readTopLevelDecls ss 
 
 readTopLevelDecl :: TopLevelDecl -> State -> IO State
-readTopLevelDecl decl state = return $ storeTopDecl decl (topDeclName decl) state
+readTopLevelDecl (TopLevelDecl1 decl) state = return $ storeDecl decl state
+readTopLevelDecl (TopLevelDecl2 fDecl) state = return $ storeFuncDecl fDecl state
 
-storeTopDecl :: TopLevelDecl -> String -> State -> State
-storeTopDecl decl name (State v p d) = State v p (Map.insert name decl d)
+--TODO rename
+storeDecl :: Declaration -> State -> State
+storeDecl (ConstDecl idDecls type_ exprs) state = bindDecls idDecls type_ exprs state 
+storeDecl (TypeDecl name type_) state = error "TODO typedecl"
+storeDecl (VarDecl idDecls type_ exprs) state = bindDecls idDecls type_ exprs state 
+
+bindDecls :: [IdDecl] -> Type -> [Expr] -> State -> State
+bindDecls [] type_ _ state = state
+bindDecls [] type_ _ state = error "mismatch1 TODO error?"
+bindDecls _ type_ [] state = error "mismatch2 TODO error?"
+bindDecls (d:dd) type_ (e:ee) state = bindDecls dd type_ ee $ bindDecls dd type_ ee $ bindDecl d type_ e state
+
+--TODO type
+bindDecl :: IdDecl -> Type -> Expr -> State -> State
+bindDecl (IdDecl name) type_ expr state = state { decls = (Map.insert name expr $ decls state) }
+
+
+storeFuncDecl :: FunctionDecl -> State -> State
+storeFuncDecl decl state = state { funcs = (Map.insert (fName decl) decl $ funcs state) }
+ 
+fName :: FunctionDecl -> String
+fName (FunctionDecl1 name _) = name
+fName (FunctionDecl2 name _ _) = name
 
 topDeclName :: TopLevelDecl -> String
 topDeclName (TopLevelDecl1 decl) = declName decl
@@ -89,6 +106,10 @@ idDeclName (IdDecl name) = name
 readDeclaration :: Declaration -> State -> IO State
 readDeclaration decl state = error "TODO"
 
+
+
+
+-- Execution below
 
 execStmts :: [Statement] -> State -> IO State
 execStmts [] state = return state
@@ -141,20 +162,21 @@ execElse (Else2 block) = execBlock block
 
 
 execExprStmt :: Expr  -> State -> IO State
+execExprStmt (Call name e) st = traceShow "call" $ execFuncCall name e st
 execExprStmt (PrintCall e) st = do 
-			putStrLn $ show $ eval (e !! 0 ) st --Print multiple
+			putStrLn $ traceShow "printCall" $ show $ eval (e !! 0 ) st --Print multiple
 			return st 
-execExprStmt (Call name e) st = execFuncCall name e st
 execExprStmt (Num n) st = return st
 
 execFuncCall :: Name -> [Expr] -> State -> IO State
 execFuncCall name args state = 
-                            let state2 = bindArgs name args state  
+                            let state2 = traceShowX state $ bindArgs name args state  
                             in runFuncDecl (getFuncDecl name state2) state2
-
 
 execFunc :: FunctionName -> Signature -> FunctionBody -> State -> IO State
 execFunc name sig body state = execBlock body state
+
+traceShowX state = traceShow (lookup2 "x" (decls state)) 
 
 -- TODO assigns first in lhs to first in rhs.
 -- does not yet support multiple declarations at once
@@ -173,19 +195,23 @@ bindMany :: [Name] -> [Expr] -> State -> State
 bindMany (n:nn) (a:aa) state = bindMany nn aa $ bindVal n a state
 bindMany _ _ state = state
 
+--Bind the given arguments to the formal parameter names of the function
 bindArgs :: Name -> [Expr] -> State -> State
-bindArgs funcName args (State v p f) = bindMany (lookup2 funcName p) args (State v p f)
+bindArgs funcName exprs state = traceShow state $ bindMany (paramNames funcName state) exprs state
+
+paramNames funcName state = lookup2 funcName $ params state
 
 bindVal :: Name -> Expr -> State -> State
-bindVal name val (State v p f) = State (Map.insert name val v) p f
-
+bindVal name val state = state { decls = Map.insert name val $ decls state}
 
 -- TODO should only work with id use?
 -- maybe name instead of iduse?
 lookupExpr :: Expr -> State -> Expr
-lookupExpr (IdUse name) (State v p f) = lookup2 name v
+lookupExpr (IdUse name) state = lookup2 name (decls state)
 lookupExpr (Num n) _ = error "not an idUse"
 
+lookupName :: String -> State -> Expr
+lookupName name state = lookup2 name $ decls state
 
 evalBool :: Expr -> State -> Bool --TODO return state?
 evalBool expr state = asBoolVal (eval expr state)
@@ -196,7 +222,7 @@ asBoolVal (NumVal _) = error "not a bool"
 asBoolVal (StringVal _) = error "not a bool"
 
 eval :: Expr -> State -> Value
-eval (IdUse x) state  = eval (lookupExpr (IdUse x) state ) state
+eval (IdUse name) state  = eval (lookupName name state) state
 eval (BinExpr e ) state = evalBin e state
 eval (Num n) _ = NumVal n 
 eval (BoolExpr b) _ = BoolVal b
