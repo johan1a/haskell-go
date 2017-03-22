@@ -1,1 +1,1 @@
-[IfStmt (Ifstmt1 (IdUse "b") (Block [SimpleStmt (ExpressionStmt (IdUse "a"))]))]
+[TopLevelDecl2 (FunctionDecl2 "main" Signature1 (Block [IfStmt (Ifstmt1 (IdUse "b") (Block [SimpleStmt (ExpressionStmt (IdUse "a"))]))]))]
