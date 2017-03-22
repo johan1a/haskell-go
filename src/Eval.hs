@@ -71,7 +71,7 @@ storeDecl (TypeDecl name type_) state = error "TODO typedecl"
 storeDecl (VarDecl idDecls type_ exprs) state = bindDecls idDecls type_ exprs state 
 
 bindDecls :: [IdDecl] -> Type -> [Expr] -> State -> State
-bindDecls [] type_ _ state = state
+bindDecls [] type_ [] state = state
 bindDecls [] type_ _ state = error "mismatch1 TODO error?"
 bindDecls _ type_ [] state = error "mismatch2 TODO error?"
 bindDecls (d:dd) type_ (e:ee) state = bindDecls dd type_ ee $ bindDecls dd type_ ee $ bindDecl d type_ e state
