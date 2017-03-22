@@ -114,7 +114,18 @@ execDecl (VarDecl idDecls type_ exprs) state = bindVal (getName $ idDecls !! 0) 
 
 execSimpleStmt :: SimpleStmt -> State -> IO State
 execSimpleStmt (Assignment a) = return . execAssign a
-execSimpleStmt (ExpressionStmt e) = execExprStmt e 
+execSimpleStmt EmptyStmt = return 
+execSimpleStmt (ExpressionStmt expr) = execExprStmt expr 
+execSimpleStmt (IncDecStmt stmt) = execIncDecStmt stmt 
+execSimpleStmt (ShortVarDecl decls exprs) = execShortVarDecl decls exprs
+
+execIncDecStmt :: IncDecStmt -> State -> IO State
+execIncDecStmt (IncStmt expr) = error "TODO" 
+execIncDecStmt (DecStmt expr) = error "TODO" 
+
+execShortVarDecl :: [IdDecl] -> [Expr] -> State -> IO State
+execShortVarDecl decls exprs = error "TODO" 
+
 
 execIfStmt :: IfStmt -> State -> IO State
 execIfStmt (Ifstmt1 expr block)  state
