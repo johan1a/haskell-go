@@ -1,3 +1,4 @@
+func main() {
 if true {
     print( 1 )
 } else {
@@ -7,4 +8,5 @@ if false {
     print( 1 )
 } else {
     print ( 2 )
+}
 }
