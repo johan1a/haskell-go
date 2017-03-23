@@ -145,6 +145,7 @@ type ExpressionList = [Expr]
 data Value = NumVal Int
      | BoolVal Bool
      | StringVal String
+     | NullVal
      deriving (Eq, Show)
 
 data Expr = BinExpr BinExpr

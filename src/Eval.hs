@@ -32,26 +32,22 @@ type Parameters = Map Name [Name]
 data State = State { values :: Values,
                      params :: Parameters, 
                      decls  :: Map Name Expr, --TODO types
-                     funcs :: Map Name FunctionDecl
+                     funcs  :: Map Name FunctionDecl,
+                     retVal :: Value
                    } deriving (Show)
 
-lookup2 name map_ = traceShow map_ $ fromJust $ Map.lookup name map_
+lookup2 name map_ = fromJust $ Map.lookup name map_
 
 
 
 empty :: State
-empty = State Map.empty Map.empty Map.empty Map.empty
+empty = State Map.empty Map.empty Map.empty Map.empty NullVal
 
 runProgram :: SourceFile -> IO State
 runProgram (SourceFile package decls) = readTopLevelDecls decls empty >>= runMain
 
 runMain :: State -> IO State
-runMain state = runFuncDecl (getFuncDecl "main" state) state
-
-runFuncDecl :: FunctionDecl -> State -> IO State
-runFuncDecl (FunctionDecl1 _ _ ) = error "No function body!"
-runFuncDecl (FunctionDecl2 name signature body) = execFunc name signature body
--- TODO lookup parameters parameters
+runMain = execFuncCall "main" []
 
 getFuncDecl :: FunctionName -> State -> FunctionDecl
 getFuncDecl name state = lookup2 name $ funcs state
@@ -122,11 +118,6 @@ execStmt (SimpleStmt simpleStmt) = execSimpleStmt simpleStmt
 execStmt (BlockStmt block) = execBlock block
 execStmt (IfStmt ifStmt) = execIfStmt ifStmt
 
-execBlock :: Block -> State -> IO State
-execBlock (Block []) = return
-execBlock (Block stmts) = execStmts stmts
-
-
 --TODO implement types, multiple declarations
 execDecl :: Declaration -> State -> State
 execDecl (ConstDecl idDecls type_ exprs) state = bindVal (getName $ idDecls !! 0) ( (exprs !! 0) ) state
@@ -148,13 +139,25 @@ execShortVarDecl :: [IdDecl] -> [Expr] -> State -> IO State
 execShortVarDecl decls exprs = error "TODO" 
 
 
+-- Yikes...
 execIfStmt :: IfStmt -> State -> IO State
-execIfStmt (Ifstmt1 expr block)  state
-	| evalBool expr state = execBlock block state
-	| otherwise = return state-- TODO error?
-execIfStmt (Ifstmt2 expr block els) state
-	| evalBool expr state = execBlock block state
-	| otherwise = execElse els state
+execIfStmt (Ifstmt1 expr block) state = do
+    b <- evalBool expr state
+    st <- execIfStmt2 b block Nothing state
+    return st
+execIfStmt (Ifstmt2 expr block els) state = do
+    b <- evalBool expr state
+    st <- execIfStmt2 b block (Just els) state
+    return st
+
+execIfStmt2 :: Bool -> Block -> Maybe Else -> State -> IO State
+execIfStmt2 cond ifBlock (Just els) state
+    | cond = execBlock ifBlock state
+    | otherwise = execElse els state
+execIfStmt2 cond ifBlock Nothing state
+    | cond = execBlock ifBlock state
+    | otherwise = return state
+    
 
 execElse :: Else -> State -> IO State
 execElse (Else1 ifStmt) = execIfStmt ifStmt
@@ -162,19 +165,23 @@ execElse (Else2 block) = execBlock block
 
 
 execExprStmt :: Expr  -> State -> IO State
-execExprStmt (Call name e) st = traceShow "call" $ execFuncCall name e st
+execExprStmt (Call name e) st = execFuncCall name e st
 execExprStmt (PrintCall e) st = do 
-			putStrLn $ traceShow "printCall" $ show $ eval (e !! 0 ) st --Print multiple
+			fmap putStrLn $ fmap show $ eval (e !! 0 ) st --Print multiple
 			return st 
 execExprStmt (Num n) st = return st
 
 execFuncCall :: Name -> [Expr] -> State -> IO State
-execFuncCall name args state = runFuncDecl (getFuncDecl name state) (bindArgs name args state)
+execFuncCall name args state = execFuncDecl (getFuncDecl name state) (bindArgs name args state)
 
-execFunc :: FunctionName -> Signature -> FunctionBody -> State -> IO State
-execFunc name sig body state = execBlock body state
+execFuncDecl :: FunctionDecl -> State -> IO State
+execFuncDecl (FunctionDecl1 _ _ ) = error "No function body!"
+execFuncDecl (FunctionDecl2 name sig body) = execBlock body 
+-- TODO lookup parameters parameters
 
-traceShowX state = traceShow (lookup2 "x" (decls state)) 
+execBlock :: Block -> State -> IO State
+execBlock (Block []) = return
+execBlock (Block stmts) = execStmts stmts
 
 -- TODO assigns first in lhs to first in rhs.
 -- does not yet support multiple declarations at once
@@ -195,7 +202,7 @@ bindMany _ _ state = state
 
 --Bind the given arguments to the formal parameter names of the function
 bindArgs :: Name -> [Expr] -> State -> State
-bindArgs funcName exprs state = traceShow state $ bindMany (paramNames funcName state) exprs state
+bindArgs funcName exprs state = bindMany (paramNames funcName state) exprs state
 
 paramNames funcName state = lookup2 funcName $ params state
 
@@ -211,34 +218,38 @@ lookupExpr (Num n) _ = error "not an idUse"
 lookupName :: String -> State -> Expr
 lookupName name state = lookup2 name $ decls state
 
-evalBool :: Expr -> State -> Bool --TODO return state?
-evalBool expr state = asBoolVal (eval expr state)
+evalBool :: Expr -> State -> IO Bool --TODO return state?
+evalBool expr state = fmap asBoolVal (eval expr state)
 
 asBoolVal :: Value -> Bool
 asBoolVal (BoolVal v) = v
 asBoolVal (NumVal _) = error "not a bool"
 asBoolVal (StringVal _) = error "not a bool"
 
-eval :: Expr -> State -> Value
+eval :: Expr -> State -> IO Value
 eval (IdUse name) state  = eval (lookupName name state) state
 eval (BinExpr e ) state = evalBin e state
-eval (Num n) _ = NumVal n 
-eval (BoolExpr b) _ = BoolVal b
-eval (StringExpr s) _ = StringVal s
+eval (Num n) _ = return $ NumVal n 
+eval (BoolExpr b) _ = return $ BoolVal b
+eval (StringExpr s) _ = return $ StringVal s
+eval (Call fName exprs) state = execFuncCall fName  exprs state >>= return . retVal
 
-evalBin :: BinExpr -> State -> Value
+
+evalBin :: BinExpr -> State -> IO Value
 evalBin (AritmExpr a) state = evalAritm a state
 evalBin (CondExpr c) state = evalCond c state
 evalBin _ _ = error "ToDO"
 
-evalAritm :: AritmExpr -> State -> Value
-evalAritm (AddExpr l r) state = add (eval l state) (eval r state) 
-evalAritm (SubExpr l r) state = sub (eval l state) (eval r state) 
-evalAritm (MulExpr l r) state = mul (eval l state) (eval r state) 
-evalAritm (DivExpr l r) state = div_ (eval l state) (eval r state) 
+evalAritm :: AritmExpr -> State -> IO Value
+evalAritm (AddExpr l r) state = add <$> (eval l state) <*>(eval r state) 
+evalAritm (SubExpr l r) state = sub <$> (eval l state) <*> (eval r state) 
+evalAritm (MulExpr l r) state = mul <$> (eval l state) <*> (eval r state) 
+evalAritm (DivExpr l r) state = div_ <$> (eval l state) <*> (eval r state) 
 
-evalCond :: CondExpr -> State -> Value
-evalCond (Eq_ l r) state = BoolVal $ (eval l state) == (eval r state)
+evalCond :: CondExpr -> State -> IO Value
+evalCond (Eq_ l r) state = do
+    b <- (==) <$>  (eval l state) <*> (eval r state) -- TODO check eq
+    return $ BoolVal b
 
 add :: Value -> Value -> Value
 add (NumVal l) (NumVal r) = NumVal (l + r)
