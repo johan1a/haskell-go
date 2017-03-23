@@ -1,1 +1,1 @@
-[TopLevelDecl1 (VarDecl [IdDecl "x"] (TypeName (TypNameIdentifier "string")) [StringExpr "Hello World"])]
+SourceFile (Package "main") [TopLevelDecl1 (VarDecl [IdDecl "x"] (TypeName (TypeNameIdentifier "string")) [StringExpr "Hello World"])]

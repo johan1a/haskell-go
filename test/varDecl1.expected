@@ -1,1 +1,1 @@
-[TopLevelDecl1 (VarDecl [IdDecl "x"] (TypeName (TypNameIdentifier "int")) [Num 2])]
+SourceFile (Package "main") [TopLevelDecl1 (VarDecl [IdDecl "x"] (TypeName (TypeNameIdentifier "int")) [Num 2])]

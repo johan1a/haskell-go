@@ -1,1 +1,1 @@
-[TopLevelDecl1 (TypeDecl "kustom" (TypeName (TypNameIdentifier "balbal")))]
+SourceFile (Package "main") [TopLevelDecl1 (TypeDecl "kustom" (TypeName (TypeNameIdentifier "balbal")))]

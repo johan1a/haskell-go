@@ -1,1 +1,1 @@
-[TopLevelDecl2 (FunctionDecl2 "main" Signature1 (Block [SimpleStmt (ExpressionStmt (BinExpr (AritmExpr (SubExpr (Num 2) (Num 3)))))]))]
+SourceFile (Package "main") [TopLevelDecl2 (FunctionDecl2 "main" Signature1 (Block [SimpleStmt (ExpressionStmt (BinExpr (AritmExpr (SubExpr (Num 2) (Num 3)))))]))]

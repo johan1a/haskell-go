@@ -1,1 +1,1 @@
-[TopLevelDecl2 (FunctionDecl2 "main" Signature1 (Block [SimpleStmt EmptyStmt]))]
+SourceFile (Package "main") [TopLevelDecl2 (FunctionDecl2 "main" Signature1 (Block [SimpleStmt EmptyStmt]))]

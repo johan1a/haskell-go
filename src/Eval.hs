@@ -43,7 +43,7 @@ empty :: State
 empty = State Map.empty Map.empty Map.empty Map.empty
 
 runProgram :: SourceFile -> IO State
-runProgram decls = readTopLevelDecls decls empty >>= runMain
+runProgram (SourceFile package decls) = readTopLevelDecls decls empty >>= runMain
 
 runMain :: State -> IO State
 runMain state = runFuncDecl (getFuncDecl "main" state) state
@@ -169,9 +169,7 @@ execExprStmt (PrintCall e) st = do
 execExprStmt (Num n) st = return st
 
 execFuncCall :: Name -> [Expr] -> State -> IO State
-execFuncCall name args state = 
-                            let state2 = traceShowX state $ bindArgs name args state  
-                            in runFuncDecl (getFuncDecl name state2) state2
+execFuncCall name args state = runFuncDecl (getFuncDecl name state) (bindArgs name args state)
 
 execFunc :: FunctionName -> Signature -> FunctionBody -> State -> IO State
 execFunc name sig body state = execBlock body state

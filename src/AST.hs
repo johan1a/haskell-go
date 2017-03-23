@@ -1,10 +1,13 @@
 module AST where
 
-import Data.Bool
 
 type Name = String
 
-type SourceFile = [TopLevelDecl]
+data SourceFile = SourceFile Package [TopLevelDecl]
+                deriving (Eq, Show)
+
+data Package = Package String
+             deriving (Eq, Show)
 
 data TopLevelDecl = TopLevelDecl1 Declaration 
                   | TopLevelDecl2 FunctionDecl -- TODO  | MethodDecl 
@@ -19,7 +22,7 @@ data Type = TypeName TypeName
           | Type Name
            deriving (Eq, Show)
 
-data TypeName = TypNameIdentifier Name
+data TypeName = TypeNameIdentifier Name
               | TypeNameQualifiedIdent QualifiedIdent
               deriving (Eq, Show)
 

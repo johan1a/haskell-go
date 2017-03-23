@@ -57,13 +57,16 @@ import AST
     ';'     { TokenSemiColon }
     "if"    { TokenIf }
     "else"  { TokenElse }
+    "package"{ TokenPackage }
 
 %left '+' '-'
 %left '*'
 %%
 
 
-SourceFile : TopLevelDecls                              { $1 }
+SourceFile : PackageClause ';' TopLevelDecls            { SourceFile $1 $3 }
+
+PackageClause : "package" NAME                          { Package $2 }
 
 TopLevelDecls : TopLevelDecl                            { [$1] }
               | TopLevelDecls TopLevelDecl              { $1 ++ [$2] }
@@ -190,9 +193,8 @@ ExpressionList : Expr                                   { [$1] }
 Type : TypeName                                         { TypeName $1 }
      | TypeLit                                          { $1 }
      | '(' Type ')'                                     { $2 }
-     | NAME                                              { Type $1 }
 
-TypeName : NAME                                          { TypNameIdentifier $1 } 
+TypeName : NAME                                          { TypeNameIdentifier $1 } 
          | QualifiedIdent                               { TypeNameQualifiedIdent $1 }
 
 QualifiedIdent : NAME '.' NAME                            { QualifiedIdent  $1 $3 }

@@ -60,6 +60,7 @@ tokens :-
     "}"                         { \s -> TokenRCParen }
     "if"                        { \s -> TokenIf }
     "else"                      { \s -> TokenElse }
+    "package"                   { \s -> TokenPackage }
     ";"                         { \s -> TokenSemiColon }
     \"$alpha [$white $alpha $digit \_ ]*\"             { \s -> TokenString (stripQuotes s) }
     $alpha [$alpha $digit \_ ]*   { \s -> TokenSym s }
@@ -123,6 +124,7 @@ data Token = TokenLet
        | TokenSemiColon
        | TokenIf
        | TokenElse
+       | TokenPackage
        deriving (Eq,Show)
 
 scanTokens = alexScanTokens
