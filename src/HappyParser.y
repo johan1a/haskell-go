@@ -148,15 +148,13 @@ FunctionName : NAME                                     { $1 }
 
 FunctionBody : Block                                    { $1 }
 
-
 Signature : '(' ')'                                     { Signature1 }
           | '(' Parameters ')'                          { Signature2 $2 }
-          | '(' Parameters Result ')'                   { Signature3 $2 $3 }
-
+          | '(' Parameters ')' Result                   { Signature3 $2 $4 }
 
 Result : '(' ')'                                        { Result1 }
        | '(' Parameters ')'                             { Result2 $2 }
-       | '(' Type ')'                                   { Result3 $2 }
+       | Type                                           { Result3 $1 }
 
 {-- TODO should there be 0..n lists  --}
 Parameters :  ParameterList                             { $1 }
@@ -168,9 +166,6 @@ ParameterList : ParameterDecl                           { [$1] }
 ParameterDecl : Type                                    { ParameterDecl1 $1 }
               | IdentifierList Type                     { ParameterDecl2 $1 $2 }
               | IdentifierList "..." Type               { ParameterDecl2 $1 $3 }
-
-
-
 
 Declaration : ConstDecl                                 { $1 }
             | TypeDecl                                  { $1 }
