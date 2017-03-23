@@ -1,5 +1,2 @@
 package main;
-
-type yeah string
-func main(){
-}
+func main( x int  ) 

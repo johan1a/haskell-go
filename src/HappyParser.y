@@ -142,7 +142,7 @@ IncDecStmt : Expr "++"                                  { IncStmt $1 }
 
 {-- TODO support functions without bodies --}
 FunctionDecl : "func" FunctionName Signature            { FunctionDecl1 $2 $3 }
-             | "func" FunctionName Signature FunctionBody { FunctionDecl2 $2 $3 $4 }
+             | "func" FunctionName Signature FunctionBody { FunctionDecl2 $2 $3 $4 } 
              
 FunctionName : NAME                                     { $1 }
 
@@ -153,13 +153,14 @@ Signature : '(' ')'                                     { Signature1 }
           | '(' Parameters ')'                          { Signature2 $2 }
           | '(' Parameters Result ')'                   { Signature3 $2 $3 }
 
+
 Result : '(' ')'                                        { Result1 }
        | '(' Parameters ')'                             { Result2 $2 }
        | '(' Type ')'                                   { Result3 $2 }
 
 {-- TODO should there be 0..n lists  --}
-Parameters : '(' ParameterList ')'                      { $2 }
-           | '(' ParameterList ',' ')'                  { $2 }
+Parameters :  ParameterList                             { $1 }
+           |  ParameterList ','                         { $1 }
 
 ParameterList : ParameterDecl                           { [$1] }
               | ParameterList ',' ParameterDecl         { $1 ++ [$3] }
@@ -192,7 +193,7 @@ ExpressionList : Expr                                   { [$1] }
 
 Type : TypeName                                         { TypeName $1 }
      | TypeLit                                          { $1 }
-     | '(' Type ')'                                     { $2 }
+{--     | '(' Type ')'                                     { $2 } --}
 
 TypeName : NAME                                          { TypeNameIdentifier $1 } 
          | QualifiedIdent                               { TypeNameQualifiedIdent $1 }

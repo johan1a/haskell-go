@@ -1,0 +1,1 @@
+SourceFile (Package "main") [TopLevelDecl1 (TypeDecl "yeah" (TypeName (TypeNameIdentifier "string"))),TopLevelDecl2 (FunctionDecl2 "main" Signature1 (Block [SimpleStmt EmptyStmt]))]
