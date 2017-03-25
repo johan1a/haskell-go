@@ -2,7 +2,7 @@ package main;
 
 func main() {
     var a int = 4
-    func1(a)
+    println(func1(a))
     println(12345)
 }
 func func1(x int) {

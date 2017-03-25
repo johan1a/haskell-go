@@ -52,7 +52,7 @@ runMain :: State -> IO State
 runMain = execFuncCall "main" []
 
 getFuncDecl :: FunctionName -> State -> FunctionDecl
-getFuncDecl name state = trace ("getFuncDecl " ++ name )$ fromJust $ lookup2 name $ funcs state
+getFuncDecl name state = fromJust $ lookup2 name $ funcs state
 
 readTopLevelDecls :: [TopLevelDecl] -> State -> IO State
 readTopLevelDecls [] state = return state
@@ -133,7 +133,7 @@ execStmt (SimpleStmt simpleStmt) st = execSimpleStmt simpleStmt st
 execStmt (BlockStmt block) st = execBlock block st
 execStmt (IfStmt ifStmt) st = execIfStmt ifStmt st
 execStmt (ReturnStmt expr) st = do
-    val <- traceShow "hey" $ eval expr st        
+    val <- eval expr st        
     return $ st { retVal = val }
 
 --TODO implement types, multiple declarations
@@ -197,11 +197,11 @@ execExprStmt (IdUse id) st = error $  "error id: " ++ id
 execExprStmt (StringExpr str) st = error "error: str"
 
 execFuncCall :: Name -> [Expr] -> State -> IO State
-execFuncCall name args state = traceShow ("execFuncCall " ++ name ) $ execFuncDecl (getFuncDecl name state) (bindArgs name args state)
+execFuncCall name args state = execFuncDecl (getFuncDecl name state) (bindArgs name args state)
 
 execFuncDecl :: FunctionDecl -> State -> IO State
 execFuncDecl (FunctionDecl1 _ _ ) st = error "No function body!"
-execFuncDecl (FunctionDecl2 name sig body) st = traceShow ("execFuncDecl " ++ name) $ execBlock body st
+execFuncDecl (FunctionDecl2 name sig body) st = execBlock body st
 -- TODO lookup parameters parameters
 
 execBlock :: Block -> State -> IO State
@@ -225,9 +225,9 @@ bindArgs :: Name -> [Expr] -> State -> State
 bindArgs funcName exprs state = bindExprs (fParams $ getFuncDecl funcName state) exprs (state { actRecs = [Map.empty] ++ (actRecs state)})
 
 bindExprs :: [Name] -> [Expr] -> State-> State
-bindExprs [] [] state = traceShow "1" state
+bindExprs [] [] state = state
 bindExprs (n:nn) (a:aa) state = traceShow ("bindExprs " ++ (show $ actRecs state))  $ (bindExpr n a state)
-bindExprs _ _ state = traceShow "3" state
+bindExprs _ _ state = state
 
 bindExpr :: Name -> Expr -> State -> State
 bindExpr name expr state = state { actRecs = [Map.insert name (lookupExpr expr state) $ decls state ] ++ (tail $ actRecs state)}
@@ -237,11 +237,11 @@ bindDecl :: IdDecl -> Type -> Expr -> State -> State
 bindDecl (IdDecl name) type_ expr state = bindExpr name expr state
 
 paramNames :: String -> State -> [String]
-paramNames funcName state = fromJust $ traceShow "paramNames" $ lookup2 funcName $ params state
+paramNames funcName state = fromJust $ lookup2 funcName $ params state
 
 -- If given an IdUse, it tries to find what expression is actually referenced
 lookupExpr :: Expr -> State -> Expr
-lookupExpr (IdUse name) state = case found of (Just expr) -> traceShow name $ lookupExpr expr (scopeAbove state)
+lookupExpr (IdUse name) state = case found of (Just expr) -> lookupExpr expr (scopeAbove state)
                                               Nothing -> lookupExpr (IdUse name) (scopeAbove state) -- TODO should actually throw an error here?
     where found =  lookup2 name (decls state)
 lookupExpr expr state = expr
