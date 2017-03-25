@@ -17,6 +17,7 @@ import AST
     "func"  { TokenFunc }
     "var"   { TokenVar }
     "print" { TokenPrint }
+    "println" { TokenPrintLn }
     let     { TokenLet }
     in      { TokenIn }
     STRING  { TokenString $$ }
@@ -116,6 +117,7 @@ BinExpr : AritmExpr                                     { AritmExpr $1 }
 
 Expr : BinExpr                                          { BinExpr $1}
      | "print" '(' ExpressionList ')'                   { PrintCall $3 }
+     | "println" '(' ExpressionList ')'                   { PrintLnCall $3 }
      | NAME '(' ExpressionList ')'                      { Call $1 $3 } 
      | "true"                                           { BoolExpr True }
      | "false"                                          { BoolExpr False }

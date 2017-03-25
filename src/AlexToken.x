@@ -25,17 +25,18 @@ tokens :-
   "=="    			{ \s -> TokenEq2 }
   "!="    			{ \s -> TokenNeq }
   "<"     			{ \s -> TokenLess }
-  "<="    			{ \s -> TokenLessEq }
-  ">"     			{ \s -> TokenGreater }
-  ">="    			{ \s -> TokenGreaterEq }
-  "true"    			{ \s -> TokenTrue }
-  "false"    			{ \s -> TokenFalse }
-  "func"    			{ \s -> TokenFunc }
+  "<="    			            { \s -> TokenLessEq }
+  ">"     			            { \s -> TokenGreater }
+  ">="    			            { \s -> TokenGreaterEq }
+  "true"    			        { \s -> TokenTrue }
+  "false"    			        { \s -> TokenFalse }
+  "func"    			        { \s -> TokenFunc }
   \=                            { \s -> TokenEq }
   \\                            { \s -> TokenLambda }
   \(                            { \s -> TokenLParen }
   \)                            { \s -> TokenRParen }
-  "print" 			{ \s -> TokenPrint }
+  "print" 			            { \s -> TokenPrint }
+  "println" 			        { \s -> TokenPrintLn }
   "const"                       { \s -> TokenConst }
   "type"                        { \s -> TokenType }
   "var"                         { \s -> TokenVar }
@@ -79,6 +80,7 @@ stripQuotes s                         = s
 
 data Token = TokenLet
        | TokenPrint 
+       | TokenPrintLn
            | TokenTrue
            | TokenFalse
            | TokenIn

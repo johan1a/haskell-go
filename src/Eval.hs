@@ -184,9 +184,13 @@ execElse (Else2 block) = execBlock block
 --Print multiple
 execExprStmt :: Expr  -> State -> IO State
 execExprStmt (Call name e) st = execFuncCall name e st
-execExprStmt (PrintCall e) st = do 
+execExprStmt (PrintLnCall e) st = do 
             v <- eval (e !! 0 ) st
             putStrLn $ show v  
+            return st 
+execExprStmt (PrintCall e) st = do 
+            v <- eval (e !! 0 ) st
+            putStr $ show v  
             return st 
 execExprStmt (Num n) st = return st 
 

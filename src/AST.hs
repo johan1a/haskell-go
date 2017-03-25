@@ -156,6 +156,7 @@ instance Show Value where
 
 data Expr = BinExpr BinExpr
           | PrintCall [Expr]
+          | PrintLnCall [Expr]
           | Call Name [Expr]
           | BoolExpr Bool 
           | Num Int
