@@ -138,9 +138,9 @@ execStmt (ReturnStmt expr) st = do
 
 --TODO implement types, multiple declarations
 execDecl :: Declaration -> State -> State
-execDecl (ConstDecl idDecls type_ exprs) state = bindExpr (getName $ idDecls !! 0) ( (exprs !! 0) ) state state
+execDecl (ConstDecl idDecls type_ exprs) state = bindExpr (getName $ idDecls !! 0) ( (exprs !! 0) ) state 
 execDecl (TypeDecl name type_) state = error "Types not implemented"
-execDecl (VarDecl idDecls type_ exprs) state = bindExpr (getName $ idDecls !! 0) ( (exprs !! 0) ) state state
+execDecl (VarDecl idDecls type_ exprs) state = bindExpr (getName $ idDecls !! 0) ( (exprs !! 0) ) state
 
 execSimpleStmt :: SimpleStmt -> State -> IO State
 execSimpleStmt (Assignment a) = return . execAssign a
@@ -215,41 +215,40 @@ execAssign (Assign lhs rhs) = bindAssign (lhs !! 0) (rhs !! 0)
 execAssign _ = error "ey"
 
 bindAssign :: Expr -> Expr -> State -> State
-bindAssign (IdUse name) rhs state = bindExpr name rhs state state
+bindAssign (IdUse name) rhs state = bindExpr name rhs state 
 bindAssign _ rhs state = error "TODO"
 
 getName (IdDecl name) = name
 
 --Bind the given arguments to the formal parameter names of the function
 bindArgs :: Name -> [Expr] -> State -> State
-bindArgs funcName exprs state = traceShow ("bindArgs " ++ funcName ++ (show exprs)) $ bindExprs (fParams $ getFuncDecl funcName state) exprs state (state { actRecs = [Map.empty]})
+bindArgs funcName exprs state = bindExprs (fParams $ getFuncDecl funcName state) exprs (state { actRecs = [Map.empty] ++ (actRecs state)})
 
-bindExprs :: [Name] -> [Expr] -> State -> State-> State
-bindExprs [] [] oldState newState = traceShow "1" newState
-bindExprs (n:nn) (a:aa) oldState newState = traceShow "2" (bindExpr n a oldState newState)
-bindExprs _ _ oldState newState = traceShow "3" newState
+bindExprs :: [Name] -> [Expr] -> State-> State
+bindExprs [] [] state = traceShow "1" state
+bindExprs (n:nn) (a:aa) state = traceShow ("bindExprs " ++ (show $ actRecs state))  $ (bindExpr n a state)
+bindExprs _ _ state = traceShow "3" state
 
-bindExpr :: Name -> Expr -> State -> State -> State
-bindExpr name expr oldState newState = newState { actRecs = [Map.insert name (lookupExpr expr oldState) $ decls newState
-] }
+bindExpr :: Name -> Expr -> State -> State
+bindExpr name expr state = state { actRecs = [Map.insert name (lookupExpr expr state) $ decls state ] ++ (tail $ actRecs state)}
 
 --TODO type
 bindDecl :: IdDecl -> Type -> Expr -> State -> State
-bindDecl (IdDecl name) type_ expr state = bindExpr name expr state state
+bindDecl (IdDecl name) type_ expr state = bindExpr name expr state
 
 paramNames :: String -> State -> [String]
 paramNames funcName state = fromJust $ traceShow "paramNames" $ lookup2 funcName $ params state
 
 -- If given an IdUse, it tries to find what expression is actually referenced
 lookupExpr :: Expr -> State -> Expr
-lookupExpr (IdUse name) state = case found of (Just expr) -> lookupExpr expr state
-                                              Nothing -> lookupExpr (IdUse name) (scopeAbove state)
+lookupExpr (IdUse name) state = case found of (Just expr) -> traceShow name $ lookupExpr expr (scopeAbove state)
+                                              Nothing -> lookupExpr (IdUse name) (scopeAbove state) -- TODO should actually throw an error here?
     where found =  lookup2 name (decls state)
 lookupExpr expr state = expr
 
 
 scopeAbove :: State -> State
-scopeAbove state = state { actRecs = (tail $ actRecs state) }
+scopeAbove state = traceShow ( actRecs state) $ state { actRecs = (tail $ actRecs state) }
 
 evalBool :: Expr -> State -> IO Bool --TODO return state?
 evalBool expr state = fmap asBoolVal (eval expr state)
