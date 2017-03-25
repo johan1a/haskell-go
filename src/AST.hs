@@ -146,7 +146,13 @@ data Value = NumVal Int
      | BoolVal Bool
      | StringVal String
      | NullVal
-     deriving (Eq, Show)
+     deriving (Eq)
+
+instance Show Value where
+    show (NumVal num) = show num
+    show (BoolVal bool) = show bool
+    show (StringVal string) = show string
+    show (NullVal) = "Null"
 
 data Expr = BinExpr BinExpr
           | PrintCall [Expr]
