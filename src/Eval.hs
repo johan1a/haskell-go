@@ -137,7 +137,7 @@ execStmt (SimpleStmt simpleStmt) st = execSimpleStmt simpleStmt st
 execStmt (BlockStmt block) st = execBlock block st
 execStmt (IfStmt ifStmt) st = execIfStmt ifStmt st
 execStmt (ReturnStmt expr) st = do
-    val <- eval expr st        
+    val <- traceShow "hey" $ eval expr st        
     return $ st { retVal = val }
 
 --TODO implement types, multiple declarations
@@ -277,8 +277,15 @@ evalAritm (MulExpr l r) state = mul <$> (eval l state) <*> (eval r state)
 evalAritm (DivExpr l r) state = div_ <$> (eval l state) <*> (eval r state) 
 
 evalCond :: CondExpr -> State -> IO Value
-evalCond (Eq_ l r) state = do
-    b <- (==) <$>  (eval l state) <*> (eval r state) -- TODO check eq
+evalCond (Neq l r) = evalCond2 (==) l r
+evalCond (Eq_ l r) = evalCond2 (==) l r
+evalCond (Less l r) = evalCond2 (<) l r
+evalCond (LessEq l r) = evalCond2 (<=) l r
+evalCond (Greater l r) = evalCond2 (>) l r
+evalCond (GreaterEq l r) = evalCond2 (>=) l r
+
+evalCond2 f l r state = do
+    b <- f <$> (eval l state) <*> (eval r state)
     return $ BoolVal b
 
 add :: Value -> Value -> Value

@@ -187,6 +187,7 @@ IdentifierList : NAME                                    { [(IdDecl $1)] }
 
 ExpressionList : Expr                                   { [$1] }
                | ExpressionList ',' Expr                { $1 ++ [$3] } 
+               |                                        { [] }
 
 Type : TypeName                                         { TypeName $1 }
      | TypeLit                                          { $1 }

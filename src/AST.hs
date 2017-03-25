@@ -147,7 +147,7 @@ data Value = NumVal Int
      | BoolVal Bool
      | StringVal String
      | NullVal
-     deriving (Eq)
+     deriving (Ord, Eq)
 
 instance Show Value where
     show (NumVal num) = show num
