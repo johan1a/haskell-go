@@ -181,11 +181,13 @@ execElse :: Else -> State -> IO State
 execElse (Else1 ifStmt) = execIfStmt ifStmt
 execElse (Else2 block) = execBlock block 
 
+--Print multiple
 execExprStmt :: Expr  -> State -> IO State
 execExprStmt (Call name e) st = execFuncCall name e st
 execExprStmt (PrintCall e) st = do 
-			fmap putStrLn $ fmap show $ eval (e !! 0 ) st --Print multiple
-			return st 
+            v <- eval (e !! 0 ) st
+            putStrLn $ show v  
+            return st 
 execExprStmt (Num n) st = return st 
 
 execFuncCall :: Name -> [Expr] -> State -> IO State
