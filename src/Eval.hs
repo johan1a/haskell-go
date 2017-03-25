@@ -6,30 +6,13 @@ import Data.Maybe
 import Debug.Trace
 
 
-{-
-type Env = Name -> Expr
-empty :: Env
-empty = \_ -> error "Not found!"
-
-eval :: Expr -> Val
-eval = evalIn empty
-
-
--}
---evalStmt :: Statement -> Env
---evalStmt stmt = 
---    case stmt of 
---        Declaration -> evalDecl 
---        _ -> error "fuck"
-
---state, program state
-
-
+-- Activation record
 type ActRec = Map Name Expr
 
 data State = State { actRecs :: [ActRec], --TODO types
                      params  :: Map Name [Name],
                      funcs   :: Map Name FunctionDecl,
+                     currentFunc :: String,
                      retVal  :: Value
                    } deriving (Show)
 
@@ -201,7 +184,7 @@ execFuncCall name args state = execFuncDecl (getFuncDecl name state) (bindArgs n
 
 execFuncDecl :: FunctionDecl -> State -> IO State
 execFuncDecl (FunctionDecl1 _ _ ) st = error "No function body!"
-execFuncDecl (FunctionDecl2 name sig body) st = execBlock body st
+execFuncDecl (FunctionDecl2 name sig body) st = execBlock body st {currentFunc = name}
 -- TODO lookup parameters parameters
 
 execBlock :: Block -> State -> IO State
@@ -239,17 +222,28 @@ bindDecl (IdDecl name) type_ expr state = bindExpr name expr state
 paramNames :: String -> State -> [String]
 paramNames funcName state = fromJust $ lookup2 funcName $ params state
 
+--lookup paramexpr, upp en nivå
+
 -- If given an IdUse, it tries to find what expression is actually referenced
 lookupExpr :: Expr -> State -> Expr
-lookupExpr (IdUse name) state = case found of (Just expr) -> lookupExpr expr (scopeAbove state)
-                                              Nothing -> lookupExpr (IdUse name) (scopeAbove state) -- TODO should actually throw an error here?
-    where found = lookup2 name (decls state)
+lookupExpr (IdUse name) state = lookupIdUse ( name) state
 lookupExpr (Num n) state = (Num n)
 lookupExpr (BinExpr e ) state = lookupBinExpr e state
 lookupExpr (BoolExpr b) _ = (BoolExpr b)
 lookupExpr (StringExpr s) _ = (StringExpr s)
 lookupExpr (Call fName exprs) state = (Call fName (map (\x -> lookupExpr x state) exprs))  
 lookupExpr expr state = error "i felt like it " --expr
+
+
+
+-- I've created a monster!
+lookupIdUse :: String -> State -> Expr
+lookupIdUse (name) state = 
+    case (lookup2 name (decls state)) of (Just expr) -> expr
+                                         (Nothing) -> if (isParam name state) then lookupExpr (IdUse name) (scopeAbove state) else error "krångel" 
+
+isParam :: Name -> State -> Bool
+isParam name state = elem name $ fromJust $ Map.lookup (currentFunc state ) $  params state
 
 lookupBinExpr :: BinExpr -> State -> Expr
 lookupBinExpr (AritmExpr expr) state = BinExpr (AritmExpr (lookupAritmExpr expr state))
