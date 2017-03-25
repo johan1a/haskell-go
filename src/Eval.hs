@@ -225,12 +225,12 @@ bindArgs :: Name -> [Expr] -> State -> State
 bindArgs funcName exprs state = bindExprs (fParams $ getFuncDecl funcName state) exprs (state { actRecs = [Map.empty] ++ (actRecs state)})
 
 bindExprs :: [Name] -> [Expr] -> State-> State
-bindExprs [] [] state = traceShow "bindExprs1 " $ state
-bindExprs (n:nn) (a:aa) state = traceShow ("bindExprs " ++ (show state))  $ (bindExpr n a state)
-bindExprs _ _ state = traceShow "bindExprs2 " $ state
+bindExprs [] [] state = state
+bindExprs (n:nn) (a:aa) state = (bindExpr n a state)
+bindExprs _ _ state = state
 
 bindExpr :: Name -> Expr -> State -> State
-bindExpr name expr state = traceShowId $ state { actRecs = [Map.insert name (lookupExpr expr state) $ decls state ] ++ (tail $ actRecs state)}
+bindExpr name expr state = state { actRecs = [Map.insert name (lookupExpr expr state) $ decls state ] ++ (tail $ actRecs state)}
 
 --TODO type
 bindDecl :: IdDecl -> Type -> Expr -> State -> State
@@ -243,7 +243,7 @@ paramNames funcName state = fromJust $ lookup2 funcName $ params state
 lookupExpr :: Expr -> State -> Expr
 lookupExpr (IdUse name) state = case found of (Just expr) -> lookupExpr expr (scopeAbove state)
                                               Nothing -> lookupExpr (IdUse name) (scopeAbove state) -- TODO should actually throw an error here?
-    where found = traceShow (actRecs state) $ traceShow ("found " ++ (show $ lookup2 name (decls state))) $ lookup2 name (decls state)
+    where found = lookup2 name (decls state)
 lookupExpr (Num n) state = (Num n)
 lookupExpr (BinExpr e ) state = lookupBinExpr e state
 lookupExpr (BoolExpr b) _ = (BoolExpr b)
@@ -274,7 +274,7 @@ lookupCondExpr (GreaterEq l r) state = (GreaterEq (lookupExpr l state) (lookupEx
 
 
 scopeAbove :: State -> State
-scopeAbove state = traceShow ( actRecs state) $ state { actRecs = (tail $ actRecs state) }
+scopeAbove state = state { actRecs = (tail $ actRecs state) }
 
 evalBool :: Expr -> State -> IO Bool --TODO return state?
 evalBool expr state = fmap asBoolVal (eval expr state)
