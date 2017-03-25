@@ -38,10 +38,12 @@ data State = State { values :: Values,
 
 lookup2 name map_ = fromJust $ Map.lookup name map_
 
-
-
 empty :: State
-empty = State Map.empty Map.empty Map.empty Map.empty NullVal
+empty = State { values = Map.empty, 
+                params = Map.empty, 
+                decls = Map.empty, 
+                funcs = Map.empty, 
+                retVal = NullVal }
 
 runProgram :: SourceFile -> IO State
 runProgram (SourceFile package decls) = readTopLevelDecls decls empty >>= runMain
@@ -78,11 +80,30 @@ bindDecl (IdDecl name) type_ expr state = state { decls = (Map.insert name expr 
 
 
 storeFuncDecl :: FunctionDecl -> State -> State
-storeFuncDecl decl state = state { funcs = (Map.insert (fName decl) decl $ funcs state) }
- 
+storeFuncDecl decl state = state { funcs = (Map.insert (fName decl) decl $ funcs state),
+                                   params = (Map.insert (fName decl) (fParams decl) $ params state) }
+                      
 fName :: FunctionDecl -> String
 fName (FunctionDecl1 name _) = name
 fName (FunctionDecl2 name _ _) = name
+
+-- Get the param names of a function declaration
+fParams :: FunctionDecl -> [Name]
+fParams (FunctionDecl1 _ sig) = sParams sig
+fParams (FunctionDecl2 _ sig _) = sParams sig
+
+sParams :: Signature -> [String]
+sParams Signature1 = []
+sParams (Signature2 paramDecls ) = paramDecls >>= paramDeclNames 
+sParams (Signature3 paramDecls _ ) = paramDecls >>= paramDeclNames 
+
+paramDeclNames :: ParameterDecl -> [Name]
+paramDeclNames (ParameterDecl1 type_) = error "TODO unnamed parameters"
+paramDeclNames (ParameterDecl2 idDecls type_) = map idDeclName idDecls
+
+idDeclName :: IdDecl -> Name
+idDeclName (IdDecl name) = name
+
 
 topDeclName :: TopLevelDecl -> String
 topDeclName (TopLevelDecl1 decl) = declName decl
@@ -96,8 +117,6 @@ declName :: Declaration -> String
 declName (ConstDecl idDecls _ _) = idDeclName $ idDecls !! 0 -- TODO all names etc blabla
 declName (TypeDecl name _ ) = name
 declName (VarDecl idDecls _ _) = idDeclName $ idDecls !! 0
-
-idDeclName (IdDecl name) = name
 
 readDeclaration :: Declaration -> State -> IO State
 readDeclaration decl state = error "TODO"
@@ -127,7 +146,7 @@ execDecl (VarDecl idDecls type_ exprs) state = bindVal (getName $ idDecls !! 0) 
 execSimpleStmt :: SimpleStmt -> State -> IO State
 execSimpleStmt (Assignment a) = return . execAssign a
 execSimpleStmt EmptyStmt = return 
-execSimpleStmt (ExpressionStmt expr) = execExprStmt expr 
+execSimpleStmt (ExpressionStmt expr) = execExprStmt expr
 execSimpleStmt (IncDecStmt stmt) = execIncDecStmt stmt 
 execSimpleStmt (ShortVarDecl decls exprs) = execShortVarDecl decls exprs
 
@@ -157,31 +176,29 @@ execIfStmt2 cond ifBlock (Just els) state
 execIfStmt2 cond ifBlock Nothing state
     | cond = execBlock ifBlock state
     | otherwise = return state
-    
 
 execElse :: Else -> State -> IO State
 execElse (Else1 ifStmt) = execIfStmt ifStmt
 execElse (Else2 block) = execBlock block 
-
 
 execExprStmt :: Expr  -> State -> IO State
 execExprStmt (Call name e) st = execFuncCall name e st
 execExprStmt (PrintCall e) st = do 
 			fmap putStrLn $ fmap show $ eval (e !! 0 ) st --Print multiple
 			return st 
-execExprStmt (Num n) st = return st
+execExprStmt (Num n) st = return st 
 
 execFuncCall :: Name -> [Expr] -> State -> IO State
 execFuncCall name args state = execFuncDecl (getFuncDecl name state) (bindArgs name args state)
 
 execFuncDecl :: FunctionDecl -> State -> IO State
-execFuncDecl (FunctionDecl1 _ _ ) = error "No function body!"
-execFuncDecl (FunctionDecl2 name sig body) = execBlock body 
+execFuncDecl (FunctionDecl1 _ _ ) st = error "No function body!"
+execFuncDecl (FunctionDecl2 name sig body) st = execBlock body st
 -- TODO lookup parameters parameters
 
 execBlock :: Block -> State -> IO State
-execBlock (Block []) = return
-execBlock (Block stmts) = execStmts stmts
+execBlock (Block []) st = return st
+execBlock (Block stmts) st = execStmts stmts st
 
 -- TODO assigns first in lhs to first in rhs.
 -- does not yet support multiple declarations at once
@@ -204,6 +221,7 @@ bindMany _ _ state = state
 bindArgs :: Name -> [Expr] -> State -> State
 bindArgs funcName exprs state = bindMany (paramNames funcName state) exprs state
 
+paramNames :: String -> State -> [String]
 paramNames funcName state = lookup2 funcName $ params state
 
 bindVal :: Name -> Expr -> State -> State

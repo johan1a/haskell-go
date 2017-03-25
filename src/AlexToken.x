@@ -78,6 +78,7 @@ stripQuotes s                         = s
 
 
 data Token = TokenLet
+       | TokenPrint 
            | TokenTrue
            | TokenFalse
            | TokenIn
@@ -115,7 +116,6 @@ data Token = TokenLet
        | TokenOpRightStream 
        | TokenOpAnd
        | TokenOpAndUp 
-       | TokenPrint 
        | TokenShortVarDecl
        | TokenInc
        | TokenDec
