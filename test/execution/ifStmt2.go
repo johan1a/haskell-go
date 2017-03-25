@@ -1,8 +1,8 @@
 package main;
 func main(){
 if 2 == 3 {
-    print( 1 )
+    println( 1 )
 } else {
-    print ( 2 )
+    println ( 2 )
 }
 }

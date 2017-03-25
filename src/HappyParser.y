@@ -18,6 +18,7 @@ import AST
     "var"   { TokenVar }
     "print" { TokenPrint }
     "println" { TokenPrintLn }
+    "return"{ TokenReturn }
     let     { TokenLet }
     in      { TokenIn }
     STRING  { TokenString $$ }
@@ -79,6 +80,7 @@ Statements : Statement                                  { [$1] }
            | Statements Statement                       { $1 ++ [$2] }
 
 Statement : IfStmt                                      { IfStmt $1 }
+          | "return" Expr                               { ReturnStmt $2 }
           | Block                                       { BlockStmt $1 }
           | SimpleStmt                                  { SimpleStmt $1 }
           | Declaration                                 { DeclarationStmt $1 }
@@ -90,8 +92,6 @@ SimpleStmt :
            | IncDecStmt                                 { IncDecStmt $1 }
            | Expr                                       { ExpressionStmt $1 }
            |  {- empty -}                               { EmptyStmt }
-
-
 
 IfStmt : "if" Expr Block Else                           { Ifstmt2 $2 $3 $4 }
        | "if" Expr Block                                { Ifstmt1 $2 $3 }

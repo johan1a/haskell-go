@@ -22,15 +22,16 @@ tokens :-
   in                            { \s -> TokenIn }
   $digit+                       { \s -> TokenNum (read s) }
   "->"                          { \s -> TokenArrow }
-  "=="    			{ \s -> TokenEq2 }
-  "!="    			{ \s -> TokenNeq }
-  "<"     			{ \s -> TokenLess }
+  "=="    			            { \s -> TokenEq2 }
+  "!="    			            { \s -> TokenNeq }
+  "<"     			            { \s -> TokenLess }
   "<="    			            { \s -> TokenLessEq }
   ">"     			            { \s -> TokenGreater }
   ">="    			            { \s -> TokenGreaterEq }
   "true"    			        { \s -> TokenTrue }
   "false"    			        { \s -> TokenFalse }
   "func"    			        { \s -> TokenFunc }
+  "return"    			        { \s -> TokenReturn }
   \=                            { \s -> TokenEq }
   \\                            { \s -> TokenLambda }
   \(                            { \s -> TokenLParen }
@@ -81,9 +82,10 @@ stripQuotes s                         = s
 data Token = TokenLet
        | TokenPrint 
        | TokenPrintLn
-           | TokenTrue
-           | TokenFalse
-           | TokenIn
+       | TokenReturn
+       | TokenTrue
+       | TokenFalse
+       | TokenIn
 	   | TokenString String
 	   | TokenEq2
 	   | TokenNeq

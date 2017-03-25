@@ -1,12 +1,12 @@
 func main() {
 if true {
-    print( 1 )
+    println( 1 )
 } else {
-    print ( 2 )
+    println ( 2 )
 }
 if false {
-    print( 1 )
+    println( 1 )
 } else {
-    print ( 2 )
+    println ( 2 )
 }
 }

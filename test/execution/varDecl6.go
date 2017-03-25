@@ -2,6 +2,6 @@ package main;
 var x int = 2
 
 func main() {
-    print(1)
-    print(x)
+    println(1)
+    println(x)
 }

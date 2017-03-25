@@ -131,11 +131,14 @@ execStmts [] state = return state
 execStmts (s:ss) state = execStmt s state >>= execStmts ss 
 
 execStmt :: Statement -> State -> IO State
-execStmt (Expr e) =  error "todo"
-execStmt (DeclarationStmt decl) = return . execDecl decl  
-execStmt (SimpleStmt simpleStmt) = execSimpleStmt simpleStmt
-execStmt (BlockStmt block) = execBlock block
-execStmt (IfStmt ifStmt) = execIfStmt ifStmt
+execStmt (Expr e) st =  error "todo"
+execStmt (DeclarationStmt decl) st = return $ execDecl decl st
+execStmt (SimpleStmt simpleStmt) st = execSimpleStmt simpleStmt st
+execStmt (BlockStmt block) st = execBlock block st
+execStmt (IfStmt ifStmt) st = execIfStmt ifStmt st
+execStmt (ReturnStmt expr) st = do
+    val <- eval expr st        
+    return $ st { retVal = val }
 
 --TODO implement types, multiple declarations
 execDecl :: Declaration -> State -> State
@@ -192,7 +195,10 @@ execExprStmt (PrintCall e) st = do
             v <- eval (e !! 0 ) st
             putStr $ show v  
             return st 
-execExprStmt (Num n) st = return st 
+execExprStmt (BoolExpr b) st = error "error bool"
+execExprStmt (Num n) st = error "error num" 
+execExprStmt (IdUse id) st = error $  "error id: " ++ id
+execExprStmt (StringExpr str) st = error "error: str"
 
 execFuncCall :: Name -> [Expr] -> State -> IO State
 execFuncCall name args state = execFuncDecl (getFuncDecl name state) (bindArgs name args state)

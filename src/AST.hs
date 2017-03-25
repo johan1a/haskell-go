@@ -45,18 +45,19 @@ type ArrayLength = Expr
 type ElementType = Type
 
 
+-- TODO duplicate expression stmt?
 data Statement = Expr Expr
-              | DeclarationStmt Declaration
-              | SimpleStmt SimpleStmt
+               | DeclarationStmt Declaration
+               | SimpleStmt SimpleStmt
        --       | LabeledStmt 
       --        | GoStmt 
-     --         | ReturnStmt 
+               | ReturnStmt Expr
            --   | BreakStmt 
           --    | ContinueStmt 
          --     | GotoStmt 
            --   | FallthroughStmt 
-                | BlockStmt Block 
-                | IfStmt IfStmt
+               | BlockStmt Block 
+               | IfStmt IfStmt
         --      | SwitchStmt 
        --       | SelectStmt 
       --        | ForStmt 
