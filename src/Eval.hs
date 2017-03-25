@@ -26,6 +26,7 @@ empty :: State
 empty = State { actRecs = [], 
                 params = Map.empty,
                 funcs = Map.empty, 
+                currentFunc = "",
                 retVal = NullVal }
 
 runProgram :: SourceFile -> IO State
@@ -180,7 +181,7 @@ execExprStmt (IdUse id) st = error $  "error id: " ++ id
 execExprStmt (StringExpr str) st = error "error: str"
 
 execFuncCall :: Name -> [Expr] -> State -> IO State
-execFuncCall name args state = execFuncDecl (getFuncDecl name state) (bindArgs name args state)
+execFuncCall name args state = traceShow "execFuncCall" $ execFuncDecl (getFuncDecl name state) (bindArgs name args state)
 
 execFuncDecl :: FunctionDecl -> State -> IO State
 execFuncDecl (FunctionDecl1 _ _ ) st = error "No function body!"
@@ -205,15 +206,18 @@ getName (IdDecl name) = name
 
 --Bind the given arguments to the formal parameter names of the function
 bindArgs :: Name -> [Expr] -> State -> State
-bindArgs funcName exprs state = bindExprs (fParams $ getFuncDecl funcName state) exprs (state { actRecs = [Map.empty] ++ (actRecs state)})
+bindArgs funcName exprs state = bindArgs2 (fParams $ getFuncDecl funcName state) exprs $ traceShowId ( state { actRecs = [Map.empty] ++ (actRecs state)})
 
-bindExprs :: [Name] -> [Expr] -> State-> State
-bindExprs [] [] state = state
-bindExprs (n:nn) (a:aa) state = (bindExpr n a state)
-bindExprs _ _ state = state
+bindArgs2 :: [Name] -> [Expr] -> State-> State
+bindArgs2 [] [] state = state
+bindArgs2 (n:nn) (a:aa) state = (bindArg n a state)
+bindArgs2 _ _ state = state
 
 bindExpr :: Name -> Expr -> State -> State
-bindExpr name expr state = state { actRecs = [Map.insert name (lookupExpr expr state) $ decls state ] ++ (tail $ actRecs state)}
+bindExpr name expr state = traceShowId $ state { actRecs =( [Map.insert name (lookupExpr expr state) $ decls state ] ++ (tail $ actRecs state))}
+
+bindArg :: Name -> Expr -> State -> State
+bindArg name expr state = traceShowId $ state { actRecs = [Map.insert name (lookupExpr expr state) $ decls state ] ++ (tail $ actRecs state)}
 
 --TODO type
 bindDecl :: IdDecl -> Type -> Expr -> State -> State
@@ -226,7 +230,7 @@ paramNames funcName state = fromJust $ lookup2 funcName $ params state
 
 -- If given an IdUse, it tries to find what expression is actually referenced
 lookupExpr :: Expr -> State -> Expr
-lookupExpr (IdUse name) state = lookupIdUse ( name) state
+lookupExpr (IdUse name) state = traceShow ("lookupexr " ++ (show $ currentFunc state) ++ name ++ (show (actRecs state))) $ lookupIdUse name state
 lookupExpr (Num n) state = (Num n)
 lookupExpr (BinExpr e ) state = lookupBinExpr e state
 lookupExpr (BoolExpr b) _ = (BoolExpr b)
@@ -237,13 +241,21 @@ lookupExpr expr state = error "i felt like it " --expr
 
 
 -- I've created a monster!
+-- ..borde ta emot expr istället
 lookupIdUse :: String -> State -> Expr
 lookupIdUse (name) state = 
-    case (lookup2 name (decls state)) of (Just expr) -> expr
-                                         (Nothing) -> if (isParam name state) then lookupExpr (IdUse name) (scopeAbove state) else error "krångel" 
+    case found of (Just expr) -> if isParameter then lookupExpr expr (scopeAbove state) else lookupExpr expr state
+                  (Nothing) ->traceShow ("nothing" ++ (show name))$ if isParameter then lookupExpr (IdUse name) (scopeAbove state) else (IdUse name )--IdUseerror "krångel2" 
+    where found = (lookup2 name (decls state))
+          isParameter = (isParam name state) 
+lookupIdUse what state = traceShow what $ error "kisafpsa"
 
 isParam :: Name -> State -> Bool
-isParam name state = elem name $ fromJust $ Map.lookup (currentFunc state ) $  params state
+isParam name state = traceShow (currentFunc state )$ elem name $ fromJust $ Map.lookup (currentFunc state ) $  params state
+
+
+scopeAbove :: State -> State
+scopeAbove state = traceShowId $ state { actRecs = (traceShowId $ tail $ actRecs state) }
 
 lookupBinExpr :: BinExpr -> State -> Expr
 lookupBinExpr (AritmExpr expr) state = BinExpr (AritmExpr (lookupAritmExpr expr state))
@@ -265,10 +277,6 @@ lookupCondExpr (LessEq l r) state = (LessEq (lookupExpr l state) (lookupExpr r s
 lookupCondExpr (Greater l r) state = (Greater (lookupExpr l state) (lookupExpr r state))
 lookupCondExpr (GreaterEq l r) state = (GreaterEq (lookupExpr l state) (lookupExpr r state))
 
-
-
-scopeAbove :: State -> State
-scopeAbove state = state { actRecs = (tail $ actRecs state) }
 
 evalBool :: Expr -> State -> IO Bool --TODO return state?
 evalBool expr state = fmap asBoolVal (eval expr state)
