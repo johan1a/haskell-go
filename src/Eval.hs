@@ -24,24 +24,24 @@ eval = evalIn empty
 
 --state, program state
 
--- rename to exprs?
-type Values = Map Name Expr
 
-type Parameters = Map Name [Name]
+type ActRec = Map Name Expr
 
-data State = State { values :: Values,
-                     params :: Parameters, 
-                     decls  :: Map Name Expr, --TODO types
-                     funcs  :: Map Name FunctionDecl,
-                     retVal :: Value
+data State = State { actRecs :: [ActRec], --TODO types
+                     params  :: Map Name [Name],
+                     funcs   :: Map Name FunctionDecl,
+                     retVal  :: Value
                    } deriving (Show)
 
-lookup2 name map_ = fromJust $ Map.lookup name map_
+-- Returns the activation record of the current scope
+decls :: State -> ActRec
+decls state = (actRecs state) !! 0
+
+lookup2 name map_ = Map.lookup name map_
 
 empty :: State
-empty = State { values = Map.empty, 
-                params = Map.empty, 
-                decls = Map.empty, 
+empty = State { actRecs = [Map.empty], 
+                params = Map.empty,
                 funcs = Map.empty, 
                 retVal = NullVal }
 
@@ -52,7 +52,7 @@ runMain :: State -> IO State
 runMain = execFuncCall "main" []
 
 getFuncDecl :: FunctionName -> State -> FunctionDecl
-getFuncDecl name state = lookup2 name $ funcs state
+getFuncDecl name state = trace ("getFuncDecl " ++ name )$ fromJust $ lookup2 name $ funcs state
 
 readTopLevelDecls :: [TopLevelDecl] -> State -> IO State
 readTopLevelDecls [] state = return state
@@ -73,10 +73,6 @@ bindDecls [] type_ [] state = state
 bindDecls [] type_ _ state = error "mismatch1 TODO error?"
 bindDecls _ type_ [] state = error "mismatch2 TODO error?"
 bindDecls (d:dd) type_ (e:ee) state = bindDecls dd type_ ee $ bindDecls dd type_ ee $ bindDecl d type_ e state
-
---TODO type
-bindDecl :: IdDecl -> Type -> Expr -> State -> State
-bindDecl (IdDecl name) type_ expr state = state { decls = (Map.insert name expr $ decls state) }
 
 
 storeFuncDecl :: FunctionDecl -> State -> State
@@ -142,9 +138,9 @@ execStmt (ReturnStmt expr) st = do
 
 --TODO implement types, multiple declarations
 execDecl :: Declaration -> State -> State
-execDecl (ConstDecl idDecls type_ exprs) state = bindVal (getName $ idDecls !! 0) ( (exprs !! 0) ) state
+execDecl (ConstDecl idDecls type_ exprs) state = bindExpr (getName $ idDecls !! 0) ( (exprs !! 0) ) state state
 execDecl (TypeDecl name type_) state = error "Types not implemented"
-execDecl (VarDecl idDecls type_ exprs) state = bindVal (getName $ idDecls !! 0) ( (exprs !! 0) ) state
+execDecl (VarDecl idDecls type_ exprs) state = bindExpr (getName $ idDecls !! 0) ( (exprs !! 0) ) state state
 
 execSimpleStmt :: SimpleStmt -> State -> IO State
 execSimpleStmt (Assignment a) = return . execAssign a
@@ -201,11 +197,11 @@ execExprStmt (IdUse id) st = error $  "error id: " ++ id
 execExprStmt (StringExpr str) st = error "error: str"
 
 execFuncCall :: Name -> [Expr] -> State -> IO State
-execFuncCall name args state = execFuncDecl (getFuncDecl name state) (bindArgs name args state)
+execFuncCall name args state = traceShow ("execFuncCall " ++ name ) $ execFuncDecl (getFuncDecl name state) (bindArgs name args state)
 
 execFuncDecl :: FunctionDecl -> State -> IO State
 execFuncDecl (FunctionDecl1 _ _ ) st = error "No function body!"
-execFuncDecl (FunctionDecl2 name sig body) st = execBlock body st
+execFuncDecl (FunctionDecl2 name sig body) st = traceShow ("execFuncDecl " ++ name) $ execBlock body st
 -- TODO lookup parameters parameters
 
 execBlock :: Block -> State -> IO State
@@ -218,35 +214,42 @@ execAssign :: Assignment -> State -> State
 execAssign (Assign lhs rhs) = bindAssign (lhs !! 0) (rhs !! 0) 
 execAssign _ = error "ey"
 
-
 bindAssign :: Expr -> Expr -> State -> State
-bindAssign (IdUse name) rhs state = bindVal name rhs state
+bindAssign (IdUse name) rhs state = bindExpr name rhs state state
 bindAssign _ rhs state = error "TODO"
 
 getName (IdDecl name) = name
 
-bindMany :: [Name] -> [Expr] -> State -> State
-bindMany (n:nn) (a:aa) state = bindMany nn aa $ bindVal n a state
-bindMany _ _ state = state
-
 --Bind the given arguments to the formal parameter names of the function
 bindArgs :: Name -> [Expr] -> State -> State
-bindArgs funcName exprs state = bindMany (paramNames funcName state) exprs state
+bindArgs funcName exprs state = traceShow ("bindArgs " ++ funcName ++ (show exprs)) $ bindExprs (fParams $ getFuncDecl funcName state) exprs state (state { actRecs = [Map.empty]})
+
+bindExprs :: [Name] -> [Expr] -> State -> State-> State
+bindExprs [] [] oldState newState = traceShow "1" newState
+bindExprs (n:nn) (a:aa) oldState newState = traceShow "2" (bindExpr n a oldState newState)
+bindExprs _ _ oldState newState = traceShow "3" newState
+
+bindExpr :: Name -> Expr -> State -> State -> State
+bindExpr name expr oldState newState = newState { actRecs = [Map.insert name (lookupExpr expr oldState) $ decls newState
+] }
+
+--TODO type
+bindDecl :: IdDecl -> Type -> Expr -> State -> State
+bindDecl (IdDecl name) type_ expr state = bindExpr name expr state state
 
 paramNames :: String -> State -> [String]
-paramNames funcName state = lookup2 funcName $ params state
+paramNames funcName state = fromJust $ traceShow "paramNames" $ lookup2 funcName $ params state
 
-bindVal :: Name -> Expr -> State -> State
-bindVal name val state = state { decls = Map.insert name val $ decls state}
-
--- TODO should only work with id use?
--- maybe name instead of iduse?
+-- If given an IdUse, it tries to find what expression is actually referenced
 lookupExpr :: Expr -> State -> Expr
-lookupExpr (IdUse name) state = lookup2 name (decls state)
-lookupExpr (Num n) _ = error "not an idUse"
+lookupExpr (IdUse name) state = case found of (Just expr) -> lookupExpr expr state
+                                              Nothing -> lookupExpr (IdUse name) (scopeAbove state)
+    where found =  lookup2 name (decls state)
+lookupExpr expr state = expr
 
-lookupName :: String -> State -> Expr
-lookupName name state = lookup2 name $ decls state
+
+scopeAbove :: State -> State
+scopeAbove state = state { actRecs = (tail $ actRecs state) }
 
 evalBool :: Expr -> State -> IO Bool --TODO return state?
 evalBool expr state = fmap asBoolVal (eval expr state)
@@ -257,13 +260,12 @@ asBoolVal (NumVal _) = error "not a bool"
 asBoolVal (StringVal _) = error "not a bool"
 
 eval :: Expr -> State -> IO Value
-eval (IdUse name) state  = eval (lookupName name state) state
+eval (IdUse name) state  = eval (lookupExpr (IdUse name) state) state
 eval (BinExpr e ) state = evalBin e state
 eval (Num n) _ = return $ NumVal n 
 eval (BoolExpr b) _ = return $ BoolVal b
 eval (StringExpr s) _ = return $ StringVal s
 eval (Call fName exprs) state = execFuncCall fName  exprs state >>= return . retVal
-
 
 evalBin :: BinExpr -> State -> IO Value
 evalBin (AritmExpr a) state = evalAritm a state

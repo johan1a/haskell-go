@@ -163,7 +163,7 @@ data Expr = BinExpr BinExpr
           | Num Int
           | IdUse Name
           | StringExpr String
-           deriving (Eq, Show)
+          deriving (Eq, Show)
 
 data BinExpr = AritmExpr AritmExpr
              | CondExpr CondExpr
