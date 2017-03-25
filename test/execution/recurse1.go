@@ -1,7 +1,7 @@
 package main;
 
 func main() {
-    calculate(1)
+    calculate(5)
 }
 func calculate(x int) {
     println(x)

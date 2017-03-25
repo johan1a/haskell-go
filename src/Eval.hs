@@ -40,7 +40,7 @@ decls state = (actRecs state) !! 0
 lookup2 name map_ = Map.lookup name map_
 
 empty :: State
-empty = State { actRecs = [Map.empty], 
+empty = State { actRecs = [], 
                 params = Map.empty,
                 funcs = Map.empty, 
                 retVal = NullVal }
@@ -225,12 +225,12 @@ bindArgs :: Name -> [Expr] -> State -> State
 bindArgs funcName exprs state = bindExprs (fParams $ getFuncDecl funcName state) exprs (state { actRecs = [Map.empty] ++ (actRecs state)})
 
 bindExprs :: [Name] -> [Expr] -> State-> State
-bindExprs [] [] state = state
-bindExprs (n:nn) (a:aa) state = traceShow ("bindExprs " ++ (show $ actRecs state))  $ (bindExpr n a state)
-bindExprs _ _ state = state
+bindExprs [] [] state = traceShow "bindExprs1 " $ state
+bindExprs (n:nn) (a:aa) state = traceShow ("bindExprs " ++ (show state))  $ (bindExpr n a state)
+bindExprs _ _ state = traceShow "bindExprs2 " $ state
 
 bindExpr :: Name -> Expr -> State -> State
-bindExpr name expr state = state { actRecs = [Map.insert name (lookupExpr expr state) $ decls state ] ++ (tail $ actRecs state)}
+bindExpr name expr state = traceShowId $ state { actRecs = [Map.insert name (lookupExpr expr state) $ decls state ] ++ (tail $ actRecs state)}
 
 --TODO type
 bindDecl :: IdDecl -> Type -> Expr -> State -> State
@@ -243,8 +243,34 @@ paramNames funcName state = fromJust $ lookup2 funcName $ params state
 lookupExpr :: Expr -> State -> Expr
 lookupExpr (IdUse name) state = case found of (Just expr) -> lookupExpr expr (scopeAbove state)
                                               Nothing -> lookupExpr (IdUse name) (scopeAbove state) -- TODO should actually throw an error here?
-    where found =  lookup2 name (decls state)
-lookupExpr expr state = expr
+    where found = traceShow (actRecs state) $ traceShow ("found " ++ (show $ lookup2 name (decls state))) $ lookup2 name (decls state)
+lookupExpr (Num n) state = (Num n)
+lookupExpr (BinExpr e ) state = lookupBinExpr e state
+lookupExpr (BoolExpr b) _ = (BoolExpr b)
+lookupExpr (StringExpr s) _ = (StringExpr s)
+lookupExpr (Call fName exprs) state = (Call fName (map (\x -> lookupExpr x state) exprs))  
+lookupExpr expr state = error "i felt like it " --expr
+
+lookupBinExpr :: BinExpr -> State -> Expr
+lookupBinExpr (AritmExpr expr) state = BinExpr (AritmExpr (lookupAritmExpr expr state))
+lookupBinExpr (CondExpr expr) state = BinExpr (CondExpr (lookupCondExpr expr state))
+
+lookupAritmExpr :: AritmExpr -> State -> AritmExpr
+lookupAritmExpr (AddExpr l r) state = (AddExpr (lookupExpr l state) (lookupExpr r state))
+lookupAritmExpr (SubExpr l r) state = (SubExpr (lookupExpr l state) (lookupExpr r state))
+lookupAritmExpr (MulExpr l r) state = (MulExpr (lookupExpr l state) (lookupExpr r state))
+lookupAritmExpr (DivExpr l r) state = (DivExpr (lookupExpr l state) (lookupExpr r state))
+lookupAritmExpr (ModExpr l r) state = (ModExpr (lookupExpr l state) (lookupExpr r state))
+
+
+lookupCondExpr :: CondExpr -> State -> CondExpr
+lookupCondExpr (Eq_ l r) state = (Eq_ (lookupExpr l state) (lookupExpr r state))
+lookupCondExpr (Neq l r) state = (Neq (lookupExpr l state) (lookupExpr r state))
+lookupCondExpr (Less l r) state = (Less (lookupExpr l state) (lookupExpr r state))
+lookupCondExpr (LessEq l r) state = (LessEq (lookupExpr l state) (lookupExpr r state))
+lookupCondExpr (Greater l r) state = (Greater (lookupExpr l state) (lookupExpr r state))
+lookupCondExpr (GreaterEq l r) state = (GreaterEq (lookupExpr l state) (lookupExpr r state))
+
 
 
 scopeAbove :: State -> State
@@ -259,7 +285,7 @@ asBoolVal (NumVal _) = error "not a bool"
 asBoolVal (StringVal _) = error "not a bool"
 
 eval :: Expr -> State -> IO Value
-eval (IdUse name) state  = eval (lookupExpr (IdUse name) state) state
+eval (IdUse name) state = eval (lookupExpr (IdUse name) state) state
 eval (BinExpr e ) state = evalBin e state
 eval (Num n) _ = return $ NumVal n 
 eval (BoolExpr b) _ = return $ BoolVal b
