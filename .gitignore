@@ -7,4 +7,5 @@ src/*.swp
 .cabal-sandbox
 cabal.sandbox.config
 spec.txt
+*.out
 
