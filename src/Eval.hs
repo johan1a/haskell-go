@@ -19,17 +19,17 @@ data State = State { actRecs :: [ActRec], --TODO types
 
 -- Returns the activation record of the current scope
 decls :: State -> ActRec
-decls state = head (actRecs state)
+decls state = head $ actRecs state
 
 
 currentFunc :: State -> String
-currentFunc state = (callStack state) !! 0
+currentFunc state = head $ callStack state
 
 emptyState :: State
 emptyState = State { actRecs = [Map.empty], 
                 params = Map.empty,
                 funcs = Map.empty, 
-                callStack = [],
+                callStack = ["toplevel"],
                 retVal = NullVal, 
                 emitter = (putStr )
 }
@@ -197,9 +197,8 @@ execExprStmt (IdUse id) st = error $  "error id: " ++ id
 execExprStmt (StringExpr str) st = error "error: str"
 
 execFuncCall :: Name -> [Expr] -> State -> IO State
-execFuncCall name args state = execFuncDecl (getFuncDecl name state) (traceShow txt newState)
+execFuncCall name args state = execFuncDecl (getFuncDecl name state) (newState)
     where newState = (bindArgs name args state)
-          txt = "newDecls: " ++ (show $ decls newState) ++ " oldDecls: " ++ (show $ decls state)
 
 execFuncDecl :: FunctionDecl -> State -> IO State
 execFuncDecl (FunctionDecl1 _ _ ) st = error "No function body!"
@@ -262,14 +261,19 @@ lookupExpr expr state = error "i felt like it " --expr
 -- ..borde ta emot expr istället
 lookupIdUse :: String -> State -> Expr
 lookupIdUse (name) state = 
-    case found of (Just expr) -> traceShow name $ if isParameter 
-                                 then lookupExpr expr (scopeAbove state) 
-                                 else lookupExpr expr state
-                  (Nothing) -> traceShow ("nothing " ++ (show $ currentFunc state)) $ if isParameter 
-                               then lookupExpr (IdUse name) (scopeAbove state) 
-                               else (IdUse name )--IdUseerror "krångel2" 
+    case found of (Just (IdUse name)) -> if isParameter ||  atTopLevel
+                                 then lookupExpr (IdUse name) (scopeAbove state) 
+                                 else lookupExpr (IdUse name) state
+                  (Just expr) -> lookupExpr expr state 
+                  (Nothing) ->  
+                                if isParameter
+                                    then lookupExpr (IdUse name) (scopeAbove state) 
+                                else if atTopLevel 
+                                     then lookupExpr (IdUse name) (scopeAbove state) 
+                                     else (IdUse name )--IdUseerror "krångel2" 
     where found = (Map.lookup name (decls state))
           isParameter = (isParam name state) 
+          atTopLevel = (currentFunc state) == "main"
 
 isParam :: Name -> State -> Bool
 isParam name state = elem name $ fromJust $ Map.lookup (currentFunc state ) $  params state
