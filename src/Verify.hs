@@ -1,50 +1,37 @@
 module Main where
 
 import Data.Char (isSpace)
+import Data.String.Utils
+import System.Directory 
 import Test.Framework
 import Test.Framework.Providers.HUnit
 import Test.HUnit
 import qualified HappyParser
 import AST
 
-
-
 main = parseTests >>= defaultMain
 
 parseTests :: IO [Test.Framework.Test]
-parseTests = testList testFiles >>= return . hUnitTestToTests
+parseTests = parseTestFileNames >>= testList >>= return . hUnitTestToTests
 
+parseTestFileNames :: IO [String]
+parseTestFileNames = testFilesIn "test/parse/"
 
-testFiles :: [String]
-testFiles = ["var1",
-            "varDecl1",
-            "varDecl2",
-            "varDecl3",
-            "constDecl1",
-            "funcDecl1",
-            "funcDecl2",
-            "funcDecl3",
-            "typeDecl1",
-            "typeDecl2",
-            "subExpr1",
-            "string1",
-            "stringDecl1",
-            "ifStmt1",
-            "ifStmt2",
-            "ifStmt3",
-            "ifStmt4",
-            "ifStmt5",
-            "ifStmt6",
-            "block1"]
- 
+-- Returns a list of all test filenames in a dir, without their file extensions.
+testFilesIn :: String -> IO [String]
+testFilesIn dir = listDirectory dir >>= return . map removeExtension . filter (endswith ".go") 
+
+removeExtension :: String -> String 
+removeExtension string = replace ".go" "" string 
+
 testList :: [String] -> IO Test.HUnit.Test
 testList xs = do
-    list <- mapM makeTestLabel xs
+    list <- mapM  (makeTest "test/parse/") xs
     return $ TestList list
     
-makeTestLabel :: [Char] -> IO Test.HUnit.Test
-makeTestLabel x = do
-    test <- makeParsingTestCase ("test/parse/" ++ x)
+makeTest :: [Char] -> [Char] -> IO Test.HUnit.Test
+makeTest path x = do
+    test <- makeParsingTestCase (path ++ x)
     return $ TestLabel x test
 
 makeParsingTestCase :: String -> IO Test.HUnit.Test
@@ -54,16 +41,6 @@ makeParsingTestCase path = do
     let a = TestCase (assertEqual path (rstrip expected) $ testParse x)
     return a
 
-
-verify :: IO ()
-verify = do 
-    tests1 <- testList testFiles
-    _ <- runTestTT $ tests1
-    return ()
-
 testParse :: String -> String
 testParse = show . HappyParser.parseExpr
 
-
-rstrip :: String -> String 
-rstrip = reverse . dropWhile isSpace . reverse

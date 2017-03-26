@@ -14,7 +14,10 @@ Executable gho
                     parsec >= 3,
                     array,
                     HUnit,
-                    containers
+                    containers,
+                    text,
+                    directory >= 1.3.1.1,
+                    MissingH
   GHC-Options:    -Wall
 
     
@@ -27,6 +30,9 @@ test-suite tests
                     test-framework >= 0.8.1.1,
                     test-framework-hunit >= 0.3.0.2,
                     HUnit, 
+                    text,
                     parsec >= 3,
+                    directory >= 1.3.1.1,
+                    MissingH,
                     array
     default-language:    Haskell2010
