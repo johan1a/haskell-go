@@ -62,7 +62,7 @@ import AST
     "package"{ TokenPackage }
 
 %left '+' '-'
-%left '*'
+%left '*' '/' '%'
 %%
 
 
@@ -115,9 +115,10 @@ ShortVarDecl : IdentifierList ":=" ExpressionList       { ShortVarDecl $1 $3 }
 BinExpr : AritmExpr                                     { AritmExpr $1 } 
     | CondExpr                                          { CondExpr $1 } 
 
-Expr : BinExpr                                          { BinExpr $1}
+Expr : '(' Expr ')'                                     { $2 }
+     | BinExpr                                          { BinExpr $1}
      | "print" '(' ExpressionList ')'                   { PrintCall $3 }
-     | "println" '(' ExpressionList ')'                   { PrintLnCall $3 }
+     | "println" '(' ExpressionList ')'                 { PrintLnCall $3 }
      | NAME '(' ExpressionList ')'                      { Call $1 $3 } 
      | "true"                                           { BoolExpr True }
      | "false"                                          { BoolExpr False }
