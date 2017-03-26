@@ -21,8 +21,8 @@ data State = State { actRecs :: [ActRec], --TODO types
 decls :: State -> ActRec
 decls state = (actRecs state) !! 0
 
-empty :: State
-empty = State { actRecs = [], 
+emptyState :: State
+emptyState = State { actRecs = [], 
                 params = Map.empty,
                 funcs = Map.empty, 
                 currentFunc = "",
@@ -30,8 +30,16 @@ empty = State { actRecs = [],
                 emitter = (putStr )
 }
 
+testState :: String -> State
+testState outFile = emptyState { emitter = (appendFile outFile) }
+
+-- Runs the program and writes output to a standard out
 runProgram :: SourceFile -> IO State
-runProgram (SourceFile package decls) = readTopLevelDecls decls empty >>= runMain
+runProgram (SourceFile package decls) = readTopLevelDecls decls emptyState >>= runMain
+
+-- Runs the program and writes output to a file
+runTestProgram :: String -> SourceFile -> IO State
+runTestProgram outFile (SourceFile package decls) = readTopLevelDecls decls (testState outFile) >>= runMain
 
 runMain :: State -> IO State
 runMain = execFuncCall "main" []

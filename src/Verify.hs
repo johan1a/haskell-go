@@ -7,15 +7,16 @@ import Test.Framework
 import Test.Framework.Providers.HUnit
 import Test.HUnit
 import qualified HappyParser
+import qualified Eval as E
 import AST
 
 main = parseTests >>= defaultMain
 
 parseTests :: IO [Test.Framework.Test]
-parseTests = parseTestFileNames >>= (testList makeParsingTestCase)>>= return . hUnitTestToTests
+parseTests = parseTestFileNames >>= (testList makeParsingTestCase) >>= return . hUnitTestToTests
 
---execTests :: IO [Test.Framework.Test]
---- execTests = execTestFileNames >>= testList >>= return . hUnitTestToTests
+execTests :: IO [Test.Framework.Test]
+execTests = execTestFileNames >>= (testList makeExecTestCase) >>= return . hUnitTestToTests
 
 parseTestFileNames :: IO [String]
 parseTestFileNames = testFilesIn "test/parse/"
@@ -39,12 +40,39 @@ makeTest :: (String -> IO Test.HUnit.Test) -> String -> IO Test.HUnit.Test
 makeTest testFunc x = testFunc x >>= return . TestLabel x
 
 makeParsingTestCase :: String -> IO Test.HUnit.Test
-makeParsingTestCase path = do
-    x <- readFile $ path ++ ".go"
+makeParsingTestCase path = compareExpected path testParse 
+
+makeExecTestCase :: String -> IO Test.HUnit.Test
+makeExecTestCase path = compareExpected path testRun
+
+compareExpected :: String -> (String -> String -> IO String) -> IO Test.HUnit.Test
+compareExpected path func = do
+    src <- readFile $ path ++ ".go"
     expected <- readFile $ path ++ ".expected"
-    let a = TestCase (assertEqual path (rstrip expected) $ testParse x)
+    output <- func path src
+    let a = TestCase (assertEqual path (rstrip expected) $ output)
     return a
 
-testParse :: String -> String
-testParse = show . HappyParser.parseExpr
+testParse :: String -> String -> IO String
+testParse _ src = return $ show $ HappyParser.parseExpr src
+
+testRun :: String -> String -> IO String
+testRun path src = do
+    st <- E.runTestProgram (path ++ ".out") $ HappyParser.parseExpr $ src ++ ".go"
+    readFile (path ++ ".out")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
