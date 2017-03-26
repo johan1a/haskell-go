@@ -66,7 +66,7 @@ testParse _ src = return $ show $ HappyParser.parseExpr src
 testRun :: String -> String -> IO String
 testRun path src = do
     writeFile (path ++ ".out") ""
-    st <- E.runTestProgram (path ++ ".out") $ traceShowId $ HappyParser.parseExpr src
+    st <- E.runTestProgram (path ++ ".out") $ HappyParser.parseExpr src
     fmap rstrip $ readFile (path ++ ".out")
 
 

@@ -51,7 +51,11 @@ runMain :: State -> IO State
 runMain = execFuncCall "main" []
 
 getFuncDecl :: FunctionName -> State -> FunctionDecl
-getFuncDecl name state = fromJust $ Map.lookup name $ funcs state
+getFuncDecl name state = retOrFail name $ Map.lookup name $ funcs state
+
+
+retOrFail name Nothing = error $ "Error: Could not find function " ++ name
+retOrFail name (Just x) = x
 
 readTopLevelDecls :: [TopLevelDecl] -> State -> IO State
 readTopLevelDecls [] state = return state
@@ -127,7 +131,7 @@ execStmts [] state = return state
 execStmts (s:ss) state = execStmt s state >>= execStmts ss 
 
 execStmt :: Statement -> State -> IO State
-execStmt (Expr e) st =  error "todo"
+execStmt (Expr e) st =  execExprStmt e st -- TODO is this really possible
 execStmt (DeclarationStmt decl) st = return $ execDecl decl st
 execStmt (SimpleStmt simpleStmt) st = execSimpleStmt simpleStmt st
 execStmt (BlockStmt block) st = execBlock block st
@@ -344,19 +348,19 @@ evalCond2 f l r state = do
 
 add :: Value -> Value -> Value
 add (NumVal l) (NumVal r) = NumVal (l + r)
-add _ _ = error "todo"
+add _ _ = error "todo add"
 
 sub :: Value -> Value -> Value
 sub (NumVal l) (NumVal r) = (NumVal (l - r))
-sub _ _ = error "todo"
+sub _ _ = error "todo sub"
 
 mul :: Value -> Value -> Value
 mul (NumVal l) (NumVal r) = (NumVal (l * r))
-mul _ _ = error "todo"
+mul _ _ = error "todo mul "
 
 div_ :: Value -> Value -> Value
 --div (Num l) (Num r) = (Num (l / r))
-div_  _ _ = error "todo"
+div_  _ _ = error "todo div"
 
 {-
 TODO add tests for  
