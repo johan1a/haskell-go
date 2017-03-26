@@ -39,15 +39,15 @@ testFiles = ["var1",
  
 testList :: [String] -> IO Test.HUnit.Test
 testList xs = do
-    list <- mapM testLabel xs
+    list <- mapM makeTestLabel xs
     return $ TestList list
     
-testLabel :: [Char] -> IO Test.HUnit.Test
-testLabel x = do
-    test <- makeTest x
+makeTestLabel :: [Char] -> IO Test.HUnit.Test
+makeTestLabel x = do
+    test <- makeParsingTestCase x
     return $ TestLabel x test
 
-makeTest path = do
+makeParsingTestCase path = do
     x <- readFile $ "test/" ++ path ++ ".go"
     expected <- readFile $ "test/" ++ path ++ ".expected"
     let a = TestCase (assertEqual path (rstrip expected) $ testParse x)
