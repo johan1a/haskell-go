@@ -12,27 +12,31 @@ import AST
 main = parseTests >>= defaultMain
 
 parseTests :: IO [Test.Framework.Test]
-parseTests = parseTestFileNames >>= testList >>= return . hUnitTestToTests
+parseTests = parseTestFileNames >>= (testList makeParsingTestCase)>>= return . hUnitTestToTests
+
+--execTests :: IO [Test.Framework.Test]
+--- execTests = execTestFileNames >>= testList >>= return . hUnitTestToTests
 
 parseTestFileNames :: IO [String]
 parseTestFileNames = testFilesIn "test/parse/"
 
+execTestFileNames :: IO [String]
+execTestFileNames = testFilesIn "test/execution/"
+
 -- Returns a list of all test filenames in a dir, without their file extensions.
 testFilesIn :: String -> IO [String]
-testFilesIn dir = listDirectory dir >>= return . map removeExtension . filter (endswith ".go") 
+testFilesIn dir = listDirectory dir >>= return . map (dir ++) . map removeExtension . filter (endswith ".go") 
 
 removeExtension :: String -> String 
 removeExtension string = replace ".go" "" string 
 
-testList :: [String] -> IO Test.HUnit.Test
-testList xs = do
-    list <- mapM  (makeTest "test/parse/") xs
+testList :: (String -> IO Test.HUnit.Test) -> [String] -> IO Test.HUnit.Test
+testList testFunc xs = do
+    list <- mapM (makeTest testFunc) xs
     return $ TestList list
     
-makeTest :: [Char] -> [Char] -> IO Test.HUnit.Test
-makeTest path x = do
-    test <- makeParsingTestCase (path ++ x)
-    return $ TestLabel x test
+makeTest :: (String -> IO Test.HUnit.Test) -> String -> IO Test.HUnit.Test
+makeTest testFunc x = testFunc x >>= return . TestLabel x
 
 makeParsingTestCase :: String -> IO Test.HUnit.Test
 makeParsingTestCase path = do
