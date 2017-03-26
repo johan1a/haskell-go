@@ -6,6 +6,7 @@ import System.Environment
 import AST
 import Test.HUnit
 import Eval
+import Debug.Trace
 
 runAndShow :: String -> IO ()
 runAndShow input = do
@@ -21,12 +22,18 @@ badRepl = do
   return ()
 
 main :: IO ()
-main = do 
+main = do
     args <- getArgs
     content <- readFile $ args !! 0
     state <- runProgram $ HappyParser.parseExpr content
-    -- putStrLn $ showTree state
     return ()
+
+run :: String -> IO ()
+run fileName = do
+    content <- readFile fileName
+    state <- runProgram $ HappyParser.parseExpr content
+    return ()
+    
 
 parse :: String -> String
 parse = show . HappyParser.parseExpr 

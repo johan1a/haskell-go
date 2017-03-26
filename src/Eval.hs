@@ -12,20 +12,24 @@ type ActRec = Map Name Expr
 data State = State { actRecs :: [ActRec], --TODO types
                      params  :: Map Name [Name],
                      funcs   :: Map Name FunctionDecl,
-                     currentFunc :: String,
+                     callStack :: [String],
                      retVal  :: Value,
                      emitter ::  String -> IO()
                    } 
 
 -- Returns the activation record of the current scope
 decls :: State -> ActRec
-decls state = (actRecs state) !! 0
+decls state = head (actRecs state)
+
+
+currentFunc :: State -> String
+currentFunc state = (callStack state) !! 0
 
 emptyState :: State
-emptyState = State { actRecs = [], 
+emptyState = State { actRecs = [Map.empty], 
                 params = Map.empty,
                 funcs = Map.empty, 
-                currentFunc = "",
+                callStack = [],
                 retVal = NullVal, 
                 emitter = (putStr )
 }
@@ -35,11 +39,13 @@ testState outFile = emptyState { emitter = (appendFile outFile) }
 
 -- Runs the program and writes output to a standard out
 runProgram :: SourceFile -> IO State
-runProgram (SourceFile package decls) = readTopLevelDecls decls emptyState >>= runMain
+runProgram (SourceFile package dd) = do
+    newState <- readTopLevelDecls dd emptyState 
+    runMain $   newState
 
 -- Runs the program and writes output to a file
 runTestProgram :: String -> SourceFile -> IO State
-runTestProgram outFile (SourceFile package decls) = readTopLevelDecls decls (testState outFile) >>= runMain
+runTestProgram outFile (SourceFile package tDecls) = readTopLevelDecls tDecls (testState outFile) >>= runMain
 
 runMain :: State -> IO State
 runMain = execFuncCall "main" []
@@ -65,7 +71,8 @@ bindDecls :: [IdDecl] -> Type -> [Expr] -> State -> State
 bindDecls [] type_ [] state = state
 bindDecls [] type_ _ state = error "mismatch1 TODO error?"
 bindDecls _ type_ [] state = error "mismatch2 TODO error?"
-bindDecls (d:dd) type_ (e:ee) state = bindDecls dd type_ ee $ bindDecls dd type_ ee $ bindDecl d type_ e state
+bindDecls (d:dd) type_ (e:ee) state = bindDecls dd type_ ee $ bindDecl d type_ e state
+    where b = "bound decl: " ++ (show d) ++ " " ++ (show e)
 
 
 storeFuncDecl :: FunctionDecl -> State -> State
@@ -140,14 +147,14 @@ execSimpleStmt (Assignment a) = return . execAssign a
 execSimpleStmt EmptyStmt = return 
 execSimpleStmt (ExpressionStmt expr) = execExprStmt expr
 execSimpleStmt (IncDecStmt stmt) = execIncDecStmt stmt 
-execSimpleStmt (ShortVarDecl decls exprs) = execShortVarDecl decls exprs
+execSimpleStmt (ShortVarDecl dd exprs) = execShortVarDecl dd exprs
 
 execIncDecStmt :: IncDecStmt -> State -> IO State
 execIncDecStmt (IncStmt expr) = error "TODO" 
 execIncDecStmt (DecStmt expr) = error "TODO" 
 
 execShortVarDecl :: [IdDecl] -> [Expr] -> State -> IO State
-execShortVarDecl decls exprs = error "TODO" 
+execShortVarDecl dd exprs = error "TODO" 
 
 
 -- Yikes...
@@ -190,11 +197,13 @@ execExprStmt (IdUse id) st = error $  "error id: " ++ id
 execExprStmt (StringExpr str) st = error "error: str"
 
 execFuncCall :: Name -> [Expr] -> State -> IO State
-execFuncCall name args state = execFuncDecl (getFuncDecl name state) (bindArgs name args state)
+execFuncCall name args state = execFuncDecl (getFuncDecl name state) (traceShow txt newState)
+    where newState = (bindArgs name args state)
+          txt = "newDecls: " ++ (show $ decls newState) ++ " oldDecls: " ++ (show $ decls state)
 
 execFuncDecl :: FunctionDecl -> State -> IO State
 execFuncDecl (FunctionDecl1 _ _ ) st = error "No function body!"
-execFuncDecl (FunctionDecl2 name sig body) st = execBlock body st {currentFunc = name}
+execFuncDecl (FunctionDecl2 name sig body) st = execBlock body st {callStack = [name] ++ (tail $ callStack st)}
 -- TODO lookup parameters parameters
 
 execBlock :: Block -> State -> IO State
@@ -253,18 +262,21 @@ lookupExpr expr state = error "i felt like it " --expr
 -- ..borde ta emot expr istället
 lookupIdUse :: String -> State -> Expr
 lookupIdUse (name) state = 
-    case found of (Just expr) -> if isParameter then lookupExpr expr (scopeAbove state) else lookupExpr expr state
-                  (Nothing) -> if isParameter then lookupExpr (IdUse name) (scopeAbove state) else (IdUse name )--IdUseerror "krångel2" 
+    case found of (Just expr) -> traceShow name $ if isParameter 
+                                 then lookupExpr expr (scopeAbove state) 
+                                 else lookupExpr expr state
+                  (Nothing) -> traceShow ("nothing " ++ (show $ currentFunc state)) $ if isParameter 
+                               then lookupExpr (IdUse name) (scopeAbove state) 
+                               else (IdUse name )--IdUseerror "krångel2" 
     where found = (Map.lookup name (decls state))
           isParameter = (isParam name state) 
-lookupIdUse what state = error "kisafpsa"
 
 isParam :: Name -> State -> Bool
 isParam name state = elem name $ fromJust $ Map.lookup (currentFunc state ) $  params state
 
 
 scopeAbove :: State -> State
-scopeAbove state = state { actRecs = (tail $ actRecs state) }
+scopeAbove state = state { actRecs = (tail $ actRecs state), callStack = (tail $ callStack state)}
 
 lookupBinExpr :: BinExpr -> State -> Expr
 lookupBinExpr (AritmExpr expr) state = BinExpr (AritmExpr (lookupAritmExpr expr state))
