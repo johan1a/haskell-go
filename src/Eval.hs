@@ -23,13 +23,16 @@ decls state = head $ actRecs state
 
 
 currentFunc :: State -> String
-currentFunc state = head $ callStack state
+currentFunc state = case func of
+                    [] -> error "There is no current function. This should not be possible"
+                    ss -> head ss
+                    where func = callStack state
 
 emptyState :: State
 emptyState = State { actRecs = [Map.empty], 
                 params = Map.empty,
                 funcs = Map.empty, 
-                callStack = ["toplevel"],
+                callStack = ["TOPLEVEL"],
                 retVal = NullVal, 
                 emitter = (putStr )
 }
@@ -51,11 +54,11 @@ runMain :: State -> IO State
 runMain = execFuncCall "main" []
 
 getFuncDecl :: FunctionName -> State -> FunctionDecl
-getFuncDecl name state = retOrFail name $ Map.lookup name $ funcs state
+getFuncDecl name state = fRetOrFail name $ Map.lookup name $ funcs state
 
 
-retOrFail name Nothing = error $ "Error: Could not find function " ++ name
-retOrFail name (Just x) = x
+fRetOrFail name Nothing = error $ "Error: Could not find function " ++ name
+fRetOrFail name (Just x) = x
 
 readTopLevelDecls :: [TopLevelDecl] -> State -> IO State
 readTopLevelDecls [] state = return state
@@ -206,7 +209,7 @@ execFuncCall name args state = execFuncDecl (getFuncDecl name state) (newState)
 
 execFuncDecl :: FunctionDecl -> State -> IO State
 execFuncDecl (FunctionDecl1 _ _ ) st = error "No function body!"
-execFuncDecl (FunctionDecl2 name sig body) st = execBlock body st {callStack = [name] ++ (tail $ callStack st)}
+execFuncDecl (FunctionDecl2 name sig body) st = execBlock body st {callStack = [name] ++ (callStack st)}
 -- TODO lookup parameters parameters
 
 execBlock :: Block -> State -> IO State
@@ -245,7 +248,11 @@ bindDecl :: IdDecl -> Type -> Expr -> State -> State
 bindDecl (IdDecl name) type_ expr state = bindExpr name expr state
 
 paramNames :: String -> State -> [String]
-paramNames funcName state = fromJust $ Map.lookup funcName $ params state
+paramNames funcName state = pRetOrFail funcName $ Map.lookup funcName $ params state
+
+
+pRetOrFail funcName Nothing = error "Could not find function" funcName
+pRetOrFail funcName (Just val) = val 
 
 --lookup paramexpr, upp en nivå
 
@@ -265,20 +272,21 @@ lookupExpr expr state = error "i felt like it " --expr
 -- ..borde ta emot expr istället
 lookupIdUse :: String -> State -> Expr
 lookupIdUse (name) state = 
-    case found of (Just (IdUse name2)) -> if isParameter ||  atTopLevel -- toplevel = main TODO change
+    case found of (Just (IdUse name2)) -> if isParameter ||  inMainFunc -- toplevel = main TODO change
                                  then lookupExpr (IdUse name2) (scopeAbove state) 
                                  else lookupExpr (IdUse name2) state
                   (Just expr) -> lookupExpr expr state 
                   (Nothing) ->  
-                                if isParameter || atTopLevel
-                                then lookupExpr (IdUse name) (scopeAbove state) 
+                                if (not atTopLevel) && (isParameter || inMainFunc) 
+                                    then lookupExpr (IdUse name) (scopeAbove state) 
                                 else error $ "undefined: " ++ name 
     where found = (Map.lookup name $ decls state)
           isParameter = (isParam name state) 
-          atTopLevel = (currentFunc state) == "main"
+          inMainFunc = (currentFunc state) == "main"
+          atTopLevel = (currentFunc state) == "TOPLEVEL"
 
 isParam :: Name -> State -> Bool
-isParam name state = elem name $ fromJust $ Map.lookup (currentFunc state ) $  params state
+isParam name state = elem name $ fRetOrFail (currentFunc state) $ Map.lookup (currentFunc state ) $  params state
 
 
 scopeAbove :: State -> State
