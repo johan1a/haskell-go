@@ -44,12 +44,13 @@ testList xs = do
     
 makeTestLabel :: [Char] -> IO Test.HUnit.Test
 makeTestLabel x = do
-    test <- makeParsingTestCase x
+    test <- makeParsingTestCase ("test/parse/" ++ x)
     return $ TestLabel x test
 
+makeParsingTestCase :: String -> IO Test.HUnit.Test
 makeParsingTestCase path = do
-    x <- readFile $ "test/" ++ path ++ ".go"
-    expected <- readFile $ "test/" ++ path ++ ".expected"
+    x <- readFile $ path ++ ".go"
+    expected <- readFile $ path ++ ".expected"
     let a = TestCase (assertEqual path (rstrip expected) $ testParse x)
     return a
 
