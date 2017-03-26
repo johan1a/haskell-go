@@ -13,21 +13,22 @@ data State = State { actRecs :: [ActRec], --TODO types
                      params  :: Map Name [Name],
                      funcs   :: Map Name FunctionDecl,
                      currentFunc :: String,
-                     retVal  :: Value
-                   } deriving (Show)
+                     retVal  :: Value,
+                     emitter ::  String -> IO()
+                   } 
 
 -- Returns the activation record of the current scope
 decls :: State -> ActRec
 decls state = (actRecs state) !! 0
-
-lookup2 name map_ = Map.lookup name map_
 
 empty :: State
 empty = State { actRecs = [], 
                 params = Map.empty,
                 funcs = Map.empty, 
                 currentFunc = "",
-                retVal = NullVal }
+                retVal = NullVal, 
+                emitter = (putStr )
+}
 
 runProgram :: SourceFile -> IO State
 runProgram (SourceFile package decls) = readTopLevelDecls decls empty >>= runMain
@@ -36,7 +37,7 @@ runMain :: State -> IO State
 runMain = execFuncCall "main" []
 
 getFuncDecl :: FunctionName -> State -> FunctionDecl
-getFuncDecl name state = fromJust $ lookup2 name $ funcs state
+getFuncDecl name state = fromJust $ Map.lookup name $ funcs state
 
 readTopLevelDecls :: [TopLevelDecl] -> State -> IO State
 readTopLevelDecls [] state = return state
@@ -169,11 +170,11 @@ execExprStmt :: Expr  -> State -> IO State
 execExprStmt (Call name e) st = execFuncCall name e st
 execExprStmt (PrintLnCall e) st = do 
             v <- eval (e !! 0 ) st
-            putStrLn $ show v  
+            (emitter st) $ (show v) ++ "\n"
             return st 
 execExprStmt (PrintCall e) st = do 
             v <- eval (e !! 0 ) st
-            putStr $ show v  
+            (emitter st) $ show v  
             return st 
 execExprStmt (BoolExpr b) st = error "error bool"
 execExprStmt (Num n) st = error "error num" 
@@ -224,7 +225,7 @@ bindDecl :: IdDecl -> Type -> Expr -> State -> State
 bindDecl (IdDecl name) type_ expr state = bindExpr name expr state
 
 paramNames :: String -> State -> [String]
-paramNames funcName state = fromJust $ lookup2 funcName $ params state
+paramNames funcName state = fromJust $ Map.lookup funcName $ params state
 
 --lookup paramexpr, upp en nivå
 
@@ -246,7 +247,7 @@ lookupIdUse :: String -> State -> Expr
 lookupIdUse (name) state = 
     case found of (Just expr) -> if isParameter then lookupExpr expr (scopeAbove state) else lookupExpr expr state
                   (Nothing) -> if isParameter then lookupExpr (IdUse name) (scopeAbove state) else (IdUse name )--IdUseerror "krångel2" 
-    where found = (lookup2 name (decls state))
+    where found = (Map.lookup name (decls state))
           isParameter = (isParam name state) 
 lookupIdUse what state = error "kisafpsa"
 
