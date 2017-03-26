@@ -46,8 +46,7 @@ type ElementType = Type
 
 
 -- TODO duplicate expression stmt?
-data Statement = Expr Expr
-               | DeclarationStmt Declaration
+data Statement =  DeclarationStmt Declaration
                | SimpleStmt SimpleStmt
        --       | LabeledStmt 
       --        | GoStmt 

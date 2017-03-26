@@ -134,7 +134,6 @@ execStmts [] state = return state
 execStmts (s:ss) state = execStmt s state >>= execStmts ss 
 
 execStmt :: Statement -> State -> IO State
-execStmt (Expr e) st =  execExprStmt e st -- TODO is this really possible
 execStmt (DeclarationStmt decl) st = return $ execDecl decl st
 execStmt (SimpleStmt simpleStmt) st = execSimpleStmt simpleStmt st
 execStmt (BlockStmt block) st = execBlock block st
@@ -204,8 +203,9 @@ execExprStmt (IdUse id) st = error $  "error id: " ++ id
 execExprStmt (StringExpr str) st = error "error: str"
 
 execFuncCall :: Name -> [Expr] -> State -> IO State
-execFuncCall name args state = execFuncDecl (getFuncDecl name state) (newState)
-    where newState = (bindArgs name args state)
+execFuncCall name args state = execFuncDecl fDecl newState
+    where newState = bindArgs name args state
+          fDecl = getFuncDecl name state
 
 execFuncDecl :: FunctionDecl -> State -> IO State
 execFuncDecl (FunctionDecl1 _ _ ) st = error "No function body!"
