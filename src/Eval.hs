@@ -187,17 +187,17 @@ execElse :: Else -> State -> IO State
 execElse (Else1 ifStmt) = execIfStmt ifStmt
 execElse (Else2 block) = execBlock block 
 
+emit :: [Expr] -> String -> State -> IO State
+emit e suffix st = do
+    v <- eval (e !! 0) st
+    (emitter st) $ (show v) ++ suffix
+    return st 
+
 --Print multiple
 execExprStmt :: Expr  -> State -> IO State
 execExprStmt (Call name e) st = execFuncCall name e st
-execExprStmt (PrintLnCall e) st = do 
-            v <- eval (e !! 0 ) st
-            (emitter st) $ (show v) ++ "\n"
-            return st 
-execExprStmt (PrintCall e) st = do 
-            v <- eval (e !! 0 ) st
-            (emitter st) $ show v  
-            return st 
+execExprStmt (PrintLnCall e) st = emit e "\n" st
+execExprStmt (PrintCall e) st = emit e "" st 
 execExprStmt (BoolExpr b) st = error "error bool"
 execExprStmt (Num n) st = error "error num" 
 execExprStmt (IdUse id) st = error $  "error id: " ++ id
@@ -278,7 +278,7 @@ lookupIdUse (name) state =
     where found = (Map.lookup name $ decls state)
           isParameter = (isParam name state) 
           inMainFunc = (currentFunc state) == "main"
-          atTopLevel = (currentFunc state) == "TOPLEVEL"
+          atTopLevel = (currentFunc state) == "TOPLEVEL" -- TODO refactor
 
 isParam :: Name -> State -> Bool
 isParam name state = elem name $ fRetOrFail (currentFunc state) $ Map.lookup (currentFunc state ) $  params state
