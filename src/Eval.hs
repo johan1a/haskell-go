@@ -265,17 +265,15 @@ lookupExpr expr state = error "i felt like it " --expr
 -- ..borde ta emot expr istället
 lookupIdUse :: String -> State -> Expr
 lookupIdUse (name) state = 
-    case found of (Just (IdUse name)) -> if isParameter ||  atTopLevel -- toplevel = main TODO change
-                                 then lookupExpr (IdUse name) (scopeAbove state) 
-                                 else lookupExpr (IdUse name) state
+    case found of (Just (IdUse name2)) -> if isParameter ||  atTopLevel -- toplevel = main TODO change
+                                 then lookupExpr (IdUse name2) (scopeAbove state) 
+                                 else lookupExpr (IdUse name2) state
                   (Just expr) -> lookupExpr expr state 
                   (Nothing) ->  
-                                if isParameter
-                                    then lookupExpr (IdUse name) (scopeAbove state) 
-                                else if atTopLevel 
-                                     then lookupExpr (IdUse name) (scopeAbove state) 
-                                     else error $ "undefined: " ++ name 
-    where found = (Map.lookup name (decls state))
+                                if isParameter || atTopLevel
+                                then lookupExpr (IdUse name) (scopeAbove state) 
+                                else error $ "undefined: " ++ name 
+    where found = (Map.lookup name $ decls state)
           isParameter = (isParam name state) 
           atTopLevel = (currentFunc state) == "main"
 
