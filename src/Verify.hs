@@ -9,8 +9,12 @@ import Test.HUnit
 import qualified HappyParser
 import qualified Eval as E
 import AST
+import Debug.Trace
 
-main = parseTests >>= defaultMain
+main = do
+    p <- parseTests 
+    exec <- execTests
+    defaultMain (p ++ exec)
 
 parseTests :: IO [Test.Framework.Test]
 parseTests = parseTestFileNames >>= (testList makeParsingTestCase) >>= return . hUnitTestToTests
@@ -48,18 +52,22 @@ makeExecTestCase path = compareExpected path testRun
 compareExpected :: String -> (String -> String -> IO String) -> IO Test.HUnit.Test
 compareExpected path func = do
     src <- readFile $ path ++ ".go"
-    expected <- readFile $ path ++ ".expected"
+    expected <- fmap rstrip $ readFile $ path ++ ".expected"
     output <- func path src
-    let a = TestCase (assertEqual path (rstrip expected) $ output)
+    let a = TestCase (assertEqual path expected $ output)
     return a
+
+myRstrip :: String -> String
+myRstrip str = rstrip str
 
 testParse :: String -> String -> IO String
 testParse _ src = return $ show $ HappyParser.parseExpr src
 
 testRun :: String -> String -> IO String
 testRun path src = do
-    st <- E.runTestProgram (path ++ ".out") $ HappyParser.parseExpr $ src ++ ".go"
-    readFile (path ++ ".out")
+    writeFile (path ++ ".out") ""
+    st <- E.runTestProgram (path ++ ".out") $ traceShowId $ HappyParser.parseExpr src
+    fmap rstrip $ readFile (path ++ ".out")
 
 
 
