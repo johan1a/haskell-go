@@ -8,5 +8,5 @@ func main() {
     println(l)
 }
 func swoosh(x int) {
-    return 1
+    return 2
 }
