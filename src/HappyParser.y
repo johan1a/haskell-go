@@ -13,6 +13,7 @@ import AST
     "true"  { TokenTrue }
     "false" { TokenFalse }
     "const" { TokenConst }
+    "struct"{ TokenStruct }
     "type"  { TokenType }
     "func"  { TokenFunc }
     "var"   { TokenVar }
@@ -141,8 +142,6 @@ Op : AddOp                                              { $1 }
 IncDecStmt : Expr "++"                                  { IncStmt $1 }
            | Expr "--"                                  { DecStmt $1 }
 
-{-- FunctionType : "func" Signature --}
-
 {-- TODO support functions without bodies --}
 FunctionDecl : "func" FunctionName Signature            { FunctionDecl1 $2 $3 }
              | "func" FunctionName Signature FunctionBody { FunctionDecl2 $2 $3 $4 } 
@@ -178,34 +177,51 @@ ConstDecl : "const" ConstSpec                           { $2 }
 ConstSpec : IdentifierList Type '=' ExpressionList      { ConstDecl $1 $2 $4 }
 
 TypeDecl : "type" TypeSpec                              { $2 }
-TypeSpec : NAME Type                                     { TypeDecl $1 $2 }
+TypeSpec : NAME Type                                    { TypeDecl $1 $2 }
 
 VarDecl : "var" VarSpec                                 { $2 }
 VarSpec : IdentifierList Type '=' ExpressionList        { VarDecl $1 $2 $4 }
 
-IdentifierList : NAME                                    { [(IdDecl $1)] }
-               | IdentifierList ',' NAME                 { $1 ++ [(IdDecl $3)] }
+IdentifierList : NAME                                   { [(IdDecl $1)] }
+               | IdentifierList ',' NAME                { $1 ++ [(IdDecl $3)] }
 
 ExpressionList : Expr                                   { [$1] }
                | ExpressionList ',' Expr                { $1 ++ [$3] } 
                |                                        { [] }
 
 Type : TypeName                                         { TypeName $1 }
-     | TypeLit                                          { $1 }
-{--     | '(' Type ')'                                     { $2 } --}
+     | TypeLit                                          { TypeLit $1 }
+{--     | '(' Type ')'                                  { $2 } --}
 
-TypeName : NAME                                          { TypeNameIdentifier $1 } 
+TypeName : NAME                                         { TypeNameIdentifier $1 } 
          | QualifiedIdent                               { TypeNameQualifiedIdent $1 }
 
-QualifiedIdent : NAME '.' NAME                            { QualifiedIdent  $1 $3 }
+QualifiedIdent : NAME '.' NAME                          { QualifiedIdent  $1 $3 }
 
-TypeLit : ArrayType                                     { TypeLit $1 } 
+TypeLit : ArrayType                                     { $1 } 
+        | StructType                                    { StructType $1 } 
 
 ArrayType : '[' Expr ']' ElementType                    { ArrayType $2 $4 } 
 
 ElementType : Type                                      { $1 } 
 
 
+StructType : "struct" '{' FieldDecls '}'                { Struct1 $3 }
+           | "struct" '{' '}'                           { Struct2 } 
+
+FieldDecls : FieldDecl ';' FieldDecls                   { [$1] ++ $3}
+           | FieldDecl ';'                              { [$1] }
+
+FieldDecl : IdentifierList Type                         { FieldDecl1 $2 }
+          | IdentifierList Type Tag                     { FieldDecl2 $2 $3 }
+          | AnonymousField                              { AnonFieldDecl1 $1 }
+          | AnonymousField Tag                          { AnonFieldDecl2 $1 $2 }
+
+AnonymousField : TypeName                               { AnonFieldType1 $1 }
+               | '*' TypeName                           { AnonFieldType2 $2 }
+
+
+Tag : STRING                                            { $1 }
 
 
 AritmExpr : Expr '+' Expr                                { AddExpr $1 $3 }

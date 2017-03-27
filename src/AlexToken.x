@@ -32,6 +32,7 @@ tokens :-
   "false"    			        { \s -> TokenFalse }
   "func"    			        { \s -> TokenFunc }
   "return"    			        { \s -> TokenReturn }
+  "struct"    			        { \s -> TokenStruct }
   \=                            { \s -> TokenEq }
   \\                            { \s -> TokenLambda }
   \(                            { \s -> TokenLParen }
@@ -95,6 +96,7 @@ data Token = TokenLet
 	   | TokenGreaterEq
 	   | TokenFunc
        | TokenConst
+       | TokenStruct
        | TokenType
        | TokenVar
        | TokenLambda

@@ -32,8 +32,8 @@ data QualifiedIdent = QualifiedIdent PackageName Name
 type PackageName = Name
 
 data TypeLit = ArrayType ArrayLength ElementType
+             | StructType Struct
           deriving (Eq, Show)
-        --      | StructType ArrayType
         --      | PointerType ArrayType
         --      | FunctionType ArrayType
         --      | InterfaceType ArrayType
@@ -128,11 +128,6 @@ data ParameterDecl = ParameterDecl1 Type
                    | ParameterDecl2 [IdDecl] Type
                    deriving (Eq, Show)
 
-
-
-
-
-
 data Declaration = ConstDecl [IdDecl] Type [Expr]  
                  | TypeDecl Name Type 
                  | VarDecl [IdDecl] Type [Expr]
@@ -141,6 +136,23 @@ data Declaration = ConstDecl [IdDecl] Type [Expr]
 type IdentifierList = [Name]
 
 type ExpressionList = [Expr]
+
+
+data Struct = Struct1 [FieldDecl]
+            | Struct2
+            deriving (Eq, Show)
+
+data FieldDecl = FieldDecl1 Type
+               | FieldDecl2 Type Tag
+               | AnonFieldDecl1 AnonFieldType 
+               | AnonFieldDecl2 AnonFieldType Tag
+               deriving (Eq, Show)
+
+data AnonFieldType = AnonFieldType1 TypeName
+                   | AnonFieldType2 TypeName
+                   deriving (Eq, Show)
+
+type Tag = String
 
 data Value = NumVal Int
      | BoolVal Bool

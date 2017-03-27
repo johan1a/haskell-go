@@ -1,0 +1,1 @@
+SourceFile (Package "main") [TopLevelDecl1 (TypeDecl "Tree" (TypeLit (StructType Struct2)))]
