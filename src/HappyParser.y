@@ -209,8 +209,10 @@ ElementType : Type                                      { $1 }
 StructType : "struct" '{' FieldDecls '}'                { Struct1 $3 }
            | "struct" '{' '}'                           { Struct2 } 
 
-FieldDecls : FieldDecl ';' FieldDecls                   { [$1] ++ $3}
-           | FieldDecl ';'                              { [$1] }
+
+{- TODO semicolons after fielddecl -}
+FieldDecls : FieldDecl ';' FieldDecls                      { [$1] ++ $3 }
+           | FieldDecl ';'                                 { [$1] }
 
 FieldDecl : IdentifierList Type                         { FieldDecl1 $2 }
           | IdentifierList Type Tag                     { FieldDecl2 $2 $3 }

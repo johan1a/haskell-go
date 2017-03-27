@@ -1,0 +1,1 @@
+SourceFile (Package "main") [TopLevelDecl1 (TypeDecl "L" (TypeLit (StructType (Struct1 [FieldDecl1 (TypeName (TypeNameIdentifier "int")),FieldDecl1 (TypeName (TypeNameIdentifier "int"))]))))]
