@@ -266,23 +266,23 @@ lookupExpr (StringExpr s) _ = (StringExpr s)
 lookupExpr (Call fName exprs) state = (Call fName (map (\x -> lookupExpr x state) exprs))  
 lookupExpr expr state = error "i felt like it " --expr
 
-
-
--- I've created a monster!
 lookupIdUse :: String -> State -> Expr
-lookupIdUse (name) state = 
-    case found of (Just expr) -> lookupExpr expr state 
-                  (Nothing) ->  if (not atTopLevel) && (isParameter || inMainFunc) 
-                                    then lookupExpr (IdUse name) (scopeAbove state) 
-                                else error $ "undefined: " ++ name 
+lookupIdUse (name) state = lookupIdRef name found state
     where found = (Map.lookup name $ decls state)
+
+-- Lookup an Expr referenced by the IdUse
+lookupIdRef :: String -> Maybe Expr -> State -> Expr
+lookupIdRef name (Just expr) state = lookupExpr expr state
+lookupIdRef name Nothing state
+    | canContinue = lookupExpr (IdUse name) (scopeAbove state) 
+    | otherwise = error $ "undefined: " ++ name
+    where canContinue = (not atTopLevel) && (isParameter || inMainFunc)
           isParameter = (isParam name state) 
           inMainFunc = (currentFunc state) == "main"
           atTopLevel = (currentFunc state) == "TOPLEVEL" -- TODO refactor
 
 isParam :: Name -> State -> Bool
 isParam name state = elem name $ fRetOrFail (currentFunc state) $ Map.lookup (currentFunc state ) $  params state
-
 
 scopeAbove :: State -> State
 scopeAbove state = state { actRecs = (tail $ actRecs state), callStack = (tail $ callStack state)}
@@ -327,7 +327,6 @@ eval (Call fName exprs) state = execFuncCall fName  exprs state >>= return . ret
 evalBin :: BinExpr -> State -> IO Value
 evalBin (AritmExpr a) state = evalAritm a state
 evalBin (CondExpr c) state = evalCond c state
-evalBin _ _ = error "ToDO"
 
 evalAritm :: AritmExpr -> State -> IO Value
 evalAritm (AddExpr l r) state = add <$> (eval l state) <*>(eval r state) 
