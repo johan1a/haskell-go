@@ -8,6 +8,8 @@ import Test.HUnit
 import Eval
 import Debug.Trace
 
+import AlexToken
+
 runAndShow :: String -> IO ()
 runAndShow input = do
   let ast = HappyParser.parseExpr input
@@ -44,3 +46,27 @@ parseFile fileName = do
     let ast = HappyParser.parseExpr content
     putStrLn $ "AST: " ++ (show ast)
     return ()
+
+
+run2 :: String -> IO ()
+run2 fileName = do
+    content <- readFile fileName
+    state <- analyse content
+    putStrLn (show state)
+    return ()
+
+
+analyse :: String -> IO [Lexeme Token]
+analyse s = case runLexer s (loop []) of
+                Right a -> return a
+                Left s -> error s
+
+loop ls = do
+    token@(Lexeme td tp) <- alexMonadScan
+    case td of
+        TokenEOF -> return ls
+        otherwise -> do
+            loop $! (token:ls)
+
+
+

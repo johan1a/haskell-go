@@ -144,6 +144,9 @@ data Token = TokenError {unknown :: String}
 
 data Lexeme a = Lexeme { lData :: a, lPos  :: AlexPosn } 
 
+instance Show a => Show (Lexeme a) where
+    show l = show (lPos l) ++ ": " ++ show (lData l)
+
 alex :: (String -> Token) -> AlexInput -> Int -> Alex (Lexeme Token)
 alex tokenFunc (pos, prevChar, byteRest, input) k = return (Lexeme (tokenFunc $ take k input) pos)
 
