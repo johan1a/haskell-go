@@ -6,7 +6,7 @@ import System.Directory
 import Test.Framework
 import Test.Framework.Providers.HUnit
 import Test.HUnit
-import qualified HappyParser
+import Gho
 import qualified Eval as E
 import AST
 import Debug.Trace
@@ -61,12 +61,15 @@ myRstrip :: String -> String
 myRstrip str = rstrip str
 
 testParse :: String -> String -> IO String
-testParse _ src = return $ show $ HappyParser.parseExpr src
+testParse _ src = do 
+    ast <- Gho.mainParse src 
+    return $ show ast
 
 testRun :: String -> String -> IO String
 testRun path src = do
     writeFile (path ++ ".out") ""
-    st <- E.runTestProgram (path ++ ".out") $ HappyParser.parseExpr src
+    ast <- Gho.mainParse src
+    st <- E.runTestProgram (path ++ ".out") ast
     fmap rstrip $ readFile (path ++ ".out")
 
 

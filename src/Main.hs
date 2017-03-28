@@ -10,9 +10,11 @@ import Debug.Trace
 
 import AlexToken
 
+import Gho
+
 runAndShow :: String -> IO ()
 runAndShow input = do
-  let ast = HappyParser.parseExpr input
+  ast <- Gho.mainParse input
   what <- runProgram ast
   putStrLn $ "AST: " ++ (show ast)
 
@@ -27,23 +29,22 @@ main :: IO ()
 main = do
     args <- getArgs
     content <- readFile $ args !! 0
-    state <- runProgram $ HappyParser.parseExpr content
+    state <- Gho.mainParse content >>= runProgram
     return ()
 
 run :: String -> IO ()
 run fileName = do
     content <- readFile fileName
-    state <- runProgram $ HappyParser.parseExpr content
+    state <- Gho.mainParse content >>= runProgram
     return ()
     
-
-parse :: String -> String
-parse = show . HappyParser.parseExpr 
+--parse :: String -> String
+--parse = show . HappyParser.parse 
 
 parseFile :: String -> IO ()
 parseFile fileName = do 
     content <- readFile $ fileName
-    let ast = HappyParser.parseExpr content
+    ast <- Gho.mainParse content
     putStrLn $ "AST: " ++ (show ast)
     return ()
 

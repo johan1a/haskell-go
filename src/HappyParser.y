@@ -3,6 +3,9 @@ module HappyParser where
 
 import AlexToken
 import AST
+
+import Control.Exception
+import Data.Typeable
 }
 
 %name parse
@@ -276,11 +279,14 @@ Atom : '(' Expr ')'                                     { $2 }
 -}
 
 {
-parseError :: [Lexeme Token] -> IO a
--- parseError tokens = error $ "Parse error " ++ (show tokens)
-parseError t = error "todo"
 
-parseExpr :: String -> SourceFile
-parseExpr s = error "todo"
--- parseExpr = parse . scanTokens
+
+data SyntaxError = SyntaxError String
+    deriving (Show)
+
+instance Exception SyntaxError
+
+parseError :: [Lexeme Token] -> IO a
+parseError ts = throw $ SyntaxError $ "Unexpected token: " ++ show (head ts)
+
 }

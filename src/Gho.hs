@@ -18,17 +18,20 @@ run2 fileName = do
     putStrLn (show state)
     return ()
 
+
+
 scan :: String -> IO [Lexeme Token]
 scan s = case runLexer s (loop []) of
-                Right a -> return a
-                Left s -> error s
+                (Right a) -> return (reverse a)
+                (Left s) -> error s
+
 
 loop ls = do
     token@(Lexeme td tp) <- alexMonadScan
     case td of
         TokenEOF -> return ls
-        otherwise -> do
+        _ -> do
             loop $! (token:ls)
 
-
-
+mainParse :: String -> IO SourceFile
+mainParse s = scan s >>= HappyParser.parse
