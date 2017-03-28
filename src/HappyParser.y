@@ -276,8 +276,10 @@ Atom : '(' Expr ')'                                     { $2 }
 
 {
 parseError :: [Token] -> a
-parseError tokens = error $ "Parse error " ++ (show tokens)
+-- parseError tokens = error $ "Parse error " ++ (show tokens)
+parseError t = error "todo"
 
 parseExpr :: String -> SourceFile
-parseExpr = parse . scanTokens
+parseExpr s = error "todo"
+-- parseExpr = parse . scanTokens
 }

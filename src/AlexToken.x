@@ -1,10 +1,17 @@
 {
 {-# OPTIONS_GHC -w #-}
-module AlexToken (Token(..),scanTokens) where
+module AlexToken (
+    Token(..),
+    Lexeme(..),
+    alexMonadScan,
+    runLexer
+) where
+
 import AST
+
 }
 
-%wrapper "basic"
+%wrapper "monad"
 
 $digit = 0-9
 $alpha = [a-zA-ZåäöÅÄÖ]
@@ -12,61 +19,61 @@ $eol   = [\n]
 
 tokens :-
 
-  $eol                          ;
-  $white+                       ;
-  "#".*                         ;
-  let                           { \s -> TokenLet }
-  "]"                           { \s -> TokenRBracket }
-  "["                           { \s -> TokenLBracket } 
-  "."                           { \s -> TokenDot }
-  in                            { \s -> TokenIn }
-  $digit+                       { \s -> TokenNum (read s) }
-  "->"                          { \s -> TokenArrow }
-  "=="    			            { \s -> TokenEq2 }
-  "!="    			            { \s -> TokenNeq }
-  "<"     			            { \s -> TokenLess }
-  "<="    			            { \s -> TokenLessEq }
-  ">"     			            { \s -> TokenGreater }
-  ">="    			            { \s -> TokenGreaterEq }
-  "true"    			        { \s -> TokenTrue }
-  "false"    			        { \s -> TokenFalse }
-  "func"    			        { \s -> TokenFunc }
-  "return"    			        { \s -> TokenReturn }
-  "struct"    			        { \s -> TokenStruct }
-  \=                            { \s -> TokenEq }
-  \\                            { \s -> TokenLambda }
-  \(                            { \s -> TokenLParen }
-  \)                            { \s -> TokenRParen }
-  "print" 			            { \s -> TokenPrint }
-  "println" 			        { \s -> TokenPrintLn }
-  "const"                       { \s -> TokenConst }
-  "type"                        { \s -> TokenType }
-  "var"                         { \s -> TokenVar }
-  "..."                         { \s -> TokenDots }
-    "."                         { \s -> TokenDot }
-    ","                         { \s -> TokenComma }
-    "+"                         { \s -> TokenAdd }
-    "-"                         { \s -> TokenSub }
-    "|"                         { \s -> TokenOpPipe }
-    "^"                         { \s -> TokenOpUpArrow }
-    "*"                         { \s -> TokenOpMul }
-    "/"                         { \s -> TokenOpSlash }
-    "%"                         { \s -> TokenOpModulo }
-    "<<"                        { \s -> TokenOpLeftStream }
-    ">>"                        { \s -> TokenOpRightStream }
-    "&"                         { \s -> TokenOpAnd }
-    "&^"                        { \s -> TokenOpAndUp }
-    ":="                        { \s -> TokenShortVarDecl }
-    "++"                        { \s -> TokenInc }
-    "--"                        { \s -> TokenDec }
-    "{"                         { \s -> TokenLCParen }
-    "}"                         { \s -> TokenRCParen }
-    "if"                        { \s -> TokenIf }
-    "else"                      { \s -> TokenElse }
-    "package"                   { \s -> TokenPackage }
-    ";"                         { \s -> TokenSemiColon }
-    \"$alpha [$white $alpha $digit \_ ]*\"             { \s -> TokenString (stripQuotes s) }
-    $alpha [$alpha $digit \_ ]*   { \s -> TokenSym s }
+  $eol                          { skip }
+  $white+                       { skip }
+  "#".*                         { skip }
+  let                           { alex(const TokenLet )}
+  "]"                           { alex(const TokenRBracket )}
+  "["                           { alex(const TokenLBracket )} 
+  "."                           { alex(const TokenDot )}
+  "->"                          { alex(const TokenArrow )}
+  "=="    			            { alex(const TokenEq2 )}
+  "!="    			            { alex(const TokenNeq )}
+  "<"     			            { alex(const TokenLess )}
+  "<="    			            { alex(const TokenLessEq) }
+  ">"     			            { alex(const TokenGreater) }
+  ">="    			            { alex(const TokenGreaterEq) }
+  "true"    			        { alex(const TokenTrue )}
+  "false"    			        { alex(const TokenFalse) }
+  "func"    			        { alex(const TokenFunc )}
+  "return"    			        { alex(const TokenReturn )}
+  "struct"    			        { alex(const TokenStruct )}
+  \=                            { alex(const TokenEq )}
+  \\                            { alex(const TokenLambda) }
+  \(                            { alex(const TokenLParen )}
+  \)                            { alex(const TokenRParen )}
+  "print" 			            { alex(const TokenPrint )}
+  "println" 			        { alex(const TokenPrintLn) }
+  "const"                       { alex(const TokenConst )}
+  "type"                        { alex(const TokenType )}
+  "var"                         { alex(const TokenVar )}
+  "..."                         { alex(const TokenDots )}
+    "."                         { alex(const TokenDot )}
+    ","                         { alex(const TokenComma) }
+    "+"                         { alex(const TokenAdd )}
+    "-"                         { alex(const TokenSub )}
+    "|"                         { alex(const TokenOpPipe )}
+    "^"                         { alex(const TokenOpUpArrow) }
+    "*"                         { alex(const TokenOpMul )}
+    "/"                         { alex(const TokenOpSlash )}
+    "%"                         { alex(const TokenOpModulo )}
+    "<<"                        { alex(const TokenOpLeftStream) }
+    ">>"                        { alex(const TokenOpRightStream) }
+    "&"                         { alex(const TokenOpAnd )}
+    "&^"                        { alex(const TokenOpAndUp )}
+    ":="                        { alex(const TokenShortVarDecl) }
+    "++"                        { alex(const TokenInc )}
+    "--"                        { alex(const TokenDec )}
+    "{"                         { alex(const TokenLCParen) }
+    "}"                         { alex(const TokenRCParen) }
+    "if"                        { alex(const TokenIf )}
+    "else"                      { alex(const TokenElse) }
+    "package"                   { alex(const TokenPackage) }
+    ";"                         { alex(const TokenSemiColon) }
+    $digit+                     { alex (TokenNum . read) }
+    \"$alpha [$white $alpha $digit \_ ]*\"           { alex( TokenString . stripQuotes . read ) }
+    $alpha [$alpha $digit \_ ]*                        { alex TokenSym  }
+    .                           { alex TokenError}
 
 {
 
@@ -80,7 +87,8 @@ stripQuotes s                         = s
 
 
 
-data Token = TokenLet
+data Token = TokenError {unknown :: String}
+       | TokenLet
        | TokenPrint 
        | TokenPrintLn
        | TokenReturn
@@ -100,7 +108,7 @@ data Token = TokenLet
        | TokenType
        | TokenVar
        | TokenLambda
-       | TokenNum Int
+       | TokenNum { tnNumber :: Int }
        | TokenSym String
        | TokenArrow
        | TokenEq
@@ -131,8 +139,33 @@ data Token = TokenLet
        | TokenIf
        | TokenElse
        | TokenPackage
+       | TokenEOF
        deriving (Eq,Show)
 
-scanTokens = alexScanTokens
+data Lexeme a = Lexeme { lData :: a, lPos  :: AlexPosn } 
 
+alex :: (String -> Token) -> AlexInput -> Int -> Alex (Lexeme Token)
+alex tokenFunc (pos, prevChar, byteRest, input) k = return (Lexeme (tokenFunc $ take k input) pos)
+
+alexEOF :: Alex (Lexeme Token)
+alexEOF = return $ Lexeme TokenEOF (AlexPn 0 0 0)
+
+state :: String -> AlexState
+state input = AlexState {
+    alex_pos = alexStartPos, -- position at current input location
+    alex_inp = input,        -- the current input
+    alex_chr = '\n',          -- the character before the input
+    alex_bytes = [],         -- 
+    alex_scd = 0             -- the current startcode
 }
+
+runLexer :: String -> Alex a -> Either String a
+runLexer input (Alex f) = case f (state input) of
+    Left msg -> Left msg
+    Right ( _, a ) -> Right a
+}
+
+
+
+
+
