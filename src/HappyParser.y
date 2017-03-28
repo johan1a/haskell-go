@@ -6,61 +6,62 @@ import AST
 }
 
 %name parse
-%tokentype { Token }
+%monad { IO }
+%tokentype { Lexeme Token }
 %error { parseError }
 
 %token
-    "true"  { TokenTrue }
-    "false" { TokenFalse }
-    "const" { TokenConst }
-    "struct"{ TokenStruct }
-    "type"  { TokenType }
-    "func"  { TokenFunc }
-    "var"   { TokenVar }
-    "print" { TokenPrint }
-    "println" { TokenPrintLn }
-    "return"{ TokenReturn }
-    let     { TokenLet }
-    in      { TokenIn }
-    STRING  { TokenString $$ }
-    NUM     { TokenNum $$ }
-    NAME    { TokenSym $$ }
-    '\\'    { TokenLambda }
-    '->'    { TokenArrow }
-    "=="    { TokenEq2 }
-    "!="    { TokenNeq }
-    "<"     { TokenLess }
-    "<="    { TokenLessEq }
-    ">"     { TokenGreater }
-    ">="    { TokenGreaterEq }
-    '='     { TokenEq }
-    '('     { TokenLParen }
-    ')'     { TokenRParen }
-    '['     { TokenLBracket }
-    ']'     { TokenRBracket }
-    "..."   { TokenDots }
-    '.'     { TokenDot }
-    ','     { TokenComma }
-    '+'     { TokenAdd }
-    '-'     { TokenSub }
-    '|'     { TokenOpPipe }
-    '^'     { TokenOpUpArrow }
-    '*'     { TokenOpMul }
-    '/'     { TokenOpSlash }
-    '%'     { TokenOpModulo }
-    "<<"    { TokenOpLeftStream }
-    ">>"    { TokenOpRightStream }
-    '&'     { TokenOpAnd }
-    "&^"    { TokenOpAndUp }
-    ":="    { TokenShortVarDecl }
-    "++"    { TokenInc }
-    "--"    { TokenDec }
-    '{'     { TokenLCParen }
-    '}'     { TokenRCParen }
-    ';'     { TokenSemiColon }
-    "if"    { TokenIf }
-    "else"  { TokenElse }
-    "package"{ TokenPackage }
+    "true"  { Lexeme TokenTrue _ }
+    "false" { Lexeme TokenFalse _ }
+    "const" { Lexeme TokenConst _ }
+    "struct"{ Lexeme TokenStruct _ }
+    "type"  { Lexeme TokenType _ }
+    "func"  { Lexeme TokenFunc _ }
+    "var"   { Lexeme TokenVar _ }
+    "print" { Lexeme TokenPrint _ }
+    "println" { Lexeme TokenPrintLn _ }
+    "return"{ Lexeme TokenReturn _ }
+    let     { Lexeme TokenLet _ }
+    in      { Lexeme TokenIn _ }
+    STRING  { Lexeme (TokenString $$) _ }
+    NUM     { Lexeme (TokenNum $$) _ }
+    NAME    { Lexeme (TokenSym $$) _ }
+    '\\'    { Lexeme TokenLambda _ }
+    '->'    { Lexeme TokenArrow _ }
+    "=="    { Lexeme TokenEq2 _ }
+    "!="    { Lexeme TokenNeq _ }
+    "<"     { Lexeme TokenLess _ }
+    "<="    { Lexeme TokenLessEq _ }
+    ">"     { Lexeme TokenGreater _ }
+    ">="    { Lexeme TokenGreaterEq _ }
+    '='     { Lexeme TokenEq _ }
+    '('     { Lexeme TokenLParen _ }
+    ')'     { Lexeme TokenRParen _ }
+    '['     { Lexeme TokenLBracket _ }
+    ']'     { Lexeme TokenRBracket _ }
+    "..."   { Lexeme TokenDots _ }
+    '.'     { Lexeme TokenDot _ }
+    ','     { Lexeme TokenComma _ }
+    '+'     { Lexeme TokenAdd _ }
+    '-'     { Lexeme TokenSub _ }
+    '|'     { Lexeme TokenOpPipe _ }
+    '^'     { Lexeme TokenOpUpArrow _ }
+    '*'     { Lexeme TokenOpMul _ }
+    '/'     { Lexeme TokenOpSlash _ }
+    '%'     { Lexeme TokenOpModulo _ }
+    "<<"    { Lexeme TokenOpLeftStream _ }
+    ">>"    { Lexeme TokenOpRightStream _ }
+    '&'     { Lexeme TokenOpAnd _ }
+    "&^"    { Lexeme TokenOpAndUp _ }
+    ":="    { Lexeme TokenShortVarDecl _ }
+    "++"    { Lexeme TokenInc _ }
+    "--"    { Lexeme TokenDec _ }
+    '{'     { Lexeme TokenLCParen _ }
+    '}'     { Lexeme TokenRCParen _ }
+    ';'     { Lexeme TokenSemiColon _ }
+    "if"    { Lexeme TokenIf _ }
+    "else"  { Lexeme TokenElse _ }
+    "package"{ Lexeme TokenPackage _ }
 
 %left '+' '-'
 %left '*' '/' '%'
@@ -275,7 +276,7 @@ Atom : '(' Expr ')'                                     { $2 }
 -}
 
 {
-parseError :: [Token] -> a
+parseError :: [Lexeme Token] -> IO a
 -- parseError tokens = error $ "Parse error " ++ (show tokens)
 parseError t = error "todo"
 
