@@ -14,38 +14,20 @@ import Gho
 
 runAndShow :: String -> IO ()
 runAndShow input = do
-  ast <- Gho.mainParse input
+  ast <- parseGho input 
   what <- runProgram ast
   putStrLn $ "AST: " ++ (show ast)
 
 badRepl :: IO ()
 badRepl = do
   putStrLn "Enter stuff:"
-  input <- getLine  
-  runAndShow input
-  return ()
+  getLine >>= runAndShow
+  badRepl
 
-main :: IO ()
-main = do
-    args <- getArgs
-    content <- readFile $ args !! 0
-    state <- Gho.mainParse content >>= runProgram
-    return ()
+main :: IO Eval.State
+main = fmap head getArgs >>= runFile
 
-run :: String -> IO ()
-run fileName = do
-    content <- readFile fileName
-    state <- Gho.mainParse content >>= runProgram
-    return ()
+runFile :: String -> IO Eval.State
+runFile f = readFile f >>= parseGho >>= runProgram
     
---parse :: String -> String
---parse = show . HappyParser.parse 
-
-parseFile :: String -> IO ()
-parseFile fileName = do 
-    content <- readFile $ fileName
-    ast <- Gho.mainParse content
-    putStrLn $ "AST: " ++ (show ast)
-    return ()
-
 

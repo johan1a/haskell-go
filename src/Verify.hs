@@ -62,13 +62,13 @@ myRstrip str = rstrip str
 
 testParse :: String -> String -> IO String
 testParse _ src = do 
-    ast <- Gho.mainParse src 
+    ast <- Gho.parseGho src 
     return $ show ast
 
 testRun :: String -> String -> IO String
 testRun path src = do
     writeFile (path ++ ".out") ""
-    ast <- Gho.mainParse src
+    ast <- Gho.parseGho src
     st <- E.runTestProgram (path ++ ".out") ast
     fmap rstrip $ readFile (path ++ ".out")
 
