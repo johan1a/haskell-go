@@ -4,7 +4,8 @@ module AlexToken (
     Token(..),
     Lexeme(..),
     alexMonadScan,
-    runLexer
+    runLexer,
+    todoPos
 ) where
 
 import AST
@@ -19,7 +20,7 @@ $eol   = [\n]
 
 tokens :-
 
-  $eol                          { skip }
+  $eol                          { alex(const TokenNewLine) }
   $white+                       { skip }
   "#".*                         { skip }
   let                           { alex(const TokenLet )}
@@ -47,6 +48,9 @@ tokens :-
   "const"                       { alex(const TokenConst )}
   "type"                        { alex(const TokenType )}
   "var"                         { alex(const TokenVar )}
+  "break"                       { alex(const TokenVar )}
+  "continue"                    { alex(const TokenVar )}
+  "fallthrough"                 { alex(const TokenVar )}
   "..."                         { alex(const TokenDots )}
     "."                         { alex(const TokenDot )}
     ","                         { alex(const TokenComma) }
@@ -69,7 +73,7 @@ tokens :-
     "if"                        { alex(const TokenIf )}
     "else"                      { alex(const TokenElse) }
     "package"                   { alex(const TokenPackage) }
-    ";"                         { alex(const TokenSemiColon) }
+    ";"                         { alex(const TokenSemicolon) }
     $digit+                     { alex (TokenNum . read) }
     \"$alpha [$white $alpha $digit \_ ]*\"           { alex( TokenString . stripQuotes . read ) }
     $alpha [$alpha $digit \_ ]*                        { alex TokenSym  }
@@ -88,6 +92,10 @@ stripQuotes s                         = s
 
 
 data Token = TokenError {unknown :: String}
+       | TokenNewLine
+       | TokenBreak
+       | TokenContinue
+       | TokenFallthrough
        | TokenLet
        | TokenPrint 
        | TokenPrintLn
@@ -135,7 +143,7 @@ data Token = TokenError {unknown :: String}
        | TokenDec
        | TokenLCParen
        | TokenRCParen
-       | TokenSemiColon
+       | TokenSemicolon
        | TokenIf
        | TokenElse
        | TokenPackage
@@ -153,11 +161,14 @@ alex tokenFunc (pos, prevChar, byteRest, input) k = return (Lexeme (tokenFunc $ 
 alexEOF :: Alex (Lexeme Token)
 alexEOF = return $ Lexeme TokenEOF (AlexPn 0 0 0)
 
+todoPos :: AlexPosn
+todoPos = AlexPn 0 0 0
+
 state :: String -> AlexState
 state input = AlexState {
     alex_pos = alexStartPos, -- position at current input location
     alex_inp = input,        -- the current input
-    alex_chr = '\n',          -- the character before the input
+    alex_chr = ' ',          -- the character before the input
     alex_bytes = [],         -- 
     alex_scd = 0             -- the current startcode
 }

@@ -61,7 +61,7 @@ import Data.Typeable
     "--"    { Lexeme TokenDec _ }
     '{'     { Lexeme TokenLCParen _ }
     '}'     { Lexeme TokenRCParen _ }
-    ';'     { Lexeme TokenSemiColon _ }
+    ';'     { Lexeme TokenSemicolon _ }
     "if"    { Lexeme TokenIf _ }
     "else"  { Lexeme TokenElse _ }
     "package"{ Lexeme TokenPackage _ }
@@ -287,6 +287,6 @@ data SyntaxError = SyntaxError String
 instance Exception SyntaxError
 
 parseError :: [Lexeme Token] -> IO a
-parseError ts = throw $ SyntaxError $ "Unexpected token: " ++ show (head ts)
+parseError ts = throw $ SyntaxError $ "Unexpected token: " ++ show (head ts) ++ ", rest: " ++ show ( tail ts)
 
 }

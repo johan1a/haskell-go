@@ -11,24 +11,48 @@ import Debug.Trace
 
 import AlexToken
 
-run2 :: String -> IO ()
-run2 fileName = do
-    content <- readFile fileName
-    state <- scan content
-    putStrLn (show state)
-    return ()
-
 scan :: String -> IO [Lexeme Token]
-scan s = case runLexer s (loop []) of
-                (Right a) -> return (reverse a)
+scan s = case runLexer s (process []) of
+                (Right a) -> return $ reverse a
                 (Left s) -> error s
 
-loop ls = do
-    token@(Lexeme td tp) <- alexMonadScan
-    case td of
-        TokenEOF -> return ls
-        _ -> do
-            loop $! (token:ls)
 
+process ls = do
+    lexeme@(Lexeme tok tp) <- alexMonadScan
+    case tok of
+        TokenEOF -> return ls
+        TokenNewLine -> do
+            process $! ls
+--        TokenNewLine -> do
+  --          process $! insertSemicolon ls --Throw away the newlines
+        _ -> do
+            process $! (lexeme:ls)
+
+--When the input is broken into tokens, a semicolon is automatically inserted into the token stream immediately after a line's final token if that token is
+-- an identifier
+-- an integer, floating-point, imaginary, rune, or string literal
+--one of the keywords break, continue, fallthrough, or return
+--one of the operators and delimiters ++, --, ), ], or }
+
+-- Inserts a semicolon based on the previous token
+insertSemicolon :: [Lexeme Token] -> [Lexeme Token]
+insertSemicolon ls@((Lexeme prev _):_) = case prev of
+    (TokenSym _) -> semicolon:ls
+    (TokenNum _) -> semicolon:ls 
+    (TokenBreak) -> semicolon:ls
+    (TokenContinue) -> semicolon:ls
+    (TokenFallthrough) -> semicolon:ls
+    (TokenReturn) -> semicolon:ls
+    (TokenInc) -> semicolon:ls
+    (TokenDec) -> semicolon:ls
+    (TokenRParen) -> semicolon:ls
+    (TokenRBracket) -> semicolon:ls
+    (TokenRCParen) -> semicolon:ls
+    _ -> ls
+
+
+semicolon = Lexeme TokenSemicolon todoPos
+    
 parseGho :: String -> IO SourceFile
 parseGho s = scan s >>= HappyParser.parse
+
