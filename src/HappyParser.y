@@ -71,18 +71,19 @@ import Data.Typeable
 %%
 
 
+-- Unsure if the last semicolon is correct
 SourceFile : PackageClause ';' TopLevelDecls            { SourceFile $1 $3 }
 
 PackageClause : "package" NAME                          { Package $2 }
 
-TopLevelDecls : TopLevelDecl                            { [$1] }
-              | TopLevelDecls TopLevelDecl              { $1 ++ [$2] }
+TopLevelDecls : TopLevelDecl ';'                        { [$1] }
+              | TopLevelDecls TopLevelDecl ';'          { $1 ++ [$2] }
 
 TopLevelDecl : Declaration                              { TopLevelDecl1 $1 }
              | FunctionDecl                             { TopLevelDecl2 $1 }
 
-Statements : Statement                                  { [$1] }
-           | Statements Statement                       { $1 ++ [$2] }
+StatementList : Statement ';'                           { [$1] }
+           | StatementList Statement ';'            { $1 ++ [$2] }
 
 Statement : IfStmt                                      { IfStmt $1 }
           | "return" Expr                               { ReturnStmt $2 }
@@ -103,8 +104,8 @@ IfStmt : "if" Expr Block Else                           { Ifstmt2 $2 $3 $4 }
        | "if" SimpleStmt ';' Expr Block Else            { Ifstmt4 $2 $4 $5 $6 }
        | "if" SimpleStmt ';' Expr Block                 { Ifstmt3 $2 $4 $5 }
 
--- Should really be StatementList with fancy semicolon insertion
-Block : '{' Statements '}'                              { Block $2 }
+Block : '{' '}'                                         { Block [] }
+      | '{' StatementList '}'                           { Block $2 }
 
 SimpleStmts : SimpleStmt ';'                            { [$1] }
             | SimpleStmts SimpleStmt ';'                { $1 ++ [$2] }
@@ -177,10 +178,14 @@ Declaration : ConstDecl                                 { $1 }
             | TypeDecl                                  { $1 }
             | VarDecl                                   { $1 }
 
-ConstDecl : "const" ConstSpec                           { $2 }
+--TODO can have multiple specs
+ConstDecl : "const" ConstSpec ';'                       { $2 }
+
 ConstSpec : IdentifierList Type '=' ExpressionList      { ConstDecl $1 $2 $4 }
 
+-- TODO more typespecs
 TypeDecl : "type" TypeSpec                              { $2 }
+
 TypeSpec : NAME Type                                    { TypeDecl $1 $2 }
 
 VarDecl : "var" VarSpec                                 { $2 }
@@ -193,8 +198,9 @@ ExpressionList : Expr                                   { [$1] }
                | ExpressionList ',' Expr                { $1 ++ [$3] } 
                |                                        { [] }
 
-Type : TypeName                                         { TypeName $1 }
-     | TypeLit                                          { TypeLit $1 }
+Type : TypeLit                                          { TypeLit $1 }
+     | TypeName                                         { TypeName $1 }
+
 {--     | '(' Type ')'                                  { $2 } --}
 
 TypeName : NAME                                         { TypeNameIdentifier $1 } 
@@ -210,13 +216,13 @@ ArrayType : '[' Expr ']' ElementType                    { ArrayType $2 $4 }
 ElementType : Type                                      { $1 } 
 
 
-StructType : "struct" '{' FieldDecls '}'                { Struct1 $3 }
-           | "struct" '{' '}'                           { Struct2 } 
+StructType : "struct" '{' FieldDecls '}'             { Struct1 $3 }
+           | "struct" '{' '}'                        { Struct2 } 
 
 
 {- TODO semicolons after fielddecl -}
-FieldDecls : FieldDecl ';' FieldDecls                      { [$1] ++ $3 }
-           | FieldDecl ';'                                 { [$1] }
+FieldDecls : FieldDecl ';' FieldDecls                   { [$1] ++ $3 }
+           | FieldDecl ';'                              { [$1] }
 
 FieldDecl : IdentifierList Type                         { FieldDecl1 $2 }
           | IdentifierList Type Tag                     { FieldDecl2 $2 $3 }

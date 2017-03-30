@@ -18,10 +18,15 @@ $digit = 0-9
 $alpha = [a-zA-ZåäöÅÄÖ]
 $eol   = [\n]
 
+-- newline is not whitespace because of semicolon insertion reasons.
+$whitespace = [\ \s\t\r\f\v] 
+
+
+
 tokens :-
 
   $eol                          { alex(const TokenNewLine) }
-  $white+                       { skip }
+  $whitespace+                  { skip }
   "#".*                         { skip }
   let                           { alex(const TokenLet )}
   "]"                           { alex(const TokenRBracket )}
@@ -41,8 +46,8 @@ tokens :-
   "struct"    			        { alex(const TokenStruct )}
   \=                            { alex(const TokenEq )}
   \\                            { alex(const TokenLambda) }
-  \(                            { alex(const TokenLParen )}
-  \)                            { alex(const TokenRParen )}
+  "("                            { alex(const TokenLParen )}
+  ")"                            { alex(const TokenRParen )}
   "print" 			            { alex(const TokenPrint )}
   "println" 			        { alex(const TokenPrintLn) }
   "const"                       { alex(const TokenConst )}

@@ -14,7 +14,7 @@ import AlexToken
 scan :: String -> IO [Lexeme Token]
 scan s = case runLexer s (process []) of
                 (Right a) -> return $ reverse a
-                (Left s) -> error s
+                (Left s) -> error $ "scan error: " ++ s
 
 
 process ls = do
@@ -22,9 +22,7 @@ process ls = do
     case tok of
         TokenEOF -> return ls
         TokenNewLine -> do
-            process $! ls
---        TokenNewLine -> do
-  --          process $! insertSemicolon ls --Throw away the newlines
+            process $! insertSemicolon ls --Throw away the newlines
         _ -> do
             process $! (lexeme:ls)
 
@@ -36,9 +34,11 @@ process ls = do
 
 -- Inserts a semicolon based on the previous token
 insertSemicolon :: [Lexeme Token] -> [Lexeme Token]
+insertSemicolon [] = []
 insertSemicolon ls@((Lexeme prev _):_) = case prev of
     (TokenSym _) -> semicolon:ls
     (TokenNum _) -> semicolon:ls 
+    (TokenString _) -> semicolon:ls 
     (TokenBreak) -> semicolon:ls
     (TokenContinue) -> semicolon:ls
     (TokenFallthrough) -> semicolon:ls
