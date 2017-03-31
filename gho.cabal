@@ -1,6 +1,6 @@
 Name:           haskell-go
 Version:        0.1
-Cabal-Version:  == 1.22.5.0
+Cabal-Version:  >= 1.18.1
 License:        GPL-2
 Author:         Johan Andersson
 Synopsis:       
