@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/johan1a/haskell-go.svg?branch=master)](https://travis-ci.org/johan1a/haskell-go)
+
+`
 To build:
 cabal sandbox init                   # Initialise the sandbox
 cabal install happy
@@ -15,3 +18,4 @@ To run tests:
 cabal install --enable-tests --only-dependencies
 
 cabal test
+`
