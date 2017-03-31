@@ -19,7 +19,7 @@ $alpha = [a-zA-ZåäöÅÄÖ]
 $eol   = [\n]
 
 -- newline is not whitespace because of semicolon insertion reasons.
-$whitespace = [\ \s\t\r\f\v] 
+$whitespace = [\ \t\r\f\v] 
 
 
 

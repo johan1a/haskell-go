@@ -179,7 +179,7 @@ Declaration : ConstDecl                                 { $1 }
             | VarDecl                                   { $1 }
 
 --TODO can have multiple specs
-ConstDecl : "const" ConstSpec ';'                       { $2 }
+ConstDecl : "const" ConstSpec                           { $2 }
 
 ConstSpec : IdentifierList Type '=' ExpressionList      { ConstDecl $1 $2 $4 }
 

@@ -19,7 +19,7 @@ data State = State { actRecs :: [ActRec], --TODO types
 
 -- Returns the activation record of the current scope
 decls :: State -> ActRec
-decls state = head $ actRecs state
+decls state = traceShow "decls" head $ actRecs state
 
 
 currentFunc :: State -> String
