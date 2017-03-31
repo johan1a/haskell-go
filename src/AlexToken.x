@@ -15,7 +15,7 @@ import AST
 %wrapper "monad"
 
 $digit = 0-9
-$alpha = [a-zA-ZåäöÅÄÖ]
+$alpha = [a-zA-Z]
 $eol   = [\n]
 
 -- newline is not whitespace because of semicolon insertion reasons.
