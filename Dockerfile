@@ -22,7 +22,7 @@ RUN cabal install directory
 RUN cabal install
 RUN cabal configure
 RUN cabal build
-RUN [" cabal install --enable-tests --only-dependencies"]
+RUN [" cabal install", "--enable-tests", "--only-dependencies"]
 
 CMD ["cabaL", "test"]
 
