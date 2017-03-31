@@ -1,6 +1,5 @@
 language: haskell
-ghc: '7.10.3'
-
+gc: "7.10.3"
 
 
 before_install:
@@ -12,5 +11,9 @@ before_install:
     - cabal build
     - cabal configure
     - cabal build
+
+group: stable
+dist: precise
+os: linux
 
 
