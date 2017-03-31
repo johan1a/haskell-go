@@ -20,7 +20,6 @@ RUN cabal install happy
 RUN cabal install MissingH
 RUN cabal install directory
 RUN cabal install
-RUN cabal build
 RUN cabal configure
 RUN cabal build
 RUN cabal install --enable-tests --only-dependencies
