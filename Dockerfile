@@ -24,5 +24,5 @@ RUN cabal configure
 RUN cabal build
 RUN [" cabal install", "--enable-tests", "--only-dependencies"]
 
-CMD ["cabaL", "test"]
+CMD ["/usr/bin/cabal", "test"]
 
