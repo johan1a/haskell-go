@@ -4,6 +4,7 @@ import qualified Data.Map as Map
 import AST
 import Data.Maybe
 import Debug.Trace
+import Control.Applicative
 
 
 -- Activation record
