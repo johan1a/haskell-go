@@ -1,19 +1,10 @@
-language: haskell
-gc: "7.10.3"
+sudo: required
 
+services: 
+    - docker
 
 before_install:
-    - cabal sandbox init
-    - cabal install happy
-    - cabal install MissingH
-    - cabal install directory
-    - cabal install
-    - cabal build
-    - cabal configure
-    - cabal build
-
-group: stable
-dist: precise
-os: linux
-
+    - docker build -t johan1a/haskell-go .
+    - docker run johan1a/haskell-go
+    - docker ps -a
 
