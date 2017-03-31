@@ -1,6 +1,7 @@
 Name:           haskell-go
 Version:        0.1
 Cabal-Version:  >= 1.18.1
+Tested-With: GHC == 7.10.3
 License:        GPL-2
 Author:         Johan Andersson
 Synopsis:       
