@@ -14,6 +14,7 @@ RUN cabal install --only-dependencies -j4
 
 # Add and Install Application Code
 COPY . /opt/gho/
+RUN cabal sandbox init
 RUN cabal install
 
 RUN cabal install happy
@@ -24,5 +25,6 @@ RUN cabal configure
 RUN cabal build
 RUN ["cabal",  "install", "--enable-tests", "--only-dependencies"]
 
-RUN ["/usr/bin/cabal", "test"]
+RUN ["cabal", "--version"]
+RUN ["cabal", "test"]
 
