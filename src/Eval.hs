@@ -389,8 +389,8 @@ evalPrimary (PrimaryExpr7 (PrimaryExpr1 (Operand2 (OperandName1 funcName))) args
 evalOperand :: Operand -> State -> IO Value
 evalOperand (Operand1 lit) s = evalLiteral lit s
 evalOperand (Operand2 (opName)) s = evalOperandName opName s
-evalOperand (Operand3 methodExpr) s = error "evalOperand"
-evalOperand (Operand4 expr) s = error "evalOperand"
+evalOperand (Operand3 methodExpr) s = error "evalOperand1"
+evalOperand (Operand4 expr) s = eval expr s
 
 evalOperandName :: OperandName -> State -> IO Value
 evalOperandName (OperandName1 name) s = eval ( lookupIdUse name s) s

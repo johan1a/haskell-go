@@ -187,9 +187,9 @@ LiteralType : StructType                                { LiteralType1 $1 }
 
 
 Operand : OperandName                                   { Operand2 $1 }
+        | '(' Expr ')'                                  { Operand4 $2  }
         | Literal                                       { Operand1 $1 }
     --    | MethodExpr                                    { Operand3 $1  }
-      --  | '(' Expr ')'                                  { Operand4 $2  }
 
 Literal : BasicLit                                      { BasicLit $1 }
 --        | "func" Signature FunctionBody                 { FunctionLit $2 $3  }
