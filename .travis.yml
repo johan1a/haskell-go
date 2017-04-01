@@ -13,6 +13,7 @@ dependencies:
         - docker build --rm=false -t johan1a/haskell-go .
         - mkdir -p ~/docker; docker save johan1a/haskell-go > ~/docker/haskell-go.tar
 
+
 script:
     - docker build -t johan1a/haskell-go .
 
