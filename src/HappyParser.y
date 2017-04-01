@@ -141,24 +141,11 @@ UnaryExpr : PrimaryExpr                                 { PrimaryExpr $1 }
 BinExpr : AritmExpr                                     { AritmExpr $1 } 
         | CondExpr                                      { CondExpr $1 } 
 
-{-
-Expr : '(' Expr ')'                                     { $2 }
-     | BinExpr                                          { BinExpr $1}
-     | "fmt.Print" '(' ExpressionList ')'               { PrintCall $3 }
-     | "fmt.Println" '(' ExpressionList ')'             { PrintLnCall $3 }
-     | identifier '(' ExpressionList ')'                      { Call $1 $3 } 
-     | "true"                                           { BoolExpr True }
-     | "false"                                          { BoolExpr False }
-     | string_lit                                       { StringExpr $1 }
-     | identifier                                             { IdUse $1 }
-     | int_lit                                          { Num $1 }
--}
-
 PrimaryExpr : Operand                                   { PrimaryExpr1 $1 }
-            | PrimaryExpr Selector                      { PrimaryExpr3 $1 $2 }
-            | PrimaryExpr Index                         { PrimaryExpr4 $1 $2 }
-            | PrimaryExpr Slice                         { PrimaryExpr5 $1 $2 }
-            | PrimaryExpr TypeAssertion                 { PrimaryExpr6 $1 $2 }
+      --      | PrimaryExpr Selector                      { PrimaryExpr3 $1 $2 }
+    --        | PrimaryExpr Index                         { PrimaryExpr4 $1 $2 }
+  --          | PrimaryExpr Slice                         { PrimaryExpr5 $1 $2 }
+--            | PrimaryExpr TypeAssertion                 { PrimaryExpr6 $1 $2 }
             | PrimaryExpr Arguments                     { PrimaryExpr7 $1 $2 }
 --            | Conversion                                { PrimaryExpr2 $1 }
 
@@ -192,21 +179,21 @@ Element : Expr                                          { Element1 $1 }
         | LiteralValue                                  { Element2 $1 }
 
 LiteralType : StructType                                { LiteralType1 $1 }
-            | ArrayType                                 { LiteralType2 $1 }
-            | '[' "..." ']' ElementType                 { LiteralType3 $4 }
-            | SliceType                                 { LiteralType4 $1 }
-            | MapType                                   { LiteralType5 $1 }
+     --       | ArrayType                                 { LiteralType2 $1 }
+   --         | '[' "..." ']' ElementType                 { LiteralType3 $4 }
+ --           | SliceType                                 { LiteralType4 $1 }
+--            | MapType                                   { LiteralType5 $1 }
             | TypeName                                  { LiteralType6 $1 }
 
 
 Operand : OperandName                                   { Operand2 $1 }
         | Literal                                       { Operand1 $1 }
-        | MethodExpr                                    { Operand3 $1  }
-        | '(' Expr ')'                                  { Operand4 $2  }
+    --    | MethodExpr                                    { Operand3 $1  }
+      --  | '(' Expr ')'                                  { Operand4 $2  }
 
 Literal : BasicLit                                      { BasicLit $1 }
-        | "func" Signature FunctionBody                 { FunctionLit $2 $3  }
-        | LiteralType LiteralValue                      { CompositeLit $1 $2 }
+--        | "func" Signature FunctionBody                 { FunctionLit $2 $3  }
+ --       | LiteralType LiteralValue                      { CompositeLit $1 $2 }
 
 BasicLit : int_lit                                      { IntLit $1 }
          | string_lit                                   { StringLit $1 }
