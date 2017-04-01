@@ -4,6 +4,15 @@ language: generic
 services: 
     - docker
 
+dependencies:
+    cache_directories:
+        - "~/docker"
+
+    override:
+        - if [[ -e ~/docker/haskell-go.tar ]]; then docker load -i ~/docker/haskell-go.tar; fi
+        - docker build --rm=false -t johan1a/haskell-go .
+        - mkdir -p ~/docker; docker save johan1a/haskell-go > ~/docker/haskell-go.tar
+
 script:
     - docker build -t johan1a/haskell-go .
 
