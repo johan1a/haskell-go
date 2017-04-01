@@ -236,12 +236,15 @@ Arguments : '(' ')'                                     { Arguments1 }
           | '(' ExpressionList "..." ',' ')'            { Arguments2 $2 }
           | '(' ExpressionList "..." ')'                { Arguments3 $2 }
           | '(' ExpressionList ',' ')'                  { Arguments4 $2 }
-          | '(' Type ',' ExpressionList "..." ',' ')'   { Arguments5 $2 $4 }
-          | '(' Type ',' ExpressionList "..." ')'       { Arguments6 $2 $4 }
-          | '(' Type ',' ExpressionList ',' ')'         { Arguments7 $2 $4 }
-          | '(' Type "..." ',' ')'                      { Arguments8 $2 }
-          | '(' Type "..." ')'                          { Arguments9 $2 }
-          | '(' Type ',' ')'                            { Arguments10 $2 }
+          | '(' ExpressionList ')'                      { Arguments5 $2 }
+          | '(' Type ',' ExpressionList "..." ',' ')'   { Arguments6 $2 $4 }
+          | '(' Type ',' ExpressionList "..." ')'       { Arguments7 $2 $4 }
+          | '(' Type ',' ExpressionList ',' ')'         { Arguments8 $2 $4 }
+          | '(' Type ',' ExpressionList ')'             { Arguments9 $2 $4 }
+          | '(' Type "..." ',' ')'                      { Arguments10 $2 }
+          | '(' Type "..." ')'                          { Arguments11 $2 }
+          | '(' Type ',' ')'                            { Arguments12 $2 }
+          | '(' Type ')'                                { Arguments13 $2 }
 
 Assignment : ExpressionList '=' ExpressionList          { Assign $1 $3 }
            | ExpressionList AssignOp '=' ExpressionList { OpAssign $2 $1 $4 }

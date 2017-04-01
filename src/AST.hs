@@ -337,12 +337,15 @@ data Arguments = Arguments1
                | Arguments2 [Expr]
                | Arguments3 [Expr]
                | Arguments4 [Expr]
-               | Arguments5 Type [Expr]
+               | Arguments5 [Expr]
                | Arguments6 Type [Expr]
                | Arguments7 Type [Expr]
-               | Arguments8 Type 
-               | Arguments9 Type 
+               | Arguments8 Type [Expr]
+               | Arguments9 Type [Expr] 
                | Arguments10 Type 
+               | Arguments11 Type 
+               | Arguments12 Type 
+               | Arguments13 Type 
                deriving (Eq, Show)
 
 
