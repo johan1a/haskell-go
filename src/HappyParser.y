@@ -126,8 +126,8 @@ Else : "else" IfStmt                                    { Else1 $2 }
 ShortVarDecl : IdentifierList ":=" ExpressionList       { ShortVarDecl $1 $3 }
 
 
-Expr : UnaryExpr                                        { UnaryExpr $1 }
-     | BinExpr                                          { BinExpr $1 }
+Expr : BinExpr                                          { BinExpr $1 }
+     | UnaryExpr                                        { UnaryExpr $1 }
 
 UnaryExpr : PrimaryExpr                                 { PrimaryExpr $1 }
           | '+' UnaryExpr                               { PosExpr $2 }
