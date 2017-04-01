@@ -191,14 +191,14 @@ data AnonFieldType = AnonFieldType1 TypeName
 
 type Tag = String
 
-data Value = NumVal Int
+data Value = IntVal Int
      | BoolVal Bool
      | StringVal String
      | NullVal
      deriving (Ord, Eq)
 
 instance Show Value where
-    show (NumVal num) = show num
+    show (IntVal num) = show num
     show (BoolVal bool) = show bool
     show (StringVal string) = show string
     show (NullVal) = "Null"

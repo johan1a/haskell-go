@@ -194,7 +194,7 @@ emit e suffix st = do
 
 --Print multiple
 execExprStmt :: Expr  -> State -> IO State
-execExprStmt = error "execExprStmt"
+execExprStmt (UnaryExpr u) = execUnary u
 --execExprStmt (Call name e) st = execFuncCall name e st
 --execExprStmt (PrintLnCall e) st = emit e "\n" st
 --execExprStmt (PrintCall e) st = emit e "" st 
@@ -202,6 +202,27 @@ execExprStmt = error "execExprStmt"
 --execExprStmt (Num n) st = error "error num" 
 --execExprStmt (IdUse id) st = error $  "error id: " ++ id
 --execExprStmt (StringExpr str) st = error "error: str"
+execExprStmt e = error $ traceShow e "execExprStmt"
+
+execUnary (PrimaryExpr p) = execPrimary p
+
+execPrimary (PrimaryExpr1 o) = execOperand o
+execPrimary (PrimaryExpr7 primary args) = execPrimaryFuncCall primary args
+
+execPrimaryFuncCall (PrimaryExpr1 (Operand2 (OperandName2 (QualifiedIdent p n)))) args 
+    | p == "fmt" = execFmtFunction n args
+execPrmiaryFuncCall x = error $ show x
+
+execFmtFunction name (Arguments5 exprs) 
+    | name == "Println" = emit exprs "\n"
+    | name == "Print" = emit exprs ""
+    | otherwise = error $ "fmt func: " ++ name
+
+
+execOperand o = error $ show o
+    
+
+
 
 execFuncCall :: Name -> [Expr] -> State -> IO State
 execFuncCall name args state = execFuncDecl fDecl newState
@@ -317,16 +338,34 @@ evalBool expr state = fmap asBoolVal (eval expr state)
 
 asBoolVal :: Value -> Bool
 asBoolVal (BoolVal v) = v
-asBoolVal (NumVal _) = error "not a bool"
+asBoolVal (IntVal _) = error "not a bool"
 asBoolVal (StringVal _) = error "not a bool"
 
 eval :: Expr -> State -> IO Value
 --eval (IdUse name) state = eval (lookupExpr (IdUse name) state) state
 eval (BinExpr e ) state = evalBin e state
---eval (Num n) _ = return $ NumVal n 
+--eval (Num n) _ = return $ IntVal n 
 --eval (BoolExpr b) _ = return $ BoolVal b
 --eval (StringExpr s) _ = return $ StringVal s
 --eval (Call fName exprs) state = execFuncCall fName  exprs state >>= return . retVal
+eval (UnaryExpr ue) s = evalUnary ue s
+eval e s = error $ "eval: " ++ (show e)
+
+evalUnary :: UnaryExpr -> State -> IO Value
+evalUnary (PrimaryExpr pe) = evalPrimary pe
+
+evalPrimary :: PrimaryExpr -> State -> IO Value
+evalPrimary (PrimaryExpr1 op) = evalOperand op
+
+evalOperand :: Operand -> State -> IO Value
+evalOperand (Operand1 lit) = evalLiteral lit
+
+evalLiteral :: Literal -> State -> IO Value
+evalLiteral (BasicLit bl) = evalBasicLit bl
+
+evalBasicLit :: BasicLit -> State -> IO Value
+evalBasicLit (IntLit n) s = return $ (IntVal n)
+evalBasicLit (StringLit str) s = return $ StringVal str
 
 evalBin :: BinExpr -> State -> IO Value
 evalBin (AritmExpr a) state = evalAritm a state
@@ -351,15 +390,15 @@ evalCond2 f l r state = do
     return $ BoolVal b
 
 add :: Value -> Value -> Value
-add (NumVal l) (NumVal r) = NumVal (l + r)
+add (IntVal l) (IntVal r) = IntVal (l + r)
 add _ _ = error "todo add"
 
 sub :: Value -> Value -> Value
-sub (NumVal l) (NumVal r) = (NumVal (l - r))
+sub (IntVal l) (IntVal r) = (IntVal (l - r))
 sub _ _ = error "todo sub"
 
 mul :: Value -> Value -> Value
-mul (NumVal l) (NumVal r) = (NumVal (l * r))
+mul (IntVal l) (IntVal r) = (IntVal (l * r))
 mul _ _ = error "todo mul "
 
 div_ :: Value -> Value -> Value
@@ -368,6 +407,6 @@ div_  _ _ = error "todo div"
 
 {-
 TODO add tests for  
-eval empty (Num 5) : NumVal 5
+eval empty (Num 5) : IntVal 5
 
 -}
