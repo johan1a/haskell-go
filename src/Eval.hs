@@ -194,13 +194,14 @@ emit e suffix st = do
 
 --Print multiple
 execExprStmt :: Expr  -> State -> IO State
-execExprStmt (Call name e) st = execFuncCall name e st
-execExprStmt (PrintLnCall e) st = emit e "\n" st
-execExprStmt (PrintCall e) st = emit e "" st 
-execExprStmt (BoolExpr b) st = error "error bool"
-execExprStmt (Num n) st = error "error num" 
-execExprStmt (IdUse id) st = error $  "error id: " ++ id
-execExprStmt (StringExpr str) st = error "error: str"
+execExprStmt = error "execExprStmt"
+--execExprStmt (Call name e) st = execFuncCall name e st
+--execExprStmt (PrintLnCall e) st = emit e "\n" st
+--execExprStmt (PrintCall e) st = emit e "" st 
+--execExprStmt (BoolExpr b) st = error "error bool"
+--execExprStmt (Num n) st = error "error num" 
+--execExprStmt (IdUse id) st = error $  "error id: " ++ id
+--execExprStmt (StringExpr str) st = error "error: str"
 
 execFuncCall :: Name -> [Expr] -> State -> IO State
 execFuncCall name args state = execFuncDecl fDecl newState
@@ -223,7 +224,7 @@ execAssign (Assign lhs rhs) = bindAssign (lhs !! 0) (rhs !! 0)
 execAssign _ = error "ey"
 
 bindAssign :: Expr -> Expr -> State -> State
-bindAssign (IdUse name) rhs state = bindExpr name rhs state 
+--bindAssign (IdUse name) rhs state = bindExpr name rhs state 
 bindAssign _ rhs state = error "TODO"
 
 getName (IdDecl name) = name
@@ -258,12 +259,12 @@ pRetOrFail funcName (Just val) = val
 
 -- If given an IdUse, it tries to find what expression is actually referenced
 lookupExpr :: Expr -> State -> Expr
-lookupExpr (IdUse name) state = lookupIdUse name state
-lookupExpr (Num n) state = (Num n)
+--lookupExpr (IdUse name) state = lookupIdUse name state
+--lookupExpr (Num n) state = (Num n)
 lookupExpr (BinExpr e ) state = lookupBinExpr e state
-lookupExpr (BoolExpr b) _ = (BoolExpr b)
-lookupExpr (StringExpr s) _ = (StringExpr s)
-lookupExpr (Call fName exprs) state = (Call fName (map (\x -> lookupExpr x state) exprs))  
+--lookupExpr (BoolExpr b) _ = (BoolExpr b)
+--lookupExpr (StringExpr s) _ = (StringExpr s)
+--lookupExpr (Call fName exprs) state = (Call fName (map (\x -> lookupExpr x state) exprs))  
 lookupExpr expr state = error "i felt like it " --expr
 
 lookupIdUse :: String -> State -> Expr
@@ -272,6 +273,8 @@ lookupIdUse (name) state = lookupIdRef name found state
 
 -- Lookup an Expr referenced by the IdUse
 lookupIdRef :: String -> Maybe Expr -> State -> Expr
+lookupIdRef = error "lookupIdRef"
+{-
 lookupIdRef name (Just expr) state = lookupExpr expr state
 lookupIdRef name Nothing state
     | canContinue = lookupExpr (IdUse name) (scopeAbove state) 
@@ -280,6 +283,7 @@ lookupIdRef name Nothing state
           isParameter = (isParam name state) 
           inMainFunc = (currentFunc state) == "main"
           atTopLevel = (currentFunc state) == "TOPLEVEL" -- TODO refactor
+-}
 
 isParam :: Name -> State -> Bool
 isParam name state = elem name $ fRetOrFail (currentFunc state) $ Map.lookup (currentFunc state ) $  params state
@@ -317,12 +321,12 @@ asBoolVal (NumVal _) = error "not a bool"
 asBoolVal (StringVal _) = error "not a bool"
 
 eval :: Expr -> State -> IO Value
-eval (IdUse name) state = eval (lookupExpr (IdUse name) state) state
+--eval (IdUse name) state = eval (lookupExpr (IdUse name) state) state
 eval (BinExpr e ) state = evalBin e state
-eval (Num n) _ = return $ NumVal n 
-eval (BoolExpr b) _ = return $ BoolVal b
-eval (StringExpr s) _ = return $ StringVal s
-eval (Call fName exprs) state = execFuncCall fName  exprs state >>= return . retVal
+--eval (Num n) _ = return $ NumVal n 
+--eval (BoolExpr b) _ = return $ BoolVal b
+--eval (StringExpr s) _ = return $ StringVal s
+--eval (Call fName exprs) state = execFuncCall fName  exprs state >>= return . retVal
 
 evalBin :: BinExpr -> State -> IO Value
 evalBin (AritmExpr a) state = evalAritm a state

@@ -1,1 +1,1 @@
-SourceFile (Package "main") [TopLevelDecl1 (VarDecl [IdDecl "x"] (TypeName (TypeNameIdentifier "int")) [Num 2])]
+SourceFile (Package "main") [TopLevelDecl1 (VarDecl [IdDecl "x"] (TypeName (TypeNameIdentifier "int")) [UnaryExpr (PrimaryExpr (PrimaryExpr1 (Operand1 (BasicLit (IntLit 2)))))])]

@@ -31,7 +31,7 @@ import Data.Typeable
     in      { Lexeme TokenIn _ }
     string_lit  { Lexeme (TokenString $$) _ }
     int_lit     { Lexeme (TokenNum $$) _ }
-    NAME    { Lexeme (TokenSym $$) _ }
+    identifier    { Lexeme (TokenSym $$) _ }
     '\\'    { Lexeme TokenLambda _ }
     '->'    { Lexeme TokenArrow _ }
     "<-"    { Lexeme TokenLeftArrow _ }
@@ -80,7 +80,7 @@ import Data.Typeable
 -- Unsure if the last semicolon is correct
 SourceFile : PackageClause ';' TopLevelDecls            { SourceFile $1 $3 }
 
-PackageClause : "package" NAME                          { Package $2 }
+PackageClause : "package" identifier                          { Package $2 }
 
 TopLevelDecls : TopLevelDecl ';'                        { [$1] }
               | TopLevelDecls TopLevelDecl ';'          { $1 ++ [$2] }
@@ -146,12 +146,12 @@ Expr : '(' Expr ')'                                     { $2 }
      | BinExpr                                          { BinExpr $1}
      | "fmt.Print" '(' ExpressionList ')'               { PrintCall $3 }
      | "fmt.Println" '(' ExpressionList ')'             { PrintLnCall $3 }
-     | NAME '(' ExpressionList ')'                      { Call $1 $3 } 
+     | identifier '(' ExpressionList ')'                      { Call $1 $3 } 
      | "true"                                           { BoolExpr True }
      | "false"                                          { BoolExpr False }
-     | string_lit                                           { StringExpr $1 }
-     | NAME                                             { IdUse $1 }
-     | int_lit                                              { Num $1 }
+     | string_lit                                       { StringExpr $1 }
+     | identifier                                             { IdUse $1 }
+     | int_lit                                          { Num $1 }
 -}
 
 PrimaryExpr : Operand                                   { PrimaryExpr1 $1 }
@@ -186,7 +186,7 @@ Key : FieldName                                         { Key1 $1 }
     | Expr                                              { Key2 $1 }
     | LiteralValue                                      { Key3 $1 }
 
-FieldName : NAME                                        { $1 }
+FieldName : identifier                                        { $1 }
 
 Element : Expr                                          { Element1 $1 }
         | LiteralValue                                  { Element2 $1 }
@@ -216,10 +216,10 @@ BasicLit : int_lit                                      { IntLit $1 }
          | rune_lit                                     { RuneLit $1 }
 -}
 
-OperandName : NAME                                      { OperandName1 $1 }
+OperandName : identifier                                      { OperandName1 $1 }
             | QualifiedIdent                            { OperandName2 $1 }
 
-Selector : '.' NAME                                     { Selector $2 } 
+Selector : '.' identifier                                     { Selector $2 } 
          
 Index : '[' Expr ']'                                    { Index $2 }
 
@@ -261,7 +261,7 @@ IncDecStmt : Expr "++"                                  { IncStmt $1 }
 FunctionDecl : "func" FunctionName Signature            { FunctionDecl1 $2 $3 }
              | "func" FunctionName Signature FunctionBody { FunctionDecl2 $2 $3 $4 } 
              
-FunctionName : NAME                                     { $1 }
+FunctionName : identifier                                     { $1 }
 
 FunctionBody : Block                                    { $1 }
 
@@ -300,13 +300,13 @@ ConstSpec : IdentifierList Type '=' ExpressionList      { ConstDecl $1 $2 $4 }
 -- TODO more typespecs
 TypeDecl : "type" TypeSpec                              { $2 }
 
-TypeSpec : NAME Type                                    { TypeDecl $1 $2 }
+TypeSpec : identifier Type                                    { TypeDecl $1 $2 }
 
 VarDecl : "var" VarSpec                                 { $2 }
 VarSpec : IdentifierList Type '=' ExpressionList        { VarDecl $1 $2 $4 }
 
-IdentifierList : NAME                                   { [(IdDecl $1)] }
-               | IdentifierList ',' NAME                { $1 ++ [(IdDecl $3)] }
+IdentifierList : identifier                                   { [(IdDecl $1)] }
+               | IdentifierList ',' identifier                { $1 ++ [(IdDecl $3)] }
 
 ExpressionList : Expr                                   { [$1] }
                | ExpressionList ',' Expr                { $1 ++ [$3] } 
@@ -316,10 +316,10 @@ Type : TypeLit                                          { TypeLit $1 }
      | TypeName                                         { TypeName $1 }
      | '(' Type ')'                                     { $2 }
 
-TypeName : NAME                                         { TypeNameIdentifier $1 } 
+TypeName : identifier                                         { TypeNameIdentifier $1 } 
          | QualifiedIdent                               { TypeNameQualifiedIdent $1 }
 
-QualifiedIdent : NAME '.' NAME                          { QualifiedIdent  $1 $3 }
+QualifiedIdent : identifier '.' identifier              { QualifiedIdent  $1 $3 }
 
 TypeLit : ArrayType                                     { ArrayTypeLit $1 } 
         | StructType                                    { StructTypeLit $1 } 
@@ -355,7 +355,7 @@ ChannelType : "chan" ElementType                        { ChannelType1 $2 }
 MethodSpec : MethodName Signature                       { MethodSpec1 $1 $2 }
            | InterfaceTypeName                          { MethodSpec2 $1 }
 
-MethodName : NAME                                       { $1 } 
+MethodName : identifier                                       { $1 } 
 
 InterfaceTypeName : TypeName                            { $1 }
 
@@ -376,9 +376,7 @@ FieldDecl : IdentifierList Type                         { FieldDecl1 $2 }
 AnonymousField : TypeName                               { AnonFieldType1 $1 }
                | '*' TypeName                           { AnonFieldType2 $2 }
 
-
 Tag : string_lit                                            { $1 }
-
 
 AritmExpr : Expr '+' Expr                                { AddExpr $1 $3 }
         | Expr '-' Expr                                  { SubExpr $1 $3 }
@@ -405,28 +403,6 @@ MulOp  : '*'                                            { MulOp }
        | ">>"                                           { RightOp }
        | '&'                                            { AmpOp }
        | "&^"                                           { AmpUpOp }
-
-
-{-
-Expr : let NAME '=' Expr in Expr                         { App (Abs $2 $6) $4 }
-     | '\\' NAME '->' Expr                               { Abs $2 $4 }
-     | Form                                             { $1 }
-
-
-Form : Form '+' Form                                    { Binop Add $1 $3 }
-     | Form '-' Form                                    { Binop Sub $1 $3 }
-     | Form '*' Form                                    { Binop Mul $1 $3 }
-     | Juxt                                             { $1 }
-
-Juxt : Juxt Atom                                        { App $1 $2 }
-     | Atom                                             { $1 }
-
-Atom : '(' Expr ')'                                     { $2 }
-     | int_lit                                              { Num $1 }
-     | NAME                                              { Var $1 }
-
-
--}
 
 {
 

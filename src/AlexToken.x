@@ -53,8 +53,6 @@ tokens :-
   \\                            { alex(const TokenLambda) }
   "("                           { alex(const TokenLParen )}
   ")"                           { alex(const TokenRParen )}
-  "fmt.Print" 			        { alex(const TokenPrint )}
-  "fmt.Println" 			    { alex(const TokenPrintLn) }
   "const"                       { alex(const TokenConst )}
   "type"                        { alex(const TokenType )}
   "var"                         { alex(const TokenVar )}
