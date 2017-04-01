@@ -9,11 +9,15 @@ dependencies:
         - "~/docker"
 
     override:
-        - if [[ -e ~/docker/haskell-go.tar ]]; then docker load -i ~/docker/haskell-go.tar; fi
         - docker build --rm=false -t johan1a/haskell-go .
-        - mkdir -p ~/docker; docker save johan1a/haskell-go > ~/docker/haskell-go.tar
 
+before_script:
+    - ls ~/docker -lah
+    - if [[ -e ~/docker/haskell-go.tar ]]; then docker load -i ~/docker/haskell-go.tar; fi
 
 script:
-    - docker build -t johan1a/haskell-go .
+    - docker build --rm=false -t johan1a/haskell-go .
 
+after_script:
+    - mkdir -p ~/docker; docker save johan1a/haskell-go > ~/docker/haskell-go.tar
+    - ls ~/docker -lah
