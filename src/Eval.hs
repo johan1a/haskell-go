@@ -122,7 +122,7 @@ declName (TypeDecl name _ ) = name
 declName (VarDecl idDecls _ _) = idDeclName $ idDecls !! 0
 
 readDeclaration :: Declaration -> State -> IO State
-readDeclaration decl state = error "TODO"
+readDeclaration decl state = error "readdeclaration TODO"
 
 
 
@@ -156,11 +156,11 @@ execSimpleStmt (IncDecStmt stmt) = execIncDecStmt stmt
 execSimpleStmt (ShortVarDecl dd exprs) = execShortVarDecl dd exprs
 
 execIncDecStmt :: IncDecStmt -> State -> IO State
-execIncDecStmt (IncStmt expr) = error "TODO" 
-execIncDecStmt (DecStmt expr) = error "TODO" 
+execIncDecStmt (IncStmt expr) = error "execincdecstmt TODO" 
+execIncDecStmt (DecStmt expr) = error "incdedc TODO" 
 
 execShortVarDecl :: [IdDecl] -> [Expr] -> State -> IO State
-execShortVarDecl dd exprs = error "TODO" 
+execShortVarDecl dd exprs = error "shortvardecl TODO" 
 
 
 -- Yikes...
@@ -185,6 +185,7 @@ execIfStmt2 cond ifBlock Nothing state
 execElse :: Else -> State -> IO State
 execElse (Else1 ifStmt) = execIfStmt ifStmt
 execElse (Else2 block) = execBlock block 
+
 
 emit :: [Expr] -> String -> State -> IO State
 emit e suffix st = do
@@ -217,11 +218,24 @@ execFmtFunction name (Arguments5 exprs)
     | name == "Println" = emit exprs "\n"
     | name == "Print" = emit exprs ""
     | otherwise = error $ "fmt func: " ++ name
+execFmtFunction name args = error $ "fmt args: " ++ (show args) 
 
 
 execOperand o = error $ show o
     
 
+evalFuncCall :: String -> Arguments -> State -> IO Value
+evalFuncCall funcName args state = do 
+    s <- execFuncCall funcName (getExprsFromArgs args) state 
+    return $ retVal s
+
+
+getExprsFromArgs :: Arguments -> [Expr]
+getExprsFromArgs Arguments1 = []
+getExprsFromArgs (Arguments2 exprs) = exprs
+getExprsFromArgs (Arguments3 exprs) = exprs
+getExprsFromArgs (Arguments4 exprs) = exprs
+getExprsFromArgs (Arguments5 exprs) = exprs
 
 
 execFuncCall :: Name -> [Expr] -> State -> IO State
@@ -245,10 +259,12 @@ execAssign (Assign lhs rhs) = bindAssign (lhs !! 0) (rhs !! 0)
 execAssign _ = error "ey"
 
 bindAssign :: Expr -> Expr -> State -> State
---bindAssign (IdUse name) rhs state = bindExpr name rhs state 
-bindAssign _ rhs state = error "TODO"
+bindAssign lhs rhs state = bindExpr (getExprName lhs) rhs state 
+bindAssign _ rhs state = error "bindassign TODO"
 
 getName (IdDecl name) = name
+
+getExprName (UnaryExpr (PrimaryExpr (PrimaryExpr1 (Operand2 (OperandName1 name))))) = name
 
 --Bind the given arguments to the formal parameter names of the function
 bindArgs :: Name -> [Expr] -> State -> State
@@ -280,31 +296,34 @@ pRetOrFail funcName (Just val) = val
 
 -- If given an IdUse, it tries to find what expression is actually referenced
 lookupExpr :: Expr -> State -> Expr
+lookupExpr (UnaryExpr (PrimaryExpr (PrimaryExpr1 (Operand2 (OperandName1 name))))) s = lookupIdUse name s
+lookupExpr x@(UnaryExpr (PrimaryExpr (PrimaryExpr1 (Operand1 (BasicLit (IntLit n)))))) s = x
 --lookupExpr (IdUse name) state = lookupIdUse name state
 --lookupExpr (Num n) state = (Num n)
 lookupExpr (BinExpr e ) state = lookupBinExpr e state
 --lookupExpr (BoolExpr b) _ = (BoolExpr b)
 --lookupExpr (StringExpr s) _ = (StringExpr s)
 --lookupExpr (Call fName exprs) state = (Call fName (map (\x -> lookupExpr x state) exprs))  
-lookupExpr expr state = error "i felt like it " --expr
+lookupExpr x@(UnaryExpr (PrimaryExpr (PrimaryExpr7 (PrimaryExpr1 (Operand2 (OperandName1 funcName))) args))) s = x
+lookupExpr expr state = error $ traceShow expr "lookupExpr " --expr
+
 
 lookupIdUse :: String -> State -> Expr
 lookupIdUse (name) state = lookupIdRef name found state
     where found = (Map.lookup name $ decls state)
 
+makeIdUse name = UnaryExpr (PrimaryExpr (PrimaryExpr1 (Operand2 (OperandName1 name))))
+
 -- Lookup an Expr referenced by the IdUse
 lookupIdRef :: String -> Maybe Expr -> State -> Expr
-lookupIdRef = error "lookupIdRef"
-{-
 lookupIdRef name (Just expr) state = lookupExpr expr state
 lookupIdRef name Nothing state
-    | canContinue = lookupExpr (IdUse name) (scopeAbove state) 
+    | canContinue = lookupExpr (makeIdUse name) (scopeAbove state) 
     | otherwise = error $ "undefined: " ++ name
     where canContinue = (not atTopLevel) && (isParameter || inMainFunc)
           isParameter = (isParam name state) 
           inMainFunc = (currentFunc state) == "main"
           atTopLevel = (currentFunc state) == "TOPLEVEL" -- TODO refactor
--}
 
 isParam :: Name -> State -> Bool
 isParam name state = elem name $ fRetOrFail (currentFunc state) $ Map.lookup (currentFunc state ) $  params state
@@ -348,7 +367,7 @@ eval (BinExpr e ) state = evalBin e state
 --eval (BoolExpr b) _ = return $ BoolVal b
 --eval (StringExpr s) _ = return $ StringVal s
 --eval (Call fName exprs) state = execFuncCall fName  exprs state >>= return . retVal
-eval (UnaryExpr ue) s = evalUnary ue s
+eval (UnaryExpr ue) s = traceShow ("eval " ++ (show ue)) $ evalUnary ue s
 eval e s = error $ "eval: " ++ (show e)
 
 evalUnary :: UnaryExpr -> State -> IO Value
@@ -356,9 +375,21 @@ evalUnary (PrimaryExpr pe) = evalPrimary pe
 
 evalPrimary :: PrimaryExpr -> State -> IO Value
 evalPrimary (PrimaryExpr1 op) = evalOperand op
+evalPrimary (PrimaryExpr7 (PrimaryExpr1 (Operand2 (OperandName1 funcName))) args) = evalFuncCall funcName args
+
+
 
 evalOperand :: Operand -> State -> IO Value
-evalOperand (Operand1 lit) = evalLiteral lit
+evalOperand (Operand1 lit) s = evalLiteral lit s
+evalOperand (Operand2 (opName)) s = evalOperandName opName s
+evalOperand (Operand3 methodExpr) s = error "evalOperand"
+evalOperand (Operand4 expr) s = error "evalOperand"
+
+evalOperandName :: OperandName -> State -> IO Value
+evalOperandName (OperandName1 name) s =  eval ( lookupIdUse name s) s
+evalOperandName (OperandName2 qualifiedIdent) s = error "opname"
+
+
 
 evalLiteral :: Literal -> State -> IO Value
 evalLiteral (BasicLit bl) = evalBasicLit bl

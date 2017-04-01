@@ -231,7 +231,7 @@ Arguments : '(' ')'                                     { Arguments1 }
           | '(' Type "..." ',' ')'                      { Arguments10 $2 }
           | '(' Type "..." ')'                          { Arguments11 $2 }
           | '(' Type ',' ')'                            { Arguments12 $2 }
-          | '(' Type ')'                                { Arguments13 $2 }
+--          | '(' Type ')'                                { Arguments13 $2 }
 
 Assignment : ExpressionList '=' ExpressionList          { Assign $1 $3 }
            | ExpressionList AssignOp '=' ExpressionList { OpAssign $2 $1 $4 }
