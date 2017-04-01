@@ -1,0 +1,1 @@
+SourceFile (Package "main") [TopLevelDecl1 (VarDecl [IdDecl "x"] (TypeName (TypeNameIdentifier "string")) [UnaryExpr (PrimaryExpr (PrimaryExpr1 (Operand1 (BasicLit (StringLit "Hello World")))))])]
