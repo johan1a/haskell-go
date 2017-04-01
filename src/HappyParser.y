@@ -155,12 +155,12 @@ Expr : '(' Expr ')'                                     { $2 }
 -}
 
 PrimaryExpr : Operand                                   { PrimaryExpr1 $1 }
-            | Conversion                                { PrimaryExpr2 $1 }
             | PrimaryExpr Selector                      { PrimaryExpr3 $1 $2 }
             | PrimaryExpr Index                         { PrimaryExpr4 $1 $2 }
             | PrimaryExpr Slice                         { PrimaryExpr5 $1 $2 }
             | PrimaryExpr TypeAssertion                 { PrimaryExpr6 $1 $2 }
             | PrimaryExpr Arguments                     { PrimaryExpr7 $1 $2 }
+--            | Conversion                                { PrimaryExpr2 $1 }
 
 Conversion : Type '(' Expr ',' ')'                      { Conversion $1 $3 }
            | Type '(' Expr ')'                          { Conversion $1 $3}
@@ -199,8 +199,8 @@ LiteralType : StructType                                { LiteralType1 $1 }
             | TypeName                                  { LiteralType6 $1 }
 
 
-Operand : Literal                                       { Operand1 $1 }
-        | OperandName                                   { Operand2 $1 }
+Operand : OperandName                                   { Operand2 $1 }
+        | Literal                                       { Operand1 $1 }
         | MethodExpr                                    { Operand3 $1  }
         | '(' Expr ')'                                  { Operand4 $2  }
 
