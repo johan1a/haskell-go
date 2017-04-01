@@ -8,11 +8,8 @@ dependencies:
     cache_directories:
         - "~/docker"
 
-    override:
-        - docker build --rm=false -t johan1a/haskell-go .
-
 before_script:
-    - ls ~/docker -lah
+    - if [[ -e ~/docker ]]; then ls ~/docker -lah; fi
     - if [[ -e ~/docker/haskell-go.tar ]]; then docker load -i ~/docker/haskell-go.tar; fi
 
 script:
