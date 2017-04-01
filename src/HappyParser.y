@@ -183,12 +183,12 @@ LiteralType : StructType                                { LiteralType1 $1 }
    --         | '[' "..." ']' ElementType                 { LiteralType3 $4 }
  --           | SliceType                                 { LiteralType4 $1 }
 --            | MapType                                   { LiteralType5 $1 }
-            | TypeName                                  { LiteralType6 $1 }
+              | TypeName                                  { LiteralType6 $1 }
 
 
 Operand : OperandName                                   { Operand2 $1 }
-        | '(' Expr ')'                                  { Operand4 $2  }
         | Literal                                       { Operand1 $1 }
+        | '(' Expr ')'                                  { Operand4 $2  }
     --    | MethodExpr                                    { Operand3 $1  }
 
 Literal : BasicLit                                      { BasicLit $1 }
@@ -302,7 +302,7 @@ ExpressionList : Expr                                   { [$1] }
 
 Type : TypeLit                                          { TypeLit $1 }
      | TypeName                                         { TypeName $1 }
-     | '(' Type ')'                                     { $2 }
+--     | '(' Type ')'                                     { $2 }
 
 TypeName : identifier                                         { TypeNameIdentifier $1 } 
          | QualifiedIdent                               { TypeNameQualifiedIdent $1 }

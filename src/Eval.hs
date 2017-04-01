@@ -310,6 +310,7 @@ lookupExpr (BinExpr e ) state = lookupBinExpr e state
 --lookupExpr (StringExpr s) _ = (StringExpr s)
 --lookupExpr (Call fName exprs) state = (Call fName (map (\x -> lookupExpr x state) exprs))  
 lookupExpr x@(UnaryExpr (PrimaryExpr (PrimaryExpr7 (PrimaryExpr1 (Operand2 (OperandName1 funcName))) args))) s = x
+lookupExpr x@(UnaryExpr (PrimaryExpr (PrimaryExpr1 (Operand4 expr)))) s = lookupExpr expr s
 lookupExpr expr state = error $ traceShow expr "lookupExpr " --expr
 
 
