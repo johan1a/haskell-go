@@ -2,9 +2,9 @@ package main;
 
 func main() {
     var x int  = 666
-    println(x)
+    fmt.Println(x)
     x = one( )
-    println(x)
+    fmt.Println(x)
 }
 func one() {
     return 1

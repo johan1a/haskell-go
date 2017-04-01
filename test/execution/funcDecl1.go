@@ -6,5 +6,5 @@ func f (x int ) int {
 
 func main() {
     var k int = f(2)
-    println(k)
+    fmt.Println(k)
 }

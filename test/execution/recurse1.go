@@ -4,7 +4,7 @@ func main() {
     calculate(5)
 }
 func calculate(x int) {
-    println(x)
+    fmt.Println(x)
     if x == 0 {
       return 0
     } else {

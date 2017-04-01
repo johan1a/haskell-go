@@ -5,6 +5,6 @@ func main() {
     a(x)
 }
 func a(y int){
-    println(22222)
-    println(y)
+    fmt.Println(22222)
+    fmt.Println(y)
 }

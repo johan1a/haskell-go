@@ -2,5 +2,5 @@ package main;
 
 func main() {
     var aaa int = 1 + 2 * 2 - 2 + 0
-    println(aaa)
+    fmt.Println(aaa)
 }

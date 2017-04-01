@@ -1,8 +1,8 @@
 package main;
 func main() {
 if true {
-    print( 1 )
+    fmt.Print( 1 )
 } else {
-    print ( 2 )
+    fmt.Print ( 2 )
 }
 }

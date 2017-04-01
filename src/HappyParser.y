@@ -21,10 +21,10 @@ import Data.Typeable
     "type"  { Lexeme TokenType _ }
     "func"  { Lexeme TokenFunc _ }
     "var"   { Lexeme TokenVar _ }
-    "print" { Lexeme TokenPrint _ }
+    "fmt.Print" { Lexeme TokenPrint _ }
     "chan"  { Lexeme TokenChan _ }
     "map"   { Lexeme TokenMap _ }
-    "println" { Lexeme TokenPrintLn _ }
+    "fmt.Println" { Lexeme TokenPrintLn _ }
     "return"{ Lexeme TokenReturn _ }
     "interface"{ Lexeme TokenInterface _ }
     let     { Lexeme TokenLet _ }
@@ -127,8 +127,8 @@ BinExpr : AritmExpr                                     { AritmExpr $1 }
 
 Expr : '(' Expr ')'                                     { $2 }
      | BinExpr                                          { BinExpr $1}
-     | "print" '(' ExpressionList ')'                   { PrintCall $3 }
-     | "println" '(' ExpressionList ')'                 { PrintLnCall $3 }
+     | "fmt.Print" '(' ExpressionList ')'                   { PrintCall $3 }
+     | "fmt.Println" '(' ExpressionList ')'                 { PrintLnCall $3 }
      | NAME '(' ExpressionList ')'                      { Call $1 $3 } 
      | "true"                                           { BoolExpr True }
      | "false"                                          { BoolExpr False }

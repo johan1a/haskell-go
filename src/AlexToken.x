@@ -49,10 +49,10 @@ tokens :-
   "map"    			            { alex(const TokenMap )}
   \=                            { alex(const TokenEq )}
   \\                            { alex(const TokenLambda) }
-  "("                            { alex(const TokenLParen )}
-  ")"                            { alex(const TokenRParen )}
-  "print" 			            { alex(const TokenPrint )}
-  "println" 			        { alex(const TokenPrintLn) }
+  "("                           { alex(const TokenLParen )}
+  ")"                           { alex(const TokenRParen )}
+  "fmt.Print" 			        { alex(const TokenPrint )}
+  "fmt.Println" 			    { alex(const TokenPrintLn) }
   "const"                       { alex(const TokenConst )}
   "type"                        { alex(const TokenType )}
   "var"                         { alex(const TokenVar )}
