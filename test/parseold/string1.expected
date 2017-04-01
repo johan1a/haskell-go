@@ -1,1 +1,0 @@
-SourceFile (Package "main") [TopLevelDecl2 (FunctionDecl2 "main" (Signature1 []) (Block [SimpleStmt (ExpressionStmt (StringExpr "helloworld"))]))]

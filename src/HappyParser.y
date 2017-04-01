@@ -206,7 +206,7 @@ BasicLit : int_lit                                      { IntLit $1 }
 OperandName : identifier                                { OperandName1 $1 }
             | QualifiedIdent                            { OperandName2 $1 }
 
-Selector : '.' identifier                                     { Selector $2 } 
+Selector : '.' identifier                               { Selector $2 } 
          
 Index : '[' Expr ']'                                    { Index $2 }
 

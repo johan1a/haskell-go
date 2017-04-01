@@ -1,0 +1,1 @@
+SourceFile (Package "main") [TopLevelDecl2 (FunctionDecl2 "main" (Signature1 []) (Block [IfStmt (Ifstmt1 (BinExpr (CondExpr (Eq_ (UnaryExpr (PrimaryExpr (PrimaryExpr1 (Operand2 (OperandName1 "a"))))) (UnaryExpr (PrimaryExpr (PrimaryExpr1 (Operand2 (OperandName1 "b")))))))) (Block []))]))]
