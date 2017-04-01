@@ -171,7 +171,6 @@ ReceiverType : TypeName                                 { ReceiverType1 $1 }
              | '(' '*' TypeName ')'                     { ReceiverType2 $3 }
              | '(' ReceiverType ')'                     { ReceiverType3 $2 }
 
-CompositeLit : LiteralType LiteralValue                 { CompositeLit $1 $2 }
 
 LiteralValue : '{' '}'                                  { LiteralValue1 }
              | '{' ElementList '}'                      { LiteralValue2 $2 }
@@ -207,9 +206,7 @@ Operand : Literal                                       { Operand1 $1 }
 
 Literal : BasicLit                                      { BasicLit $1 }
         | "func" Signature FunctionBody                 { FunctionLit $2 $3  }
-        {-
-        | CompositeLit                                  { CompositeLit $1 }
--}
+        | LiteralType LiteralValue                      { CompositeLit $1 $2 }
 
 BasicLit : int_lit                                      { IntLit $1 }
          | string_lit                                   { StringLit $1 }
