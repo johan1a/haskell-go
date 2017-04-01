@@ -205,14 +205,19 @@ execExprStmt (UnaryExpr u) = execUnary u
 --execExprStmt (StringExpr str) st = error "error: str"
 execExprStmt e = error $ traceShow e "execExprStmt"
 
+execUnary :: UnaryExpr -> State -> IO State
 execUnary (PrimaryExpr p) = execPrimary p
 
 execPrimary (PrimaryExpr1 o) = execOperand o
 execPrimary (PrimaryExpr7 primary args) = execPrimaryFuncCall primary args
 
+execPrimaryFuncCall :: PrimaryExpr -> Arguments -> State -> IO State
 execPrimaryFuncCall (PrimaryExpr1 (Operand2 (OperandName2 (QualifiedIdent p n)))) args 
     | p == "fmt" = execFmtFunction n args
-execPrmiaryFuncCall x = error $ show x
+execPrimaryFuncCall (PrimaryExpr1 (Operand2 (OperandName1 name))) args =
+    execFuncCall name (getExprsFromArgs args)
+    
+execPrimaryFuncCall x args = error $ ("215 " ++ (show x) ++ " - " ++ (show args))
 
 execFmtFunction name (Arguments5 exprs) 
     | name == "Println" = emit exprs "\n"
@@ -367,8 +372,8 @@ eval (BinExpr e ) state = evalBin e state
 --eval (BoolExpr b) _ = return $ BoolVal b
 --eval (StringExpr s) _ = return $ StringVal s
 --eval (Call fName exprs) state = execFuncCall fName  exprs state >>= return . retVal
-eval (UnaryExpr ue) s = traceShow ("eval " ++ (show ue)) $ evalUnary ue s
-eval e s = error $ "eval: " ++ (show e)
+eval (UnaryExpr ue) s = traceShow ("eval1 " ++ (show ue)) $ evalUnary ue s
+eval e s = error $ "eval2: " ++ (show e)
 
 evalUnary :: UnaryExpr -> State -> IO Value
 evalUnary (PrimaryExpr pe) = evalPrimary pe
