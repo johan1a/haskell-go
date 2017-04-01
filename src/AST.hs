@@ -32,18 +32,47 @@ data QualifiedIdent = QualifiedIdent PackageName Name
 type PackageName = Name
 
 data TypeLit = ArrayType ArrayLength ElementType
-             | StructType Struct
-          deriving (Eq, Show)
-        --      | PointerType ArrayType
-        --      | FunctionType ArrayType
-        --      | InterfaceType ArrayType
-       --       | SliceType ArrayType
-          --    | MapType ArrayType
-           --   | ChannelType ArrayType
+             | StructTypeLit StructType
+             | PointerTypeLit PointerType
+             | FunctionTypeLit FunctionType
+             | InterfaceTypeLit InterfaceType
+             | SliceTypeLit SliceType
+             | MapTypeLit MapType
+             | ChannelTypeLit ChannelType
+             deriving (Eq, Show)
 
 type ArrayLength = Expr
 type ElementType = Type
 
+data PointerType = PointerType Type
+                 deriving (Eq, Show)
+
+data FunctionType = FunctionType Signature
+                  deriving (Eq, Show)
+
+data InterfaceType = InterfaceType [MethodSpec]
+                   deriving (Eq, Show)
+
+data MethodSpec = MethodSpec1 MethodName Signature
+                | MethodSpec2 InterfaceTypeName
+                deriving (Eq, Show)
+
+type MethodName = String
+
+data SliceType = SliceType ElementType
+               deriving (Eq, Show)
+
+data MapType = MapType KeyType ElementType
+              deriving (Eq, Show)
+
+type KeyType = Type
+
+data ChannelType = ChannelType1 ElementType 
+                 | ChannelType2 ElementType
+                 | ChannelType3 ElementType
+                 deriving (Eq, Show)
+
+type InterfaceTypeName = TypeName
 
 -- TODO duplicate expression stmt?
 data Statement =  DeclarationStmt Declaration
@@ -138,9 +167,9 @@ type IdentifierList = [Name]
 type ExpressionList = [Expr]
 
 
-data Struct = Struct1 [FieldDecl]
-            | Struct2
-            deriving (Eq, Show)
+data StructType = StructType1 [FieldDecl]
+                | StructType2
+                deriving (Eq, Show)
 
 data FieldDecl = FieldDecl1 Type
                | FieldDecl2 Type Tag

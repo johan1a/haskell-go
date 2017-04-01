@@ -33,6 +33,7 @@ tokens :-
   "["                           { alex(const TokenLBracket )} 
   "."                           { alex(const TokenDot )}
   "->"                          { alex(const TokenArrow )}
+  "<-"                          { alex(const TokenLeftArrow )}
   "=="    			            { alex(const TokenEq2 )}
   "!="    			            { alex(const TokenNeq )}
   "<"     			            { alex(const TokenLess )}
@@ -44,6 +45,8 @@ tokens :-
   "func"    			        { alex(const TokenFunc )}
   "return"    			        { alex(const TokenReturn )}
   "struct"    			        { alex(const TokenStruct )}
+  "interface"    			    { alex(const TokenInterface )}
+  "map"    			            { alex(const TokenMap )}
   \=                            { alex(const TokenEq )}
   \\                            { alex(const TokenLambda) }
   "("                            { alex(const TokenLParen )}
@@ -101,12 +104,16 @@ data Token = TokenError {unknown :: String}
        | TokenBreak
        | TokenContinue
        | TokenFallthrough
+       | TokenInterface
        | TokenLet
        | TokenPrint 
        | TokenPrintLn
        | TokenReturn
        | TokenTrue
        | TokenFalse
+       | TokenMap
+       | TokenChan
+       | TokenLeftArrow
        | TokenIn
 	   | TokenString String
 	   | TokenEq2

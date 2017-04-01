@@ -22,8 +22,11 @@ import Data.Typeable
     "func"  { Lexeme TokenFunc _ }
     "var"   { Lexeme TokenVar _ }
     "print" { Lexeme TokenPrint _ }
+    "chan"  { Lexeme TokenChan _ }
+    "map"   { Lexeme TokenMap _ }
     "println" { Lexeme TokenPrintLn _ }
     "return"{ Lexeme TokenReturn _ }
+    "interface"{ Lexeme TokenInterface _ }
     let     { Lexeme TokenLet _ }
     in      { Lexeme TokenIn _ }
     STRING  { Lexeme (TokenString $$) _ }
@@ -31,6 +34,7 @@ import Data.Typeable
     NAME    { Lexeme (TokenSym $$) _ }
     '\\'    { Lexeme TokenLambda _ }
     '->'    { Lexeme TokenArrow _ }
+    "<-"    { Lexeme TokenLeftArrow _ }
     "=="    { Lexeme TokenEq2 _ }
     "!="    { Lexeme TokenNeq _ }
     "<"     { Lexeme TokenLess _ }
@@ -200,8 +204,7 @@ ExpressionList : Expr                                   { [$1] }
 
 Type : TypeLit                                          { TypeLit $1 }
      | TypeName                                         { TypeName $1 }
-
-{--     | '(' Type ')'                                  { $2 } --}
+     | '(' Type ')'                                     { $2 }
 
 TypeName : NAME                                         { TypeNameIdentifier $1 } 
          | QualifiedIdent                               { TypeNameQualifiedIdent $1 }
@@ -209,16 +212,47 @@ TypeName : NAME                                         { TypeNameIdentifier $1 
 QualifiedIdent : NAME '.' NAME                          { QualifiedIdent  $1 $3 }
 
 TypeLit : ArrayType                                     { $1 } 
-        | StructType                                    { StructType $1 } 
+        | StructType                                    { StructTypeLit $1 } 
+        | PointerType                                   { PointerTypeLit $1 }
+        | FunctionType                                  { FunctionTypeLit $1 }
+        | InterfaceType                                 { InterfaceTypeLit $1 }
+        | SliceType                                     { SliceTypeLit $1 }
+        | MapType                                       { MapTypeLit $1 }
+        | ChannelType                                   { ChannelTypeLit $1 }
+
+PointerType : '*' BaseType                              { PointerType $2 }
+BaseType : Type                                         { $1 }
+
+FunctionType : "func" Signature                         { FunctionType $2 }
+
+InterfaceType : "interface" '{' MethodSpecs '}'         { InterfaceType $3 }
+              | "interface" '{' '}'                     { InterfaceType [] }
+
+MethodSpecs : MethodSpec ';'                            { [$1] }
+            | MethodSpecs MethodSpec ';'                { $1 ++ [$2] }
+
+SliceType : '[' ']' ElementType                         { SliceType $3 }
+
+ElementType : Type                                      { $1 }
+
+MapType : "map" '[' KeyType ']' ElementType             { MapType $3 $5 }
+KeyType : Type                                          { $1 }
+
+ChannelType : "chan" ElementType                        { ChannelType1 $2 }
+            | "chan" "<-"  ElementType                  { ChannelType2 $3 }
+            | "<-" "chan" ElementType                   { ChannelType3 $3 }
+
+MethodSpec : MethodName Signature                       { MethodSpec1 $1 $2 }
+           | InterfaceTypeName                          { MethodSpec2 $1 }
+
+MethodName : NAME                                       { $1 } 
+
+InterfaceTypeName : TypeName                            { $1 }
 
 ArrayType : '[' Expr ']' ElementType                    { ArrayType $2 $4 } 
 
-ElementType : Type                                      { $1 } 
-
-
-StructType : "struct" '{' FieldDecls '}'             { Struct1 $3 }
-           | "struct" '{' '}'                        { Struct2 } 
-
+StructType : "struct" '{' FieldDecls '}'                { StructType1 $3 }
+           | "struct" '{' '}'                           { StructType2 } 
 
 {- TODO semicolons after fielddecl -}
 FieldDecls : FieldDecl ';' FieldDecls                   { [$1] ++ $3 }
