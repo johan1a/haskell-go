@@ -15,6 +15,6 @@ before_script:
 script:
     - docker build --rm=false -t johan1a/haskell-go .
 
-after_script:
+after_success:
     - mkdir -p ~/docker; docker save johan1a/haskell-go > ~/docker/haskell-go.tar
     - ls ~/docker -lah
