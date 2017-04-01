@@ -12,6 +12,7 @@ before_script:
     - ls -lah ~/docker
     - if [[ -e ~/docker ]]; then ls ~/docker -lah; fi
     - if [[ -e ~/docker/haskell-go.tar ]]; then docker load -i ~/docker/haskell-go.tar; fi
+    - docker images
 
 script:
     - docker build --rm=false -t johan1a/haskell-go:latest .
