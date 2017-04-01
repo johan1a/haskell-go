@@ -14,8 +14,8 @@ before_script:
     - if [[ -e ~/docker/haskell-go.tar ]]; then docker load -i ~/docker/haskell-go.tar; fi
 
 script:
-    - docker build --rm=false -t johan1a/haskell-go .
+    - docker build --rm=false -t johan1a/haskell-go:latest .
 
 before_cache:
-    - mkdir -p ~/docker; docker save johan1a/haskell-go > ~/docker/haskell-go.tar
+    - mkdir -p ~/docker; docker save johan1a/haskell-go:latest > ~/docker/haskell-go.tar
     - ls ~/docker -lah
