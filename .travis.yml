@@ -4,11 +4,12 @@ language: generic
 services: 
     - docker
 
-dependencies:
-    cache_directories:
-        - "~/docker"
+cache:
+    directories:
+        - ~/docker
 
 before_script:
+    - ls -lah ~/docker
     - if [[ -e ~/docker ]]; then ls ~/docker -lah; fi
     - if [[ -e ~/docker/haskell-go.tar ]]; then docker load -i ~/docker/haskell-go.tar; fi
 
