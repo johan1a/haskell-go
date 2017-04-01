@@ -199,7 +199,6 @@ LiteralType : StructType                                { LiteralType1 $1 }
             | MapType                                   { LiteralType5 $1 }
             | TypeName                                  { LiteralType6 $1 }
 
-FunctionLit : "func" Signature FunctionBody             { FunctionLit $2 $3 }
 
 Operand : Literal                                       { Operand1 $1 }
         | OperandName                                   { Operand2 $1 }
@@ -207,9 +206,9 @@ Operand : Literal                                       { Operand1 $1 }
         | '(' Expr ')'                                  { Operand4 $2  }
 
 Literal : BasicLit                                      { BasicLit $1 }
+        | "func" Signature FunctionBody                 { FunctionLit $2 $3  }
         {-
         | CompositeLit                                  { CompositeLit $1 }
-        | FunctionLit                                   { FunctionLit $1 }
 -}
 
 BasicLit : int_lit                                      { IntLit $1 }
