@@ -10,7 +10,8 @@ data Package = Package String
              deriving (Eq, Show)
 
 data TopLevelDecl = TopLevelDecl1 Declaration 
-                  | TopLevelDecl2 FunctionDecl -- TODO  | MethodDecl 
+                  | TopLevelDecl2 FunctionDecl 
+                  | TopLevelDecl3 MethodDecl 
                   deriving (Eq, Show)
 
 
@@ -156,6 +157,12 @@ data Result = Result1
 data ParameterDecl = ParameterDecl1 Type
                    | ParameterDecl2 [IdDecl] Type
                    deriving (Eq, Show)
+
+data MethodDecl = MethodDecl1 Receiver MethodName Signature FunctionBody
+                | MethodDecl2 Receiver MethodName Signature
+                deriving (Eq, Show)
+
+type Receiver = [ParameterDecl]
 
 data Declaration = ConstDecl [IdDecl] Type [Expr]  
                  | TypeDecl Name Type 

@@ -178,6 +178,11 @@ ParameterDecl : Type                                    { ParameterDecl1 $1 }
               | IdentifierList Type                     { ParameterDecl2 $1 $2 }
               | IdentifierList "..." Type               { ParameterDecl2 $1 $3 }
 
+MethodDecl : "func" Receiver MethodName Signature FunctionBody { MethodDecl1 $2 $3 $4 $5 }
+           | "func" Receiver MethodName Signature       { MethodDecl2 $2 $3 $4}
+
+Receiver : Parameters                                   { $1 }
+
 Declaration : ConstDecl                                 { $1 }
             | TypeDecl                                  { $1 }
             | VarDecl                                   { $1 }
