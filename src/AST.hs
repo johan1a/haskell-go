@@ -32,7 +32,7 @@ data QualifiedIdent = QualifiedIdent PackageName Name
 
 type PackageName = Name
 
-data TypeLit = ArrayType ArrayLength ElementType
+data TypeLit = ArrayTypeLit ArrayType
              | StructTypeLit StructType
              | PointerTypeLit PointerType
              | FunctionTypeLit FunctionType
@@ -41,6 +41,9 @@ data TypeLit = ArrayType ArrayLength ElementType
              | MapTypeLit MapType
              | ChannelTypeLit ChannelType
              deriving (Eq, Show)
+
+data ArrayType = ArrayType ArrayLength ElementType
+               deriving (Eq, Show)
 
 type ArrayLength = Expr
 type ElementType = Type
@@ -200,6 +203,7 @@ instance Show Value where
     show (StringVal string) = show string
     show (NullVal) = "Null"
 
+{-
 data Expr = BinExpr BinExpr
           | PrintCall [Expr]
           | PrintLnCall [Expr]
@@ -208,6 +212,10 @@ data Expr = BinExpr BinExpr
           | Num Int
           | IdUse Name
           | StringExpr String
+          deriving (Eq, Show)
+-}
+data Expr = UnaryExpr UnaryExpr
+          | BinExpr BinExpr
           deriving (Eq, Show)
 
 data BinExpr = AritmExpr AritmExpr
@@ -231,3 +239,137 @@ data CondExpr = Eq_ Expr Expr
 
 data IdDecl = IdDecl Name
             deriving (Eq, Show)
+
+data UnaryExpr = PrimaryExpr PrimaryExpr
+               | PosExpr UnaryExpr
+               | NegExpr UnaryExpr
+               | BoolNegExpr UnaryExpr
+               | UpArrowExpr UnaryExpr
+               | StarExpr UnaryExpr
+               | RefExpr UnaryExpr
+               | LeftArrowExpr UnaryExpr
+               deriving (Eq, Show)
+
+data PrimaryExpr = PrimaryExpr1 Operand
+                 | PrimaryExpr2 Conversion
+                 | PrimaryExpr3 PrimaryExpr Selector
+                 | PrimaryExpr4 PrimaryExpr Index
+                 | PrimaryExpr5 PrimaryExpr Slice
+                 | PrimaryExpr6 PrimaryExpr TypeAssertion
+                 | PrimaryExpr7 PrimaryExpr Arguments
+                 deriving (Eq, Show)
+
+data Conversion = Conversion Type Expr
+                deriving (Eq, Show)
+
+data Operand = Operand1 Literal
+             | Operand2 OperandName
+             | Operand3 MethodExpr
+             | Operand4 Expr
+             deriving (Eq, Show)
+
+data OperandName = OperandName1 String
+                 | OperandName2 QualifiedIdent
+                 deriving (Eq, Show)
+
+data MethodExpr = MethodExpr ReceiverType MethodName
+                deriving (Eq, Show)
+
+data ReceiverType = ReceiverType1 TypeName
+                  | ReceiverType2 TypeName
+                  | ReceiverType3 ReceiverType
+                  deriving (Eq, Show)
+
+data Literal = BasicLit BasicLit
+             | CompositeLit LiteralType LiteralValue
+             | FunctionLit Signature Block
+             deriving (Eq, Show)
+
+data BasicLit = IntLit Int
+              | StringLit String
+              deriving (Eq, Show)
+
+data LiteralType = LiteralType1 StructType
+                 | LiteralType2 ArrayType
+                 | LiteralType3 ElementType
+                 | LiteralType4 SliceType
+                 | LiteralType5 MapType
+                 | LiteralType6 TypeName
+                 deriving (Eq, Show)
+
+data LiteralValue = LiteralValue1
+                  | LiteralValue2 [KeyedElement]
+                  deriving (Eq, Show)
+
+data KeyedElement = KeyedElement1 Element
+                  | KeyedElement2 Key Element
+                  deriving (Eq, Show)
+
+data Key = Key1 FieldName
+         | Key2 Expr
+         | Key3 LiteralValue
+         deriving (Eq, Show)
+             
+type FieldName = String
+
+data Element = Element1 Expr
+             | Element2 LiteralValue
+             deriving (Eq, Show)
+
+data Selector = Selector Name
+              deriving (Eq, Show)
+
+data Index = Index Expr
+           deriving (Eq, Show)
+
+data Slice = Slice1 Expr Expr
+           | Slice2 Expr
+           | Slice3 Expr
+           | Slice4
+           | Slice5 Expr Expr Expr
+           | Slice6 Expr Expr
+           deriving (Eq, Show)
+
+data TypeAssertion = TypeAssertion Type
+                   deriving (Eq, Show)
+
+data Arguments = Arguments1
+               | Arguments2 [Expr]
+               | Arguments3 [Expr]
+               | Arguments4 [Expr]
+               | Arguments5 Type [Expr]
+               | Arguments6 Type [Expr]
+               | Arguments7 Type [Expr]
+               | Arguments8 Type [Expr]
+               | Arguments9 Type 
+               | Arguments10 Type 
+               deriving (Eq, Show)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

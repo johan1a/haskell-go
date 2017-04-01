@@ -29,8 +29,8 @@ import Data.Typeable
     "interface"{ Lexeme TokenInterface _ }
     let     { Lexeme TokenLet _ }
     in      { Lexeme TokenIn _ }
-    STRING  { Lexeme (TokenString $$) _ }
-    NUM     { Lexeme (TokenNum $$) _ }
+    string_lit  { Lexeme (TokenString $$) _ }
+    int_lit     { Lexeme (TokenNum $$) _ }
     NAME    { Lexeme (TokenSym $$) _ }
     '\\'    { Lexeme TokenLambda _ }
     '->'    { Lexeme TokenArrow _ }
@@ -49,6 +49,8 @@ import Data.Typeable
     "..."   { Lexeme TokenDots _ }
     '.'     { Lexeme TokenDot _ }
     ','     { Lexeme TokenComma _ }
+    ':'     { Lexeme TokenColon _ }
+    '!'     { Lexeme TokenExclamation _ }
     '+'     { Lexeme TokenAdd _ }
     '-'     { Lexeme TokenSub _ }
     '|'     { Lexeme TokenOpPipe _ }
@@ -123,19 +125,129 @@ Else : "else" IfStmt                                    { Else1 $2 }
 
 ShortVarDecl : IdentifierList ":=" ExpressionList       { ShortVarDecl $1 $3 }
 
-BinExpr : AritmExpr                                     { AritmExpr $1 } 
-    | CondExpr                                          { CondExpr $1 } 
 
+Expr : UnaryExpr                                        { UnaryExpr $1 }
+     | BinExpr                                          { BinExpr $1 }
+
+UnaryExpr : PrimaryExpr                                 { PrimaryExpr $1 }
+          | '+' UnaryExpr                               { PosExpr $2 }
+          | '-' UnaryExpr                               { NegExpr $2 }
+          | '!' UnaryExpr                               { BoolNegExpr $2 }
+          | '^' UnaryExpr                               { UpArrowExpr $2 }
+          | '*' UnaryExpr                               { StarExpr $2 }
+          | '&' UnaryExpr                               { RefExpr $2 }
+          | "<-" UnaryExpr                              { LeftArrowExpr $2 }
+
+BinExpr : AritmExpr                                     { AritmExpr $1 } 
+        | CondExpr                                      { CondExpr $1 } 
+
+{-
 Expr : '(' Expr ')'                                     { $2 }
      | BinExpr                                          { BinExpr $1}
-     | "fmt.Print" '(' ExpressionList ')'                   { PrintCall $3 }
-     | "fmt.Println" '(' ExpressionList ')'                 { PrintLnCall $3 }
+     | "fmt.Print" '(' ExpressionList ')'               { PrintCall $3 }
+     | "fmt.Println" '(' ExpressionList ')'             { PrintLnCall $3 }
      | NAME '(' ExpressionList ')'                      { Call $1 $3 } 
      | "true"                                           { BoolExpr True }
      | "false"                                          { BoolExpr False }
-     | STRING                                           { StringExpr $1 }
+     | string_lit                                           { StringExpr $1 }
      | NAME                                             { IdUse $1 }
-     | NUM                                              { Num $1 }
+     | int_lit                                              { Num $1 }
+-}
+
+PrimaryExpr : Operand                                   { PrimaryExpr1 $1 }
+            | Conversion                                { PrimaryExpr2 $1 }
+            | PrimaryExpr Selector                      { PrimaryExpr3 $1 $2 }
+            | PrimaryExpr Index                         { PrimaryExpr4 $1 $2 }
+            | PrimaryExpr Slice                         { PrimaryExpr5 $1 $2 }
+            | PrimaryExpr TypeAssertion                 { PrimaryExpr6 $1 $2 }
+            | PrimaryExpr Arguments                     { PrimaryExpr7 $1 $2 }
+
+Conversion : Type '(' Expr ',' ')'                      { Conversion $1 $3 }
+           | Type '(' Expr ')'                          { Conversion $1 $3}
+
+MethodExpr : ReceiverType '.' MethodName                { MethodExpr $1 $3 }
+
+ReceiverType : TypeName                                 { ReceiverType1 $1 }
+             | '(' '*' TypeName ')'                     { ReceiverType2 $3 }
+             | '(' ReceiverType ')'                     { ReceiverType3 $2 }
+
+CompositeLit : LiteralType LiteralValue                 { CompositeLit $1 $2 }
+
+LiteralValue : '{' '}'                                  { LiteralValue1 }
+             | '{' ElementList '}'                      { LiteralValue2 $2 }
+             | '{' ElementList ',' '}'                  { LiteralValue2 $2 }
+
+ElementList : KeyedElement                              { [$1]  }
+            | ElementList ',' KeyedElement              { $1 ++ [$3] }
+
+KeyedElement : Element                                  { KeyedElement1 $1 }
+             | Key ':' Element                          { KeyedElement2 $1 $3 }
+
+Key : FieldName                                         { Key1 $1 }
+    | Expr                                              { Key2 $1 }
+    | LiteralValue                                      { Key3 $1 }
+
+FieldName : NAME                                        { $1 }
+
+Element : Expr                                          { Element1 $1 }
+        | LiteralValue                                  { Element2 $1 }
+
+LiteralType : StructType                                { LiteralType1 $1 }
+            | ArrayType                                 { LiteralType2 $1 }
+            | '[' "..." ']' ElementType                 { LiteralType3 $4 }
+            | SliceType                                 { LiteralType4 $1 }
+            | MapType                                   { LiteralType5 $1 }
+            | TypeName                                  { LiteralType6 $1 }
+
+FunctionLit : "func" Signature FunctionBody             { FunctionLit $2 $3 }
+
+Operand : Literal                                       { Operand1 $1 }
+        | OperandName                                   { Operand2 $1 }
+        | MethodExpr                                    { Operand3 $1  }
+        | '(' Expr ')'                                  { Operand4 $2  }
+
+Literal : BasicLit                                      { BasicLit $1 }
+        {-
+        | CompositeLit                                  { CompositeLit $1 }
+        | FunctionLit                                   { FunctionLit $1 }
+-}
+
+BasicLit : int_lit                                      { IntLit $1 }
+         | string_lit                                   { StringLit $1 }
+{-
+         | float_lit                                    { FloatLit $1 }
+         | imaginary_lit                                { ImaginaryLit $1 }
+         | rune_lit                                     { RuneLit $1 }
+-}
+
+OperandName : NAME                                      { OperandName1 $1 }
+            | QualifiedIdent                            { OperandName2 $1 }
+
+Selector : '.' NAME                                     { Selector $2 } 
+         
+Index : '[' Expr ']'                                    { Index $2 }
+
+Slice : '[' Expr ':' Expr ']'                           { Slice1 $2 $4 }        
+      | '[' Expr ':' ']'                                { Slice2 $2 }
+      | '[' ':' Expr ']'                                { Slice3 $3 }
+      | '[' ':' ']'                                     { Slice4 }
+      | '[' Expr ':' Expr':' Expr ']'                   { Slice5 $2 $4 $6 }
+      | '[' ':' Expr ':' Expr ']'                       { Slice6 $3 $5 }
+
+TypeAssertion : '.' '(' Type ')'                          { TypeAssertion $3 }
+
+Arguments : '(' ')'                                     { Arguments1 }
+          {-
+          | '(' ExpressionList "..." ',' ')'            { Arguments2 $2 }
+          | '(' ExpressionList "..." ')'                { Arguments3 $2 }
+          | '(' ExpressionList ',' ')'                  { Arguments4 $2 }
+          | '(' Type ',' ExpressionList "..." ',' ')'   { Arguments5 $2 $4 }
+          | '(' Type ',' ExpressionList "..." ')'       { Arguments6 $2 $4 }
+          | '(' Type ',' ExpressionList ',' ')'         { Arguments7 $2 $4 }
+          | '(' Type "..." ',' ')'                      { Arguments8 $2 }
+          | '(' Type "..." ')'                          { Arguments9 $2 }
+          | '(' Type ',' ')'                            { Arguments10 $2 }
+-}
 
 Assignment : ExpressionList '=' ExpressionList          { Assign $1 $3 }
            | ExpressionList AssignOp '=' ExpressionList { OpAssign $2 $1 $4 }
@@ -143,11 +255,8 @@ Assignment : ExpressionList '=' ExpressionList          { Assign $1 $3 }
 AssignOp : AddOp '='                                    { $1 }
          | MulOp '='                                    { $1 }
 
-
-
 Op : AddOp                                              { $1 }
    | MulOp                                              { $1 }
-
 
 IncDecStmt : Expr "++"                                  { IncStmt $1 }
            | Expr "--"                                  { DecStmt $1 }
@@ -216,7 +325,7 @@ TypeName : NAME                                         { TypeNameIdentifier $1 
 
 QualifiedIdent : NAME '.' NAME                          { QualifiedIdent  $1 $3 }
 
-TypeLit : ArrayType                                     { $1 } 
+TypeLit : ArrayType                                     { ArrayTypeLit $1 } 
         | StructType                                    { StructTypeLit $1 } 
         | PointerType                                   { PointerTypeLit $1 }
         | FunctionType                                  { FunctionTypeLit $1 }
@@ -272,7 +381,7 @@ AnonymousField : TypeName                               { AnonFieldType1 $1 }
                | '*' TypeName                           { AnonFieldType2 $2 }
 
 
-Tag : STRING                                            { $1 }
+Tag : string_lit                                            { $1 }
 
 
 AritmExpr : Expr '+' Expr                                { AddExpr $1 $3 }
@@ -317,7 +426,7 @@ Juxt : Juxt Atom                                        { App $1 $2 }
      | Atom                                             { $1 }
 
 Atom : '(' Expr ')'                                     { $2 }
-     | NUM                                              { Num $1 }
+     | int_lit                                              { Num $1 }
      | NAME                                              { Var $1 }
 
 

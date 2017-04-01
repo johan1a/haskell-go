@@ -22,6 +22,7 @@ $eol   = [\n]
 $whitespace = [\ \t\r\f\v] 
 
 
+-- @int_lit = $digit [\. $digit+]?
 
 tokens :-
 
@@ -36,6 +37,7 @@ tokens :-
   "<-"                          { alex(const TokenLeftArrow )}
   "=="    			            { alex(const TokenEq2 )}
   "!="    			            { alex(const TokenNeq )}
+  "!"    			            { alex(const TokenExclamation )}
   "<"     			            { alex(const TokenLess )}
   "<="    			            { alex(const TokenLessEq) }
   ">"     			            { alex(const TokenGreater) }
@@ -76,6 +78,7 @@ tokens :-
     ":="                        { alex(const TokenShortVarDecl) }
     "++"                        { alex(const TokenInc )}
     "--"                        { alex(const TokenDec )}
+    ":"                         { alex(const TokenComma )}
     "{"                         { alex(const TokenLCParen) }
     "}"                         { alex(const TokenRCParen) }
     "if"                        { alex(const TokenIf )}
@@ -151,10 +154,12 @@ data Token = TokenError {unknown :: String}
        | TokenOpAnd
        | TokenOpAndUp 
        | TokenShortVarDecl
+       | TokenExclamation
        | TokenInc
        | TokenDec
        | TokenLCParen
        | TokenRCParen
+       | TokenColon
        | TokenSemicolon
        | TokenIf
        | TokenElse
