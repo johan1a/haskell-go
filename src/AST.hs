@@ -216,6 +216,7 @@ data Expr = BinExpr BinExpr
 -}
 data Expr = UnaryExpr UnaryExpr
           | BinExpr BinExpr
+          | BoolExpr Bool -- not in spec
           deriving (Eq, Show)
 
 data BinExpr = AritmExpr AritmExpr

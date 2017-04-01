@@ -42,8 +42,6 @@ tokens :-
   "<="    			            { alex(const TokenLessEq) }
   ">"     			            { alex(const TokenGreater) }
   ">="    			            { alex(const TokenGreaterEq) }
-  "true"    			        { alex(const TokenTrue )}
-  "false"    			        { alex(const TokenFalse) }
   "func"    			        { alex(const TokenFunc )}
   "return"    			        { alex(const TokenReturn )}
   "struct"    			        { alex(const TokenStruct )}

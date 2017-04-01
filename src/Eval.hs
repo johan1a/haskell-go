@@ -314,6 +314,8 @@ lookupExpr expr state = error $ traceShow expr "lookupExpr " --expr
 
 
 lookupIdUse :: String -> State -> Expr
+lookupIdUse "true" state = BoolExpr True
+lookupIdUse "false" state = BoolExpr False
 lookupIdUse (name) state = lookupIdRef name found state
     where found = (Map.lookup name $ decls state)
 
@@ -369,7 +371,7 @@ eval :: Expr -> State -> IO Value
 --eval (IdUse name) state = eval (lookupExpr (IdUse name) state) state
 eval (BinExpr e ) state = evalBin e state
 --eval (Num n) _ = return $ IntVal n 
---eval (BoolExpr b) _ = return $ BoolVal b
+eval (BoolExpr b) _ = return $ BoolVal b
 --eval (StringExpr s) _ = return $ StringVal s
 --eval (Call fName exprs) state = execFuncCall fName  exprs state >>= return . retVal
 eval (UnaryExpr ue) s = traceShow ("eval1 " ++ (show ue)) $ evalUnary ue s
@@ -391,7 +393,7 @@ evalOperand (Operand3 methodExpr) s = error "evalOperand"
 evalOperand (Operand4 expr) s = error "evalOperand"
 
 evalOperandName :: OperandName -> State -> IO Value
-evalOperandName (OperandName1 name) s =  eval ( lookupIdUse name s) s
+evalOperandName (OperandName1 name) s = eval ( lookupIdUse name s) s
 evalOperandName (OperandName2 qualifiedIdent) s = error "opname"
 
 
