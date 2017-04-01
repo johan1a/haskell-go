@@ -216,7 +216,7 @@ BasicLit : int_lit                                      { IntLit $1 }
          | rune_lit                                     { RuneLit $1 }
 -}
 
-OperandName : identifier                                      { OperandName1 $1 }
+OperandName : identifier                                { OperandName1 $1 }
             | QualifiedIdent                            { OperandName2 $1 }
 
 Selector : '.' identifier                                     { Selector $2 } 
@@ -233,7 +233,6 @@ Slice : '[' Expr ':' Expr ']'                           { Slice1 $2 $4 }
 TypeAssertion : '.' '(' Type ')'                          { TypeAssertion $3 }
 
 Arguments : '(' ')'                                     { Arguments1 }
-          {-
           | '(' ExpressionList "..." ',' ')'            { Arguments2 $2 }
           | '(' ExpressionList "..." ')'                { Arguments3 $2 }
           | '(' ExpressionList ',' ')'                  { Arguments4 $2 }
@@ -243,7 +242,6 @@ Arguments : '(' ')'                                     { Arguments1 }
           | '(' Type "..." ',' ')'                      { Arguments8 $2 }
           | '(' Type "..." ')'                          { Arguments9 $2 }
           | '(' Type ',' ')'                            { Arguments10 $2 }
--}
 
 Assignment : ExpressionList '=' ExpressionList          { Assign $1 $3 }
            | ExpressionList AssignOp '=' ExpressionList { OpAssign $2 $1 $4 }

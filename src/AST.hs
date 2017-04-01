@@ -340,7 +340,7 @@ data Arguments = Arguments1
                | Arguments5 Type [Expr]
                | Arguments6 Type [Expr]
                | Arguments7 Type [Expr]
-               | Arguments8 Type [Expr]
+               | Arguments8 Type 
                | Arguments9 Type 
                | Arguments10 Type 
                deriving (Eq, Show)
