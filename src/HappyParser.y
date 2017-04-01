@@ -160,17 +160,16 @@ FunctionName : NAME                                     { $1 }
 
 FunctionBody : Block                                    { $1 }
 
-Signature : '(' ')'                                     { Signature1 }
-          | '(' Parameters ')'                          { Signature2 $2 }
-          | '(' Parameters ')' Result                   { Signature3 $2 $4 }
+Signature : Parameters                                  { Signature1 $1 }
+          | Parameters  Result                          { Signature2 $1 $2 }
 
-Result : '(' ')'                                        { Result1 }
-       | '(' Parameters ')'                             { Result2 $2 }
-       | Type                                           { Result3 $1 }
+Result : Parameters                                     { Result1 $1 }
+       | Type                                           { Result2 $1 }
 
 {-- TODO should there be 0..n lists  --}
-Parameters :  ParameterList                             { $1 }
-           |  ParameterList ','                         { $1 }
+Parameters : '(' ParameterList ')'                      { $2 }
+           | '(' ParameterList ',' ')'                  { $2 }
+           | '(' ')'                                    { [] }
 
 ParameterList : ParameterDecl                           { [$1] }
               | ParameterList ',' ParameterDecl         { $1 ++ [$3] }
@@ -182,7 +181,7 @@ ParameterDecl : Type                                    { ParameterDecl1 $1 }
 MethodDecl : "func" Receiver MethodName Signature FunctionBody { MethodDecl1 $2 $3 $4 $5 }
            | "func" Receiver MethodName Signature       { MethodDecl2 $2 $3 $4}
 
-Receiver : '(' Parameters ')'                           { $2 }
+Receiver : Parameters                                   { $1 }
 
 Declaration : ConstDecl                                 { $1 }
             | TypeDecl                                  { $1 }

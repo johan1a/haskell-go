@@ -97,9 +97,8 @@ fParams (FunctionDecl1 _ sig) = sParams sig
 fParams (FunctionDecl2 _ sig _) = sParams sig
 
 sParams :: Signature -> [String]
-sParams Signature1 = []
-sParams (Signature2 paramDecls ) = paramDecls >>= paramDeclNames 
-sParams (Signature3 paramDecls _ ) = paramDecls >>= paramDeclNames 
+sParams (Signature1 paramDecls ) = paramDecls >>= paramDeclNames 
+sParams (Signature2 paramDecls _ ) = paramDecls >>= paramDeclNames 
 
 paramDeclNames :: ParameterDecl -> [Name]
 paramDeclNames (ParameterDecl1 type_) = error "TODO unnamed parameters"

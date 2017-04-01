@@ -142,16 +142,14 @@ data FunctionDecl = FunctionDecl1 FunctionName Signature
 
 type FunctionName = String
 
-data Signature = Signature1
-               | Signature2 [ParameterDecl]
-               | Signature3 [ParameterDecl] Result
+data Signature = Signature1 [ParameterDecl]
+               | Signature2 [ParameterDecl] Result
                deriving (Eq, Show)
 
 type FunctionBody = Block
 
-data Result = Result1
-            | Result2 [ParameterDecl]
-            | Result3 Type
+data Result = Result1 [ParameterDecl]
+            | Result2 Type
             deriving (Eq, Show)
 
 data ParameterDecl = ParameterDecl1 Type
