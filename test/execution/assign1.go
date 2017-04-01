@@ -1,5 +1,4 @@
 package main;
-yeah,.,
 
 func main() {
     var x int  = 666
