@@ -85,6 +85,7 @@ TopLevelDecls : TopLevelDecl ';'                        { [$1] }
 
 TopLevelDecl : Declaration                              { TopLevelDecl1 $1 }
              | FunctionDecl                             { TopLevelDecl2 $1 }
+             | MethodDecl                               { TopLevelDecl3 $1 }
 
 StatementList : Statement ';'                           { [$1] }
            | StatementList Statement ';'            { $1 ++ [$2] }
@@ -181,7 +182,7 @@ ParameterDecl : Type                                    { ParameterDecl1 $1 }
 MethodDecl : "func" Receiver MethodName Signature FunctionBody { MethodDecl1 $2 $3 $4 $5 }
            | "func" Receiver MethodName Signature       { MethodDecl2 $2 $3 $4}
 
-Receiver : Parameters                                   { $1 }
+Receiver : '(' Parameters ')'                           { $2 }
 
 Declaration : ConstDecl                                 { $1 }
             | TypeDecl                                  { $1 }

@@ -1,0 +1,1 @@
+SourceFile (Package "main") [TopLevelDecl1 (TypeDecl "circle" (TypeLit (StructTypeLit (StructType1 [FieldDecl1 (TypeName (TypeNameIdentifier "int"))])))),TopLevelDecl2 (FunctionDecl2 "main" Signature1 (Block []))]
