@@ -1,5 +1,7 @@
 module AST where
 
+import Data.Char (toLower)
+
 
 type Name = String
 
@@ -199,7 +201,7 @@ data Value = IntVal Int
 
 instance Show Value where
     show (IntVal num) = show num
-    show (BoolVal bool) = show bool
+    show (BoolVal bool) = map toLower $ show bool
     show (StringVal string) = show string
     show (NullVal) = "Null"
 
@@ -216,7 +218,7 @@ data Expr = BinExpr BinExpr
 -}
 data Expr = UnaryExpr UnaryExpr
           | BinExpr BinExpr
-          | BoolExpr Bool -- not in spec
+          | BoolExpr Bool -- not in spec, should be constant instead of expr
           deriving (Eq, Show)
 
 data BinExpr = AritmExpr AritmExpr

@@ -160,7 +160,7 @@ execIncDecStmt (IncStmt expr) = error "execincdecstmt TODO"
 execIncDecStmt (DecStmt expr) = error "incdedc TODO" 
 
 execShortVarDecl :: [IdDecl] -> [Expr] -> State -> IO State
-execShortVarDecl dd exprs = error "shortvardecl TODO" 
+execShortVarDecl dd exprs = return . bindExpr (getName $ head dd) (head exprs)
 
 
 -- Yikes...
@@ -310,7 +310,9 @@ lookupExpr (BinExpr e ) state = lookupBinExpr e state
 --lookupExpr (StringExpr s) _ = (StringExpr s)
 --lookupExpr (Call fName exprs) state = (Call fName (map (\x -> lookupExpr x state) exprs))  
 lookupExpr x@(UnaryExpr (PrimaryExpr (PrimaryExpr7 (PrimaryExpr1 (Operand2 (OperandName1 funcName))) args))) s = x
-lookupExpr x@(UnaryExpr (PrimaryExpr (PrimaryExpr1 (Operand4 expr)))) s = lookupExpr expr s
+lookupExpr (UnaryExpr (PrimaryExpr (PrimaryExpr1 (Operand4 expr)))) s = lookupExpr expr s
+lookupExpr x@(UnaryExpr (PrimaryExpr (PrimaryExpr1 (Operand1 (BasicLit lit))))) s = x
+lookupExpr b@(BoolExpr _) s = b
 lookupExpr expr state = error $ traceShow expr "lookupExpr " --expr
 
 
