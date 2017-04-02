@@ -11,11 +11,20 @@ import Debug.Trace
 
 import AlexToken
 
+import Control.Monad.Except
+ 
+parseGho :: String -> Either String SourceFile
+parseGho s = case scan2 s of
+    (Right a) -> HappyParser.parse (reverse a)
+    (Left x) -> error $ "scan error: " ++ x
+
+scan2 :: String -> Either String [Lexeme Token]
+scan2 s = runLexer s (process [])
+
 scan :: String -> IO [Lexeme Token]
 scan s = case runLexer s (process []) of
                 (Right a) -> return $ reverse a
                 (Left s) -> error $ "scan error: " ++ s
-
 
 process ls = do
     lexeme@(Lexeme tok tp) <- alexMonadScan
@@ -52,7 +61,6 @@ insertSemicolon ls@((Lexeme prev _):_) = case prev of
 
 
 semicolon = Lexeme TokenSemicolon todoPos
-    
-parseGho :: String -> IO SourceFile
-parseGho s = scan s >>= HappyParser.parse
+
+
 

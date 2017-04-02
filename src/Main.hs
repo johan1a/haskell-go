@@ -10,24 +10,19 @@ import Debug.Trace
 
 import AlexToken
 
+import Control.Monad.Trans
+
 import Gho
-
-runAndShow :: String -> IO ()
-runAndShow input = do
-  ast <- parseGho input 
-  what <- runProgram ast
-  putStrLn $ "AST: " ++ (show ast)
-
-badRepl :: IO ()
-badRepl = do
-  putStrLn "Enter stuff:"
-  getLine >>= runAndShow
-  badRepl
 
 main :: IO Eval.State
 main = fmap head getArgs >>= runFile
 
 runFile :: String -> IO Eval.State
-runFile f = readFile f >>= parseGho >>= runProgram
+runFile f = do
+    cont <- readFile f 
+    case (parseGho cont) of 
+        (Right a) -> runProgram a
+        (Left b) -> error $ "Parse error: " ++ b
+
     
 

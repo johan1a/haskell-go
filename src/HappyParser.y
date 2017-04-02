@@ -1,15 +1,19 @@
 {
-module HappyParser where
+module HappyParser (
+parse
+) where
 
 import AlexToken
 import AST
 
 import Control.Exception
 import Data.Typeable
+
+import Control.Monad.Except
 }
 
-%name parse
-%monad { IO }
+%name baseParse
+%monad { Except String }
 %tokentype { Lexeme Token }
 %error { parseError }
 
@@ -193,7 +197,7 @@ Operand : OperandName                                   { Operand2 $1 }
 
 Literal : BasicLit                                      { BasicLit $1 }
 --        | "func" Signature FunctionBody                 { FunctionLit $2 $3  }
- --       | LiteralType LiteralValue                      { CompositeLit $1 $2 }
+          --| LiteralType LiteralValue                      { CompositeLit $1 $2 }
 
 BasicLit : int_lit                                      { IntLit $1 }
          | string_lit                                   { StringLit $1 }
@@ -394,13 +398,15 @@ MulOp  : '*'                                            { MulOp }
 
 {
 
-
 data SyntaxError = SyntaxError String
     deriving (Show)
 
 instance Exception SyntaxError
 
-parseError :: [Lexeme Token] -> IO a
-parseError ts = throw $ SyntaxError $ "Unexpected token: " ++ show (head ts) ++ ", rest: " ++ show ( tail ts)
+parseError :: [Lexeme Token] -> Except String a
+parseError ts = throwError $ "Unexpected token: " ++ show (head ts) ++ ", rest: " ++ show ( tail ts)
+
+parse :: [Lexeme Token] -> Either String SourceFile
+parse input = runExcept $ baseParse input
 
 }
