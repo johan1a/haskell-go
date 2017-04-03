@@ -10,12 +10,33 @@ import Control.Applicative
 -- Activation record
 type ActRec = Map Name Expr
 
+type Values = Map Name Value
+
+data Object = O1 Type Value
+            | O2 Type Values
+            deriving (Show)
+
+instance Eq Object where
+    (==) (O1 _ l) (O1 _ r) = l == r
+    (/=) (O1 _ l) (O1 _ r) = l /= r
+
+instance Ord Object where
+    (>=) (O1 _ l) (O1 _ r) = l >= r
+    (>) (O1 _ l) (O1 _ r) = l > r
+    (<=) (O1 _ l) (O1 _ r) = l <= r
+    (<) (O1 _ l) (O1 _ r) = l < r
+
+
+
+    
+
 data State = State { actRecs :: [ActRec], --TODO types
                      params  :: Map Name [Name],
                      funcs   :: Map Name FunctionDecl,
                      types   :: Map Name Type,
+                     vars    :: Map Name Object, 
                      callStack :: [String],
-                     retVal  :: Value,
+                     retVal  :: Object,
                      emitter ::  String -> IO()
                    } 
 
@@ -35,7 +56,8 @@ emptyState = State { actRecs = [Map.empty],
                 params = Map.empty,
                 funcs = Map.empty, 
                 callStack = ["TOPLEVEL"],
-                retVal = NullVal, 
+                vars = Map.empty,
+                retVal = O1 (Type "nulltype") NullVal, 
                 emitter = (putStr )
 }
 
@@ -169,8 +191,12 @@ execIncDecStmt (IncStmt expr) = error "execincdecstmt TODO"
 execIncDecStmt (DecStmt expr) = error "incdedc TODO" 
 
 execShortVarDecl :: [IdDecl] -> [Expr] -> State -> IO State
-execShortVarDecl dd exprs = return . bindExpr (getName $ head dd) (head exprs)
+execShortVarDecl dd exprs s = do
+    obj <- (eval (head exprs ) s)
+    bindVar (getName $ head dd) obj s
 
+bindVar :: Name -> Object -> State -> IO State
+bindVar n o s = return $ s { vars = Map.insert n o (vars s) }
 
 -- Yikes...
 execIfStmt :: IfStmt -> State -> IO State
@@ -244,12 +270,17 @@ execOperand (Operand4 expr) = error "execop4"
 execOperand op = error "execOp"
 
 execLit :: Literal -> State -> IO State
-execLit (BasicLit lit) = return -- TODO should we evaluate the literal here?
-execLit (CompositeLit typ val) = return -- TODO should we evaluate the literal here?
-execLit (FunctionLit sig block) = return -- TODO should we evaluate the literal here?
+execLit (BasicLit lit) s= return s-- TODO should we evaluate the literal here?
+execLit (CompositeLit typ val) s= bindComposite typ val s 
+execLit (FunctionLit sig block) s= return s-- TODO should we evaluate the literal here?
+
+bindComposite :: LiteralType -> LiteralValue -> State -> IO State
+--bindComposite (LiteralType1 (StructType1 [FieldDecl])) (LiteralValue2 elements) s =
+bindComposite lt lv s = error $ (show lt) ++ " " ++ (show lv) 
+    
     
 
-evalFuncCall :: String -> Arguments -> State -> IO Value
+evalFuncCall :: String -> Arguments -> State -> IO Object
 evalFuncCall funcName args state = do 
     s <- execFuncCall funcName (getExprsFromArgs args) state 
     return $ retVal s
@@ -300,6 +331,7 @@ bindArgs2 [] [] state = state
 bindArgs2 (n:nn) (a:aa) state = (bindArg n a state)
 bindArgs2 _ _ state = state
 
+--TODO change to bindValue instead
 bindExpr :: Name -> Expr -> State -> State
 bindExpr name expr state = state { actRecs =( [Map.insert name (lookupExpr expr state) $ decls state ] ++ (tail $ actRecs state))}
 
@@ -385,60 +417,59 @@ lookupCondExpr (GreaterEq l r) state = (GreaterEq (lookupExpr l state) (lookupEx
 evalBool :: Expr -> State -> IO Bool --TODO return state?
 evalBool expr state = fmap asBoolVal (eval expr state)
 
-asBoolVal :: Value -> Bool
-asBoolVal (BoolVal v) = v
-asBoolVal (IntVal _) = error "not a bool"
-asBoolVal (StringVal _) = error "not a bool"
+asBoolVal :: Object -> Bool
+asBoolVal (O1 _ (BoolVal v)) = v
+asBoolVal (O1 _ (IntVal _)) = error "not a bool"
+asBoolVal (O1 _ (StringVal _)) = error "not a bool"
 
-eval :: Expr -> State -> IO Value
+eval :: Expr -> State -> IO Object
 --eval (IdUse name) state = eval (lookupExpr (IdUse name) state) state
 eval (BinExpr e ) state = evalBin e state
 --eval (Num n) _ = return $ IntVal n 
-eval (BoolExpr b) _ = return $ BoolVal b
+eval (BoolExpr b) _ = return $ O1 boolType (BoolVal b)
 --eval (StringExpr s) _ = return $ StringVal s
 --eval (Call fName exprs) state = execFuncCall fName  exprs state >>= return . retVal
 eval (UnaryExpr ue) s =  evalUnary ue s
 eval e s = error $ "eval2: " ++ (show e)
 
-evalUnary :: UnaryExpr -> State -> IO Value
+evalUnary :: UnaryExpr -> State -> IO Object
 evalUnary (PrimaryExpr pe) = evalPrimary pe
 
-evalPrimary :: PrimaryExpr -> State -> IO Value
+evalPrimary :: PrimaryExpr -> State -> IO Object
 evalPrimary (PrimaryExpr1 op) = evalOperand op
 evalPrimary (PrimaryExpr7 (PrimaryExpr1 (Operand2 (OperandName1 funcName))) args) = evalFuncCall funcName args
 
 
 
-evalOperand :: Operand -> State -> IO Value
+evalOperand :: Operand -> State -> IO Object
 evalOperand (Operand1 lit) s = evalLiteral lit s
 evalOperand (Operand2 (opName)) s = evalOperandName opName s
 evalOperand (Operand3 methodExpr) s = error "evalOperand1"
 evalOperand (Operand4 expr) s = eval expr s
 
-evalOperandName :: OperandName -> State -> IO Value
+evalOperandName :: OperandName -> State -> IO Object
 evalOperandName (OperandName1 name) s = eval ( lookupIdUse name s) s
-evalOperandName (OperandName2 qualifiedIdent) s = error "opname"
+evalOperandName (OperandName2 qualifiedIdent) s = error $ show qualifiedIdent
 
-
-
-evalLiteral :: Literal -> State -> IO Value
+evalLiteral :: Literal -> State -> IO Object
 evalLiteral (BasicLit bl) = evalBasicLit bl
+evalLiteral x = error $ "evalLiteral "  ++ ( show x)
 
-evalBasicLit :: BasicLit -> State -> IO Value
-evalBasicLit (IntLit n) s = return $ (IntVal n)
-evalBasicLit (StringLit str) s = return $ StringVal str
+evalBasicLit :: BasicLit -> State -> IO Object
+evalBasicLit (IntLit n) s = return $ (O1 intType (IntVal n))
+evalBasicLit (StringLit str) s = return $ O1 strType (StringVal str)
 
-evalBin :: BinExpr -> State -> IO Value
+evalBin :: BinExpr -> State -> IO Object
 evalBin (AritmExpr a) state = evalAritm a state
 evalBin (CondExpr c) state = evalCond c state
 
-evalAritm :: AritmExpr -> State -> IO Value
+evalAritm :: AritmExpr -> State -> IO Object
 evalAritm (AddExpr l r) state = add <$> (eval l state) <*>(eval r state) 
 evalAritm (SubExpr l r) state = sub <$> (eval l state) <*> (eval r state) 
 evalAritm (MulExpr l r) state = mul <$> (eval l state) <*> (eval r state) 
 evalAritm (DivExpr l r) state = div_ <$> (eval l state) <*> (eval r state) 
 
-evalCond :: CondExpr -> State -> IO Value
+evalCond :: CondExpr -> State -> IO Object
 evalCond (Neq l r) = evalCond2 (==) l r
 evalCond (Eq_ l r) = evalCond2 (==) l r
 evalCond (Less l r) = evalCond2 (<) l r
@@ -446,23 +477,38 @@ evalCond (LessEq l r) = evalCond2 (<=) l r
 evalCond (Greater l r) = evalCond2 (>) l r
 evalCond (GreaterEq l r) = evalCond2 (>=) l r
 
-evalCond2 f l r state = do
-    b <- f <$> (eval l state) <*> (eval r state)
-    return $ BoolVal b
 
-add :: Value -> Value -> Value
-add (IntVal l) (IntVal r) = IntVal (l + r)
+
+
+
+intType :: Type
+intType = Type "int"
+
+strType :: Type
+strType = Type "string"
+
+boolType :: Type
+boolType = Type "bool"
+
+
+evalCond2 f l r state = do
+    left <- eval l state
+    right <- eval r state
+    return $ (O1 boolType (BoolVal (f left right)))
+
+add :: Object -> Object -> Object
+add (O1 _ (IntVal l)) (O1 _ (IntVal r)) = (O1 intType (IntVal (l + r)))
 add _ _ = error "todo add"
 
-sub :: Value -> Value -> Value
-sub (IntVal l) (IntVal r) = (IntVal (l - r))
+sub :: Object -> Object -> Object
+sub (O1 _ (IntVal l)) (O1 _ ( IntVal r)) = (O1 intType (IntVal (l - r)))
 sub _ _ = error "todo sub"
 
-mul :: Value -> Value -> Value
-mul (IntVal l) (IntVal r) = (IntVal (l * r))
+mul :: Object -> Object -> Object
+mul (O1 _ (IntVal l)) (O1 _ (IntVal r)) = (O1 intType (IntVal (l * r)))
 mul _ _ = error "todo mul "
 
-div_ :: Value -> Value -> Value
+div_ :: Object -> Object -> Object
 --div (Num l) (Num r) = (Num (l / r))
 div_  _ _ = error "todo div"
 
