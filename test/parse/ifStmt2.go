@@ -1,5 +1,6 @@
 package main;
 func main() {
-if a == b { 2  
+if a == b { 
+    2  
 }
 }

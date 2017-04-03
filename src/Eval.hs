@@ -217,6 +217,7 @@ execExprStmt e = error $ traceShow e "execExprStmt"
 execUnary :: UnaryExpr -> State -> IO State
 execUnary (PrimaryExpr p) = execPrimary p
 
+execPrimary :: PrimaryExpr -> State -> IO State
 execPrimary (PrimaryExpr1 o) = execOperand o
 execPrimary (PrimaryExpr7 primary args) = execPrimaryFuncCall primary args
 
@@ -235,7 +236,17 @@ execFmtFunction name (Arguments5 exprs)
 execFmtFunction name args = error $ "fmt args: " ++ (show args) 
 
 
-execOperand o = error $ show o
+execOperand :: Operand -> State -> IO State
+execOperand (Operand1 lit) = execLit lit
+execOperand (Operand2 name) = error "execop2"
+execOperand (Operand3 methodExpr) = error "execop3"
+execOperand (Operand4 expr) = error "execop4"
+execOperand op = error "execOp"
+
+execLit :: Literal -> State -> IO State
+execLit (BasicLit lit) = return -- TODO should we evaluate the literal here?
+execLit (CompositeLit typ val) = return -- TODO should we evaluate the literal here?
+execLit (FunctionLit sig block) = return -- TODO should we evaluate the literal here?
     
 
 evalFuncCall :: String -> Arguments -> State -> IO Value

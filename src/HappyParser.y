@@ -76,6 +76,7 @@ import Control.Monad.Except
     "else"  { Lexeme TokenElse _ }
     "package"{ Lexeme TokenPackage _ }
 
+%left COMPOSITE
 %left '+' '-'
 %left '*' '/' '%'
 %%
@@ -150,7 +151,7 @@ PrimaryExpr : Operand                                   { PrimaryExpr1 $1 }
     --        | PrimaryExpr Index                         { PrimaryExpr4 $1 $2 }
   --          | PrimaryExpr Slice                         { PrimaryExpr5 $1 $2 }
 --            | PrimaryExpr TypeAssertion                 { PrimaryExpr6 $1 $2 }
-            | PrimaryExpr Arguments                     { PrimaryExpr7 $1 $2 }
+              | PrimaryExpr Arguments                     { PrimaryExpr7 $1 $2 }
 --            | Conversion                                { PrimaryExpr2 $1 }
 
 Conversion : Type '(' Expr ',' ')'                      { Conversion $1 $3 }
@@ -163,9 +164,6 @@ ReceiverType : TypeName                                 { ReceiverType1 $1 }
              | '(' ReceiverType ')'                     { ReceiverType3 $2 }
 
 
-LiteralValue : '{' '}'                                  { LiteralValue1 }
-             | '{' ElementList '}'                      { LiteralValue2 $2 }
-             | '{' ElementList ',' '}'                  { LiteralValue2 $2 }
 
 ElementList : KeyedElement                              { [$1]  }
             | ElementList ',' KeyedElement              { $1 ++ [$3] }
@@ -182,6 +180,16 @@ FieldName : identifier                                        { $1 }
 Element : Expr                                          { Element1 $1 }
         | LiteralValue                                  { Element2 $1 }
 
+Operand : OperandName                                   { Operand2 $1 }
+        | Literal                                       { Operand1 $1 }
+        | '(' Expr ')'                                  { Operand4 $2  }
+    --    | MethodExpr                                  { Operand3 $1  }
+
+-- Ambiguity in the Go syntax, TODO complits without parens
+Literal : BasicLit                                      { BasicLit $1 }
+--        | "func" Signature FunctionBody               { FunctionLit $2 $3  }
+          | '(' LiteralType LiteralValue ')'            { CompositeLit $2 $3 } 
+
 LiteralType : StructType                                { LiteralType1 $1 }
      --       | ArrayType                                 { LiteralType2 $1 }
    --         | '[' "..." ']' ElementType                 { LiteralType3 $4 }
@@ -189,15 +197,9 @@ LiteralType : StructType                                { LiteralType1 $1 }
 --            | MapType                                   { LiteralType5 $1 }
               | TypeName                                  { LiteralType6 $1 }
 
-
-Operand : OperandName                                   { Operand2 $1 }
-        | Literal                                       { Operand1 $1 }
-        | '(' Expr ')'                                  { Operand4 $2  }
-    --    | MethodExpr                                    { Operand3 $1  }
-
-Literal : BasicLit                                      { BasicLit $1 }
---        | "func" Signature FunctionBody                 { FunctionLit $2 $3  }
---          | LiteralType LiteralValue                      { CompositeLit $1 $2 }
+LiteralValue : '{' '}'                                  { LiteralValue1 }
+             | '{' ElementList '}'                      { LiteralValue2 $2 }
+             | '{' ElementList ',' '}'                  { LiteralValue2 $2 }
 
 BasicLit : int_lit                                      { IntLit $1 }
          | string_lit                                   { StringLit $1 }
