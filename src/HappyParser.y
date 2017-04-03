@@ -197,7 +197,7 @@ Operand : OperandName                                   { Operand2 $1 }
 
 Literal : BasicLit                                      { BasicLit $1 }
 --        | "func" Signature FunctionBody                 { FunctionLit $2 $3  }
-          --| LiteralType LiteralValue                      { CompositeLit $1 $2 }
+--          | LiteralType LiteralValue                      { CompositeLit $1 $2 }
 
 BasicLit : int_lit                                      { IntLit $1 }
          | string_lit                                   { StringLit $1 }
@@ -290,15 +290,19 @@ ConstDecl : "const" ConstSpec                           { $2 }
 ConstSpec : IdentifierList Type '=' ExpressionList      { ConstDecl $1 $2 $4 }
 
 -- TODO more typespecs
-TypeDecl : "type" TypeSpec                              { $2 }
+TypeDecl : "type" TypeSpec                              { TypeDecl [$2]  } 
+         | "type" '(' TypeSpecs ')'                     { TypeDecl $3    }
 
-TypeSpec : identifier Type                                    { TypeDecl $1 $2 }
+TypeSpecs :  TypeSpec                                   { [$1]           }
+          | TypeSpecs ';' TypeSpec                      { $1 ++ [$3]     }
+
+TypeSpec : identifier Type                              { TypeSpec $1 $2 }
 
 VarDecl : "var" VarSpec                                 { $2 }
 VarSpec : IdentifierList Type '=' ExpressionList        { VarDecl $1 $2 $4 }
 
-IdentifierList : identifier                                   { [(IdDecl $1)] }
-               | IdentifierList ',' identifier                { $1 ++ [(IdDecl $3)] }
+IdentifierList : identifier                             { [(IdDecl $1)] }
+               | IdentifierList ',' identifier          { $1 ++ [(IdDecl $3)] }
 
 ExpressionList : Expr                                   { [$1] }
                | ExpressionList ',' Expr                { $1 ++ [$3] } 
@@ -306,9 +310,9 @@ ExpressionList : Expr                                   { [$1] }
 
 Type : TypeLit                                          { TypeLit $1 }
      | TypeName                                         { TypeName $1 }
---     | '(' Type ')'                                     { $2 }
+--     | '(' Type ')'                                   { $2 }
 
-TypeName : identifier                                         { TypeNameIdentifier $1 } 
+TypeName : identifier                                   { TypeNameIdentifier $1 } 
          | QualifiedIdent                               { TypeNameQualifiedIdent $1 }
 
 QualifiedIdent : identifier '.' identifier              { QualifiedIdent  $1 $3 }

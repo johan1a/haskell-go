@@ -1,1 +1,1 @@
-SourceFile (Package "main") [TopLevelDecl1 (TypeDecl "X" (TypeLit (StructTypeLit (StructType1 [FieldDecl1 (TypeName (TypeNameIdentifier "int"))]))))]
+SourceFile (Package "main") [TopLevelDecl1 (TypeDecl [TypeSpec "X" (TypeLit (StructTypeLit (StructType1 [FieldDecl1 (TypeName (TypeNameIdentifier "int"))])))])]

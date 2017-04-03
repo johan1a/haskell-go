@@ -168,9 +168,12 @@ data MethodDecl = MethodDecl1 Receiver MethodName Signature FunctionBody
 type Receiver = [ParameterDecl]
 
 data Declaration = ConstDecl [IdDecl] Type [Expr]  
-                 | TypeDecl Name Type 
+                 | TypeDecl [TypeSpec]
                  | VarDecl [IdDecl] Type [Expr]
                   deriving (Eq, Show)
+
+data TypeSpec = TypeSpec Name Type
+               deriving (Eq, Show)
 
 type IdentifierList = [Name]
 
