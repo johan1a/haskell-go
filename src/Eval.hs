@@ -190,7 +190,7 @@ execIncDecStmt (DecStmt expr) = error "incdedc TODO"
 execShortVarDecl :: [IdDecl] -> [Expr] -> State -> IO State
 execShortVarDecl dd exprs s = do
     obj <- (eval ex s)
-    return $ bindVar (getName $ head dd) obj s
+    bindVar (getName $ head dd) obj s
     where ex = head exprs
 
 -- Yikes...
