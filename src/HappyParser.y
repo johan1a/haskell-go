@@ -366,8 +366,8 @@ StructType : "struct" '{' FieldDecls '}'                { StructType1 $3 }
 FieldDecls : FieldDecl ';' FieldDecls                   { [$1] ++ $3 }
            | FieldDecl ';'                              { [$1] }
 
-FieldDecl : IdentifierList Type                         { FieldDecl1 $2 }
-          | IdentifierList Type Tag                     { FieldDecl2 $2 $3 }
+FieldDecl : IdentifierList Type                         { FieldDecl1 $1 $2 }
+          | IdentifierList Type Tag                     { FieldDecl2 $1 $2 $3 }
           | AnonymousField                              { AnonFieldDecl1 $1 }
           | AnonymousField Tag                          { AnonFieldDecl2 $1 $2 }
 

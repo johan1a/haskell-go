@@ -6,15 +6,9 @@ import Data.Maybe
 import Debug.Trace
 import Control.Applicative
 
-
--- Activation record
-type ActRec = Map Name Expr
-
-type Values = Map Name Value
-
-data Object = O1 Type Value
-            | O2 Type Values
-            deriving (Show)
+instance Show Object where
+    show (O1 t v) = show v
+    show (O2 t fields) = show $ Map.elems fields
 
 instance Eq Object where
     (==) (O1 _ l) (O1 _ r) = l == r
@@ -26,15 +20,22 @@ instance Ord Object where
     (<=) (O1 _ l) (O1 _ r) = l <= r
     (<) (O1 _ l) (O1 _ r) = l < r
 
+-- Activation record
+type ActRec = Objects
 
+type Objects = Map Name Object
 
-    
+-- e.g. fields of astruct
+type Fields = Map Name Object
+
+data Object = O1 Type Value
+            | O2 Type Fields
 
 data State = State { actRecs :: [ActRec], --TODO types
                      params  :: Map Name [Name],
                      funcs   :: Map Name FunctionDecl,
                      types   :: Map Name Type,
-                     vars    :: Map Name Object, 
+                     vars    :: Objects, 
                      callStack :: [String],
                      retVal  :: Object,
                      emitter ::  String -> IO()
@@ -42,7 +43,7 @@ data State = State { actRecs :: [ActRec], --TODO types
 
 -- Returns the activation record of the current scope
 decls :: State -> ActRec
-decls state = traceShow "decls" head $ actRecs state
+decls state = head $ actRecs state
 
 
 currentFunc :: State -> String
@@ -54,6 +55,7 @@ currentFunc state = case func of
 emptyState :: State
 emptyState = State { actRecs = [Map.empty], 
                 params = Map.empty,
+                types = Map.empty,
                 funcs = Map.empty, 
                 callStack = ["TOPLEVEL"],
                 vars = Map.empty,
@@ -89,13 +91,13 @@ readTopLevelDecls [] state = return state
 readTopLevelDecls (s:ss) state = readTopLevelDecl s state >>= readTopLevelDecls ss 
 
 readTopLevelDecl :: TopLevelDecl -> State -> IO State
-readTopLevelDecl (TopLevelDecl1 decl) state = return $ storeDecl decl state
+readTopLevelDecl (TopLevelDecl1 decl) state = storeDecl decl state
 readTopLevelDecl (TopLevelDecl2 fDecl) state = return $ storeFuncDecl fDecl state
 
 --TODO rename
-storeDecl :: Declaration -> State -> State
+storeDecl :: Declaration -> State -> IO State
 storeDecl (ConstDecl idDecls type_ exprs) state = bindDecls idDecls type_ exprs state 
-storeDecl (TypeDecl typeSpecs) state = bindTypeSpecs typeSpecs state
+storeDecl (TypeDecl typeSpecs) state = return $ bindTypeSpecs typeSpecs state
 storeDecl (VarDecl idDecls type_ exprs) state = bindDecls idDecls type_ exprs state 
 
 bindTypeSpecs :: [TypeSpec] -> State  -> State
@@ -106,13 +108,11 @@ bindTypeSpec :: TypeSpec -> State -> State
 bindTypeSpec (TypeSpec n t) s = s { types = Map.insert n t (types s)}
 
 
-bindDecls :: [IdDecl] -> Type -> [Expr] -> State -> State
-bindDecls [] type_ [] state = state
+bindDecls :: [IdDecl] -> Type -> [Expr] -> State -> IO State
+bindDecls [] type_ [] state = return state
 bindDecls [] type_ _ state = error "mismatch1 TODO error?"
 bindDecls _ type_ [] state = error "mismatch2 TODO error?"
-bindDecls (d:dd) type_ (e:ee) state = bindDecls dd type_ ee $ bindDecl d type_ e state
-    where b = "bound decl: " ++ (show d) ++ " " ++ (show e)
-
+bindDecls (d:dd) type_ (e:ee) state = bindDecl d type_ e state >>= bindDecls dd type_ ee 
 
 storeFuncDecl :: FunctionDecl -> State -> State
 storeFuncDecl decl state = state { funcs = (Map.insert (fName decl) decl $ funcs state),
@@ -165,7 +165,7 @@ execStmts [] state = return state
 execStmts (s:ss) state = execStmt s state >>= execStmts ss 
 
 execStmt :: Statement -> State -> IO State
-execStmt (DeclarationStmt decl) st = return $ execDecl decl st
+execStmt (DeclarationStmt decl) st = execDecl decl st
 execStmt (SimpleStmt simpleStmt) st = execSimpleStmt simpleStmt st
 execStmt (BlockStmt block) st = execBlock block st
 execStmt (IfStmt ifStmt) st = execIfStmt ifStmt st
@@ -174,13 +174,13 @@ execStmt (ReturnStmt expr) st = do
     return $ st { retVal = val }
 
 --TODO implement types, multiple declarations
-execDecl :: Declaration -> State -> State
+execDecl :: Declaration -> State -> IO State
 execDecl (ConstDecl idDecls type_ exprs) = bindExpr (getName $ idDecls !! 0) ( (exprs !! 0) )  
-execDecl (TypeDecl typeSpecs) = bindTypeSpecs typeSpecs 
+execDecl (TypeDecl typeSpecs) = return . bindTypeSpecs typeSpecs 
 execDecl (VarDecl idDecls type_ exprs) = bindExpr (getName $ idDecls !! 0) ( (exprs !! 0) ) 
 
 execSimpleStmt :: SimpleStmt -> State -> IO State
-execSimpleStmt (Assignment a) = return . execAssign a
+execSimpleStmt (Assignment a) = execAssign a
 execSimpleStmt EmptyStmt = return 
 execSimpleStmt (ExpressionStmt expr) = execExprStmt expr
 execSimpleStmt (IncDecStmt stmt) = execIncDecStmt stmt 
@@ -195,8 +195,6 @@ execShortVarDecl dd exprs s = do
     obj <- (eval (head exprs ) s)
     bindVar (getName $ head dd) obj s
 
-bindVar :: Name -> Object -> State -> IO State
-bindVar n o s = return $ s { vars = Map.insert n o (vars s) }
 
 -- Yikes...
 execIfStmt :: IfStmt -> State -> IO State
@@ -238,7 +236,7 @@ execExprStmt (UnaryExpr u) = execUnary u
 --execExprStmt (Num n) st = error "error num" 
 --execExprStmt (IdUse id) st = error $  "error id: " ++ id
 --execExprStmt (StringExpr str) st = error "error: str"
-execExprStmt e = error $ traceShow e "execExprStmt"
+execExprStmt e = error "execExprStmt"
 
 execUnary :: UnaryExpr -> State -> IO State
 execUnary (PrimaryExpr p) = execPrimary p
@@ -271,12 +269,12 @@ execOperand op = error "execOp"
 
 execLit :: Literal -> State -> IO State
 execLit (BasicLit lit) s= return s-- TODO should we evaluate the literal here?
-execLit (CompositeLit typ val) s= bindComposite typ val s 
-execLit (FunctionLit sig block) s= return s-- TODO should we evaluate the literal here?
+execLit (CompositeLit typ val) s = bindComposite typ val s 
+execLit (FunctionLit sig block) s = return s-- TODO should we evaluate the literal here?
 
 bindComposite :: LiteralType -> LiteralValue -> State -> IO State
---bindComposite (LiteralType1 (StructType1 [FieldDecl])) (LiteralValue2 elements) s =
-bindComposite lt lv s = error $ (show lt) ++ " " ++ (show lv) 
+bindComposite lt LiteralValue1 s = return s -- No values given
+bindComposite lt (LiteralValue2 e) s = error $ (show lt) ++ " bindComposite " ++ (show e) 
     
     
 
@@ -295,9 +293,10 @@ getExprsFromArgs (Arguments5 exprs) = exprs
 
 
 execFuncCall :: Name -> [Expr] -> State -> IO State
-execFuncCall name args state = execFuncDecl fDecl newState
-    where newState = bindArgs name args state
-          fDecl = getFuncDecl name state
+execFuncCall name args state = do
+    newState <- bindArgs name args state
+    execFuncDecl fDecl newState
+    where fDecl = getFuncDecl name state
 
 execFuncDecl :: FunctionDecl -> State -> IO State
 execFuncDecl (FunctionDecl1 _ _ ) st = error "No function body!"
@@ -310,11 +309,11 @@ execBlock (Block stmts) st = execStmts stmts st
 
 -- TODO assigns first in lhs to first in rhs.
 -- does not yet support multiple declarations at once
-execAssign :: Assignment -> State -> State
+execAssign :: Assignment -> State -> IO State
 execAssign (Assign lhs rhs) = bindAssign (lhs !! 0) (rhs !! 0) 
 execAssign _ = error "ey"
 
-bindAssign :: Expr -> Expr -> State -> State
+bindAssign :: Expr -> Expr -> State -> IO State
 bindAssign lhs rhs state = bindExpr (getExprName lhs) rhs state 
 bindAssign _ rhs state = error "bindassign TODO"
 
@@ -323,23 +322,29 @@ getName (IdDecl name) = name
 getExprName (UnaryExpr (PrimaryExpr (PrimaryExpr1 (Operand2 (OperandName1 name))))) = name
 
 --Bind the given arguments to the formal parameter names of the function
-bindArgs :: Name -> [Expr] -> State -> State
+bindArgs :: Name -> [Expr] -> State -> IO State
 bindArgs funcName exprs state = bindArgs2 (fParams $ getFuncDecl funcName state) exprs $  ( state { actRecs = [Map.empty] ++ (actRecs state)})
 
-bindArgs2 :: [Name] -> [Expr] -> State-> State
-bindArgs2 [] [] state = state
+bindArgs2 :: [Name] -> [Expr] -> State-> IO State
+bindArgs2 [] [] state = return state
 bindArgs2 (n:nn) (a:aa) state = (bindArg n a state)
-bindArgs2 _ _ state = state
+bindArgs2 _ _ state = return state
+
+
+bindVar :: Name -> Object -> State -> IO State
+bindVar n o s = return $ s { actRecs = ( [Map.insert n o $ decls s ] ++ (tail $ actRecs s))}
 
 --TODO change to bindValue instead
-bindExpr :: Name -> Expr -> State -> State
-bindExpr name expr state = state { actRecs =( [Map.insert name (lookupExpr expr state) $ decls state ] ++ (tail $ actRecs state))}
+bindExpr :: Name -> Expr -> State -> IO State
+bindExpr name expr state = do
+    obj <- eval expr state
+    bindVar name obj state
 
-bindArg :: Name -> Expr -> State -> State
-bindArg name expr state = state { actRecs = [Map.insert name (lookupExpr expr state) $ decls state ] ++ (tail $ actRecs state)}
+bindArg :: Name -> Expr -> State -> IO State
+bindArg  = bindExpr
 
 --TODO type
-bindDecl :: IdDecl -> Type -> Expr -> State -> State
+bindDecl :: IdDecl -> Type -> Expr -> State -> IO State
 bindDecl (IdDecl name) type_ expr state = bindExpr name expr state
 
 paramNames :: String -> State -> [String]
@@ -349,38 +354,20 @@ paramNames funcName state = pRetOrFail funcName $ Map.lookup funcName $ params s
 pRetOrFail funcName Nothing = error "Could not find function" funcName
 pRetOrFail funcName (Just val) = val 
 
---lookup paramexpr, upp en nivå
-
--- If given an IdUse, it tries to find what expression is actually referenced
-lookupExpr :: Expr -> State -> Expr
-lookupExpr (UnaryExpr (PrimaryExpr (PrimaryExpr1 (Operand2 (OperandName1 name))))) s = lookupIdUse name s
-lookupExpr x@(UnaryExpr (PrimaryExpr (PrimaryExpr1 (Operand1 (BasicLit (IntLit n)))))) s = x
---lookupExpr (IdUse name) state = lookupIdUse name state
---lookupExpr (Num n) state = (Num n)
-lookupExpr (BinExpr e ) state = lookupBinExpr e state
---lookupExpr (BoolExpr b) _ = (BoolExpr b)
---lookupExpr (StringExpr s) _ = (StringExpr s)
---lookupExpr (Call fName exprs) state = (Call fName (map (\x -> lookupExpr x state) exprs))  
-lookupExpr x@(UnaryExpr (PrimaryExpr (PrimaryExpr7 (PrimaryExpr1 (Operand2 (OperandName1 funcName))) args))) s = x
-lookupExpr (UnaryExpr (PrimaryExpr (PrimaryExpr1 (Operand4 expr)))) s = lookupExpr expr s
-lookupExpr x@(UnaryExpr (PrimaryExpr (PrimaryExpr1 (Operand1 (BasicLit lit))))) s = x
-lookupExpr b@(BoolExpr _) s = b
-lookupExpr expr state = error $ traceShow expr "lookupExpr " --expr
-
-
-lookupIdUse :: String -> State -> Expr
-lookupIdUse "true" state = BoolExpr True
-lookupIdUse "false" state = BoolExpr False
-lookupIdUse (name) state = lookupIdRef name found state
-    where found = (Map.lookup name $ decls state)
+--TODO refactor booleans
+lookupIdUse :: String -> State -> Object
+lookupIdUse "true" s = O1 (Type "bool") (BoolVal True)
+lookupIdUse "false" s = O1 (Type "bool") (BoolVal False)
+lookupIdUse name state = lookupIdRef name found state
+    where found = Map.lookup name $ decls state
 
 makeIdUse name = UnaryExpr (PrimaryExpr (PrimaryExpr1 (Operand2 (OperandName1 name))))
 
--- Lookup an Expr referenced by the IdUse
-lookupIdRef :: String -> Maybe Expr -> State -> Expr
-lookupIdRef name (Just expr) state = lookupExpr expr state
+-- Lookup an Object referenced by the IdUse
+lookupIdRef :: String -> Maybe Object -> State -> Object
+lookupIdRef name (Just o) state = o
 lookupIdRef name Nothing state
-    | canContinue = lookupExpr (makeIdUse name) (scopeAbove state) 
+    | canContinue = lookupIdUse name (scopeAbove state) 
     | otherwise = error $ "undefined: " ++ name
     where canContinue = (not atTopLevel) && (isParameter || inMainFunc)
           isParameter = (isParam name state) 
@@ -393,25 +380,6 @@ isParam name state = elem name $ fRetOrFail (currentFunc state) $ Map.lookup (cu
 scopeAbove :: State -> State
 scopeAbove state = state { actRecs = (tail $ actRecs state), callStack = (tail $ callStack state)}
 
-lookupBinExpr :: BinExpr -> State -> Expr
-lookupBinExpr (AritmExpr expr) state = BinExpr (AritmExpr (lookupAritmExpr expr state))
-lookupBinExpr (CondExpr expr) state = BinExpr (CondExpr (lookupCondExpr expr state))
-
-lookupAritmExpr :: AritmExpr -> State -> AritmExpr
-lookupAritmExpr (AddExpr l r) state = (AddExpr (lookupExpr l state) (lookupExpr r state))
-lookupAritmExpr (SubExpr l r) state = (SubExpr (lookupExpr l state) (lookupExpr r state))
-lookupAritmExpr (MulExpr l r) state = (MulExpr (lookupExpr l state) (lookupExpr r state))
-lookupAritmExpr (DivExpr l r) state = (DivExpr (lookupExpr l state) (lookupExpr r state))
-lookupAritmExpr (ModExpr l r) state = (ModExpr (lookupExpr l state) (lookupExpr r state))
-
-
-lookupCondExpr :: CondExpr -> State -> CondExpr
-lookupCondExpr (Eq_ l r) state = (Eq_ (lookupExpr l state) (lookupExpr r state))
-lookupCondExpr (Neq l r) state = (Neq (lookupExpr l state) (lookupExpr r state))
-lookupCondExpr (Less l r) state = (Less (lookupExpr l state) (lookupExpr r state))
-lookupCondExpr (LessEq l r) state = (LessEq (lookupExpr l state) (lookupExpr r state))
-lookupCondExpr (Greater l r) state = (Greater (lookupExpr l state) (lookupExpr r state))
-lookupCondExpr (GreaterEq l r) state = (GreaterEq (lookupExpr l state) (lookupExpr r state))
 
 
 evalBool :: Expr -> State -> IO Bool --TODO return state?
@@ -448,12 +416,69 @@ evalOperand (Operand3 methodExpr) s = error "evalOperand1"
 evalOperand (Operand4 expr) s = eval expr s
 
 evalOperandName :: OperandName -> State -> IO Object
-evalOperandName (OperandName1 name) s = eval ( lookupIdUse name s) s
-evalOperandName (OperandName2 qualifiedIdent) s = error $ show qualifiedIdent
+evalOperandName (OperandName1 name) s = return $ lookupIdUse name s
+
+-- TODO check if n1 is package or object
+evalOperandName (OperandName2 (QualifiedIdent n1 n2)) s = return $ field n2 $ obj
+    where obj = lookupIdUse n1 s
+
+-- TODO throw error if not found
+field :: Name -> Object -> Object
+field name (O2 t fields) = fromJust $ Map.lookup name fields
 
 evalLiteral :: Literal -> State -> IO Object
 evalLiteral (BasicLit bl) = evalBasicLit bl
+evalLiteral (CompositeLit (LiteralType6 (TypeNameIdentifier name)) (LiteralValue2 ee)) 
+ = instantiate name ee
 evalLiteral x = error $ "evalLiteral "  ++ ( show x)
+
+instantiate :: Name -> [KeyedElement] -> State -> IO Object
+instantiate typeName ee s = do
+    e <- (mapElements type_ ee s)
+    return (O2 type_ e)
+    where type_ = fromJust $ (Map.lookup typeName $ types s)
+
+mapElements :: Type -> [KeyedElement] -> State -> IO Fields
+mapElements (TypeName name) ee = error "mapElements"
+mapElements (Type name) ee = error "mapElements"
+mapElements (TypeLit lit) ee = mapElementsLit lit ee
+
+mapElementsLit :: TypeLit -> [KeyedElement] -> State -> IO Fields
+mapElementsLit (StructTypeLit struct) ee = mapElementsStruct struct ee
+mapElementsLit x ee = error $ "mapelementslit " ++ (show x)
+
+mapElementsStruct :: StructType -> [KeyedElement] -> State -> IO Fields
+mapElementsStruct (StructType2) ee = error "mapElementsStruct"
+mapElementsStruct (StructType1 decls) ee = bindFieldDecls Map.empty decls ee 
+
+bindFieldDecls :: Fields -> [FieldDecl] -> [KeyedElement] -> State -> IO Fields
+bindFieldDecls v [] [] s = return v
+bindFieldDecls v (d:dd) (e:ee) s = bindFieldDecl v d e s
+
+-- TODO multiple idDecls
+bindFieldDecl :: Fields -> FieldDecl -> KeyedElement -> State -> IO Fields
+bindFieldDecl v (FieldDecl1 idDecls type_) (KeyedElement2 k e) = bindKeyedElement v (head idDecls) type_ k e
+bindFieldDecl v (FieldDecl1 idDecls type_) (KeyedElement1 e) = bindKeyedElement2 v (head idDecls) type_ e
+bindFieldDecl v f k = error $ (show v) ++ " " ++ (show f) ++ " " ++ (show k)
+
+-- TODO types and names should match
+-- TODO should return state and Fields?
+bindKeyedElement :: Fields -> IdDecl -> Type -> Key -> Element -> State -> IO Fields
+bindKeyedElement v (IdDecl name) t (Key1 fieldName) (Element1 expr) s = do
+    ev <- eval expr s
+    return $ Map.insert name ev v
+bindKeyedElement v (IdDecl name) t (Key1 fieldName) (Element2 litVal) s = error "bindKeyedElement "
+
+bindKeyedElement2 :: Fields -> IdDecl -> Type -> Element -> State -> IO Fields
+bindKeyedElement2 v (IdDecl name) t (Element1 expr) s = do
+    ev <- eval expr s
+    return $ Map.insert name ev v
+    
+
+
+
+
+
 
 evalBasicLit :: BasicLit -> State -> IO Object
 evalBasicLit (IntLit n) s = return $ (O1 intType (IntVal n))

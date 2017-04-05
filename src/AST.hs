@@ -29,10 +29,8 @@ data TypeName = TypeNameIdentifier Name
               | TypeNameQualifiedIdent QualifiedIdent
               deriving (Eq, Show)
 
-data QualifiedIdent = QualifiedIdent PackageName Name
+data QualifiedIdent = QualifiedIdent Name Name
               deriving (Eq, Show)
-
-type PackageName = Name
 
 data TypeLit = ArrayTypeLit ArrayType
              | StructTypeLit StructType
@@ -184,8 +182,8 @@ data StructType = StructType1 [FieldDecl]
                 | StructType2
                 deriving (Eq, Show)
 
-data FieldDecl = FieldDecl1 Type
-               | FieldDecl2 Type Tag
+data FieldDecl = FieldDecl1 [IdDecl] Type
+               | FieldDecl2 [IdDecl] Type Tag
                | AnonFieldDecl1 AnonFieldType 
                | AnonFieldDecl2 AnonFieldType Tag
                deriving (Eq, Show)
