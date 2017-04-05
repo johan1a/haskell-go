@@ -35,18 +35,18 @@ tokens :-
   "."                           { alex(const TokenDot )}
   "->"                          { alex(const TokenArrow )}
   "<-"                          { alex(const TokenLeftArrow )}
-  "=="    			            { alex(const TokenEq2 )}
-  "!="    			            { alex(const TokenNeq )}
-  "!"    			            { alex(const TokenExclamation )}
-  "<"     			            { alex(const TokenLess )}
-  "<="    			            { alex(const TokenLessEq) }
-  ">"     			            { alex(const TokenGreater) }
-  ">="    			            { alex(const TokenGreaterEq) }
-  "func"    			        { alex(const TokenFunc )}
-  "return"    			        { alex(const TokenReturn )}
-  "struct"    			        { alex(const TokenStruct )}
-  "interface"    			    { alex(const TokenInterface )}
-  "map"    			            { alex(const TokenMap )}
+  "=="                          { alex(const TokenEq2 )}
+  "!="                          { alex(const TokenNeq )}
+  "!"                           { alex(const TokenExclamation )}
+  "<"                           { alex(const TokenLess )}
+  "<="                          { alex(const TokenLessEq) }
+  ">"                           { alex(const TokenGreater) }
+  ">="                          { alex(const TokenGreaterEq) }
+  "func"                        { alex(const TokenFunc )}
+  "return"                      { alex(const TokenReturn )}
+  "struct"                      { alex(const TokenStruct )}
+  "interface"                   { alex(const TokenInterface )}
+  "map"                         { alex(const TokenMap )}
   \=                            { alex(const TokenEq )}
   \\                            { alex(const TokenLambda) }
   "("                           { alex(const TokenLParen )}
@@ -91,7 +91,7 @@ tokens :-
 stripQuotes :: String -> String
 stripQuotes s@[c]                     = s 
 stripQuotes ('"':s)  | last s == '"'  = init s
-            | otherwise      	      = s
+            | otherwise               = s
 stripQuotes ('\'':s) | last s == '\'' = init s
             | otherwise               = s
 stripQuotes s                         = s
@@ -114,14 +114,14 @@ data Token = TokenError {unknown :: String}
        | TokenChan
        | TokenLeftArrow
        | TokenIn
-	   | TokenString String
-	   | TokenEq2
-	   | TokenNeq
-	   | TokenLess
-	   | TokenLessEq
-	   | TokenGreater
-	   | TokenGreaterEq
-	   | TokenFunc
+       | TokenString String
+       | TokenEq2
+       | TokenNeq
+       | TokenLess
+       | TokenLessEq
+       | TokenGreater
+       | TokenGreaterEq
+       | TokenFunc
        | TokenConst
        | TokenStruct
        | TokenType
