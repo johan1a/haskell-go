@@ -74,7 +74,7 @@ tokens :-
     ":="                        { alex(const TokenShortVarDecl) }
     "++"                        { alex(const TokenInc )}
     "--"                        { alex(const TokenDec )}
-    ":"                         { alex(const TokenComma )}
+    ":"                         { alex(const TokenColon )}
     "{"                         { alex(const TokenLCParen) }
     "}"                         { alex(const TokenRCParen) }
     "if"                        { alex(const TokenIf )}

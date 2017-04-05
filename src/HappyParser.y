@@ -76,9 +76,11 @@ import Control.Monad.Except
     "else"  { Lexeme TokenElse _ }
     "package"{ Lexeme TokenPackage _ }
 
+%left LOW
 %left COMPOSITE
 %left '+' '-'
 %left '*' '/' '%'
+%left HIGH
 %%
 
 
@@ -171,8 +173,9 @@ ElementList : KeyedElement                              { [$1]  }
 KeyedElement : Element                                  { KeyedElement1 $1 }
              | Key ':' Element                          { KeyedElement2 $1 $3 }
 
-Key : FieldName                                         { Key1 $1 }
-    | Expr                                              { Key2 $1 }
+-- TODO precedence directives don't work here..
+Key : FieldName %prec HIGH                                        { Key1 $1 }
+    | Expr %prec LOW                                            { Key2 $1 }
     | LiteralValue                                      { Key3 $1 }
 
 FieldName : identifier                                        { $1 }

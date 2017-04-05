@@ -35,15 +35,14 @@ data State = State { actRecs :: [ActRec], --TODO types
                      params  :: Map Name [Name],
                      funcs   :: Map Name FunctionDecl,
                      types   :: Map Name Type,
-                     vars    :: Objects, 
                      callStack :: [String],
                      retVal  :: Object,
                      emitter ::  String -> IO()
                    } 
 
 -- Returns the activation record of the current scope
-decls :: State -> ActRec
-decls state = head $ actRecs state
+vars :: State -> ActRec
+vars state = head $ actRecs state
 
 
 currentFunc :: State -> String
@@ -58,7 +57,6 @@ emptyState = State { actRecs = [Map.empty],
                 types = Map.empty,
                 funcs = Map.empty, 
                 callStack = ["TOPLEVEL"],
-                vars = Map.empty,
                 retVal = O1 (Type "nulltype") NullVal, 
                 emitter = (putStr )
 }
@@ -138,7 +136,6 @@ paramDeclNames (ParameterDecl2 idDecls type_) = map idDeclName idDecls
 idDeclName :: IdDecl -> Name
 idDeclName (IdDecl name) = name
 
-
 topDeclName :: TopLevelDecl -> String
 topDeclName (TopLevelDecl1 decl) = declName decl
 topDeclName (TopLevelDecl2 funcDecl) = funcDeclName funcDecl
@@ -192,9 +189,9 @@ execIncDecStmt (DecStmt expr) = error "incdedc TODO"
 
 execShortVarDecl :: [IdDecl] -> [Expr] -> State -> IO State
 execShortVarDecl dd exprs s = do
-    obj <- (eval (head exprs ) s)
-    bindVar (getName $ head dd) obj s
-
+    obj <- (eval ex s)
+    return $ bindVar (getName $ head dd) obj s
+    where ex = head exprs
 
 -- Yikes...
 execIfStmt :: IfStmt -> State -> IO State
@@ -219,23 +216,8 @@ execElse :: Else -> State -> IO State
 execElse (Else1 ifStmt) = execIfStmt ifStmt
 execElse (Else2 block) = execBlock block 
 
-
-emit :: [Expr] -> String -> State -> IO State
-emit e suffix st = do
-    v <- eval (e !! 0) st
-    (emitter st) $ (show v) ++ suffix
-    return st 
-
---Print multiple
 execExprStmt :: Expr  -> State -> IO State
 execExprStmt (UnaryExpr u) = execUnary u
---execExprStmt (Call name e) st = execFuncCall name e st
---execExprStmt (PrintLnCall e) st = emit e "\n" st
---execExprStmt (PrintCall e) st = emit e "" st 
---execExprStmt (BoolExpr b) st = error "error bool"
---execExprStmt (Num n) st = error "error num" 
---execExprStmt (IdUse id) st = error $  "error id: " ++ id
---execExprStmt (StringExpr str) st = error "error: str"
 execExprStmt e = error "execExprStmt"
 
 execUnary :: UnaryExpr -> State -> IO State
@@ -246,26 +228,25 @@ execPrimary (PrimaryExpr1 o) = execOperand o
 execPrimary (PrimaryExpr7 primary args) = execPrimaryFuncCall primary args
 
 execPrimaryFuncCall :: PrimaryExpr -> Arguments -> State -> IO State
-execPrimaryFuncCall (PrimaryExpr1 (Operand2 (OperandName2 (QualifiedIdent p n)))) args 
-    | p == "fmt" = execFmtFunction n args
-execPrimaryFuncCall (PrimaryExpr1 (Operand2 (OperandName1 name))) args =
-    execFuncCall name (getExprsFromArgs args)
-    
-execPrimaryFuncCall x args = error $ ("215 " ++ (show x) ++ " - " ++ (show args))
+execPrimaryFuncCall (PrimaryExpr1 (Operand2 (OperandName2 (QualifiedIdent p n)))) args s
+    | p == "fmt" = execFmtFunction n args s
+execPrimaryFuncCall (PrimaryExpr1 (Operand2 (OperandName1 name))) args s =
+    execFuncCall name (getExprsFromArgs args) s
 
+execFmtFunction :: String -> Arguments -> State -> IO State
 execFmtFunction name (Arguments5 exprs) 
-    | name == "Println" = emit exprs "\n"
-    | name == "Print" = emit exprs ""
+    | name == "Println" = emit exprs "\n" 
+    | name == "Print" = emit exprs "" 
     | otherwise = error $ "fmt func: " ++ name
-execFmtFunction name args = error $ "fmt args: " ++ (show args) 
 
+emit :: [Expr] -> String -> State -> IO State
+emit e suffix st = do
+    v <- eval (e !! 0) st
+    (emitter st) $ (show v) ++ suffix
+    return st 
 
 execOperand :: Operand -> State -> IO State
 execOperand (Operand1 lit) = execLit lit
-execOperand (Operand2 name) = error "execop2"
-execOperand (Operand3 methodExpr) = error "execop3"
-execOperand (Operand4 expr) = error "execop4"
-execOperand op = error "execOp"
 
 execLit :: Literal -> State -> IO State
 execLit (BasicLit lit) s= return s-- TODO should we evaluate the literal here?
@@ -274,15 +255,11 @@ execLit (FunctionLit sig block) s = return s-- TODO should we evaluate the liter
 
 bindComposite :: LiteralType -> LiteralValue -> State -> IO State
 bindComposite lt LiteralValue1 s = return s -- No values given
-bindComposite lt (LiteralValue2 e) s = error $ (show lt) ++ " bindComposite " ++ (show e) 
-    
-    
 
 evalFuncCall :: String -> Arguments -> State -> IO Object
 evalFuncCall funcName args state = do 
     s <- execFuncCall funcName (getExprsFromArgs args) state 
     return $ retVal s
-
 
 getExprsFromArgs :: Arguments -> [Expr]
 getExprsFromArgs Arguments1 = []
@@ -311,11 +288,9 @@ execBlock (Block stmts) st = execStmts stmts st
 -- does not yet support multiple declarations at once
 execAssign :: Assignment -> State -> IO State
 execAssign (Assign lhs rhs) = bindAssign (lhs !! 0) (rhs !! 0) 
-execAssign _ = error "ey"
 
 bindAssign :: Expr -> Expr -> State -> IO State
 bindAssign lhs rhs state = bindExpr (getExprName lhs) rhs state 
-bindAssign _ rhs state = error "bindassign TODO"
 
 getName (IdDecl name) = name
 
@@ -332,7 +307,7 @@ bindArgs2 _ _ state = return state
 
 
 bindVar :: Name -> Object -> State -> IO State
-bindVar n o s = return $ s { actRecs = ( [Map.insert n o $ decls s ] ++ (tail $ actRecs s))}
+bindVar n o s = return $ s { actRecs = ( [Map.insert n o $ vars s ] ++ (tail $ actRecs s))}
 
 --TODO change to bindValue instead
 bindExpr :: Name -> Expr -> State -> IO State
@@ -359,16 +334,16 @@ lookupIdUse :: String -> State -> Object
 lookupIdUse "true" s = O1 (Type "bool") (BoolVal True)
 lookupIdUse "false" s = O1 (Type "bool") (BoolVal False)
 lookupIdUse name state = lookupIdRef name found state
-    where found = Map.lookup name $ decls state
+    where found = Map.lookup name $ vars state
 
 makeIdUse name = UnaryExpr (PrimaryExpr (PrimaryExpr1 (Operand2 (OperandName1 name))))
 
 -- Lookup an Object referenced by the IdUse
 lookupIdRef :: String -> Maybe Object -> State -> Object
 lookupIdRef name (Just o) state = o
-lookupIdRef name Nothing state
+lookupIdRef name Nothing state 
     | canContinue = lookupIdUse name (scopeAbove state) 
-    | otherwise = error $ "undefined: " ++ name
+    | otherwise = error $ "undefined id: " ++ name
     where canContinue = (not atTopLevel) && (isParameter || inMainFunc)
           isParameter = (isParam name state) 
           inMainFunc = (currentFunc state) == "main"
@@ -391,14 +366,9 @@ asBoolVal (O1 _ (IntVal _)) = error "not a bool"
 asBoolVal (O1 _ (StringVal _)) = error "not a bool"
 
 eval :: Expr -> State -> IO Object
---eval (IdUse name) state = eval (lookupExpr (IdUse name) state) state
 eval (BinExpr e ) state = evalBin e state
---eval (Num n) _ = return $ IntVal n 
 eval (BoolExpr b) _ = return $ O1 boolType (BoolVal b)
---eval (StringExpr s) _ = return $ StringVal s
---eval (Call fName exprs) state = execFuncCall fName  exprs state >>= return . retVal
 eval (UnaryExpr ue) s =  evalUnary ue s
-eval e s = error $ "eval2: " ++ (show e)
 
 evalUnary :: UnaryExpr -> State -> IO Object
 evalUnary (PrimaryExpr pe) = evalPrimary pe
@@ -407,20 +377,19 @@ evalPrimary :: PrimaryExpr -> State -> IO Object
 evalPrimary (PrimaryExpr1 op) = evalOperand op
 evalPrimary (PrimaryExpr7 (PrimaryExpr1 (Operand2 (OperandName1 funcName))) args) = evalFuncCall funcName args
 
-
-
 evalOperand :: Operand -> State -> IO Object
 evalOperand (Operand1 lit) s = evalLiteral lit s
 evalOperand (Operand2 (opName)) s = evalOperandName opName s
-evalOperand (Operand3 methodExpr) s = error "evalOperand1"
 evalOperand (Operand4 expr) s = eval expr s
 
 evalOperandName :: OperandName -> State -> IO Object
 evalOperandName (OperandName1 name) s = return $ lookupIdUse name s
 
 -- TODO check if n1 is package or object
-evalOperandName (OperandName2 (QualifiedIdent n1 n2)) s = return $ field n2 $ obj
-    where obj = lookupIdUse n1 s
+evalOperandName (OperandName2 (QualifiedIdent n1 n2)) s = 
+    let obj = lookupIdUse n1 s
+        attr = field n2 $ obj   
+    in return attr
 
 -- TODO throw error if not found
 field :: Name -> Object -> Object
@@ -430,7 +399,6 @@ evalLiteral :: Literal -> State -> IO Object
 evalLiteral (BasicLit bl) = evalBasicLit bl
 evalLiteral (CompositeLit (LiteralType6 (TypeNameIdentifier name)) (LiteralValue2 ee)) 
  = instantiate name ee
-evalLiteral x = error $ "evalLiteral "  ++ ( show x)
 
 instantiate :: Name -> [KeyedElement] -> State -> IO Object
 instantiate typeName ee s = do
@@ -439,27 +407,22 @@ instantiate typeName ee s = do
     where type_ = fromJust $ (Map.lookup typeName $ types s)
 
 mapElements :: Type -> [KeyedElement] -> State -> IO Fields
-mapElements (TypeName name) ee = error "mapElements"
-mapElements (Type name) ee = error "mapElements"
 mapElements (TypeLit lit) ee = mapElementsLit lit ee
 
 mapElementsLit :: TypeLit -> [KeyedElement] -> State -> IO Fields
 mapElementsLit (StructTypeLit struct) ee = mapElementsStruct struct ee
-mapElementsLit x ee = error $ "mapelementslit " ++ (show x)
 
 mapElementsStruct :: StructType -> [KeyedElement] -> State -> IO Fields
-mapElementsStruct (StructType2) ee = error "mapElementsStruct"
-mapElementsStruct (StructType1 decls) ee = bindFieldDecls Map.empty decls ee 
+mapElementsStruct (StructType1 dd) ee s = bindFieldDecls Map.empty dd ee s
 
 bindFieldDecls :: Fields -> [FieldDecl] -> [KeyedElement] -> State -> IO Fields
-bindFieldDecls v [] [] s = return v
-bindFieldDecls v (d:dd) (e:ee) s = bindFieldDecl v d e s
+bindFieldDecls f [] [] s = return f
+bindFieldDecls f (d:dd) (e:ee) s = bindFieldDecl f d e s
 
 -- TODO multiple idDecls
 bindFieldDecl :: Fields -> FieldDecl -> KeyedElement -> State -> IO Fields
 bindFieldDecl v (FieldDecl1 idDecls type_) (KeyedElement2 k e) = bindKeyedElement v (head idDecls) type_ k e
 bindFieldDecl v (FieldDecl1 idDecls type_) (KeyedElement1 e) = bindKeyedElement2 v (head idDecls) type_ e
-bindFieldDecl v f k = error $ (show v) ++ " " ++ (show f) ++ " " ++ (show k)
 
 -- TODO types and names should match
 -- TODO should return state and Fields?
@@ -467,19 +430,17 @@ bindKeyedElement :: Fields -> IdDecl -> Type -> Key -> Element -> State -> IO Fi
 bindKeyedElement v (IdDecl name) t (Key1 fieldName) (Element1 expr) s = do
     ev <- eval expr s
     return $ Map.insert name ev v
-bindKeyedElement v (IdDecl name) t (Key1 fieldName) (Element2 litVal) s = error "bindKeyedElement "
+--TODO parser should parse to Key1 if just identifier
+bindKeyedElement f d t (Key2 (UnaryExpr(PrimaryExpr (PrimaryExpr1 (Operand2 (OperandName1 fName)))))) (Element1 expr) s = insertField fName expr f s
 
 bindKeyedElement2 :: Fields -> IdDecl -> Type -> Element -> State -> IO Fields
-bindKeyedElement2 v (IdDecl name) t (Element1 expr) s = do
+bindKeyedElement2 f (IdDecl name) t (Element1 expr) s = insertField name expr f s 
+
+insertField :: String -> Expr -> Fields -> State -> IO Fields
+insertField fieldName expr fields s = do
     ev <- eval expr s
-    return $ Map.insert name ev v
+    return $ Map.insert fieldName ev fields 
     
-
-
-
-
-
-
 evalBasicLit :: BasicLit -> State -> IO Object
 evalBasicLit (IntLit n) s = return $ (O1 intType (IntVal n))
 evalBasicLit (StringLit str) s = return $ O1 strType (StringVal str)
@@ -501,10 +462,6 @@ evalCond (Less l r) = evalCond2 (<) l r
 evalCond (LessEq l r) = evalCond2 (<=) l r
 evalCond (Greater l r) = evalCond2 (>) l r
 evalCond (GreaterEq l r) = evalCond2 (>=) l r
-
-
-
-
 
 intType :: Type
 intType = Type "int"
