@@ -1,21 +1,31 @@
 [![Build Status](https://travis-ci.org/johan1a/haskell-go.svg?branch=master)](https://travis-ci.org/johan1a/haskell-go)
 
-`
-To build:
-cabal sandbox init                   # Initialise the sandbox
-cabal install happy
-cabal install alex
-cabal install MissingH
-cabal install directory
-cabal install 			     # Install dependencies into the sandbox
-cabal build                          # Build your package inside the sandbox
+# Haskell-Go
 
-cabal configure
-cabal build
+## How to build:
 
-To run tests:
+`cabal sandbox init                   # Initialise the sandbox`
 
-cabal install --enable-tests --only-dependencies
+`cabal update`
 
-cabal test
-`
+`cabal install happy # TODO necessary?`
+
+`cabal install alex`
+
+`cabal install MissingH`
+
+`cabal install directory`
+
+`cabal install 			                  # Install dependencies into the sandbox`
+
+`cabal build                          # Build your package inside the sandbox`
+
+## How to run:
+
+`./dist/build/gho/gho <file>.go`
+
+## How to run tests:
+
+`cabal install --enable-tests --only-dependencies`
+
+`cabal test`
