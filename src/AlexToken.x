@@ -46,6 +46,7 @@ tokens :-
   "return"                      { alex(const TokenReturn )}
   "struct"                      { alex(const TokenStruct )}
   "interface"                   { alex(const TokenInterface )}
+  "import"                      { alex(const TokenImport                )}
   "map"                         { alex(const TokenMap )}
   \=                            { alex(const TokenEq )}
   \\                            { alex(const TokenLambda) }
@@ -113,6 +114,7 @@ data Token = TokenError {unknown :: String}
        | TokenMap
        | TokenChan
        | TokenLeftArrow
+       | TokenImport
        | TokenIn
        | TokenString String
        | TokenEq2

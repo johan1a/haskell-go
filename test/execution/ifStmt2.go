@@ -1,4 +1,5 @@
-package main;
+package main
+import "fmt";
 func main(){
 if 2 == 3 {
     fmt.Println( 1 )

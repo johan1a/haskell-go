@@ -1,4 +1,5 @@
-package main;
+package main
+import "fmt";
 func main() {
 if x {
     fmt.Print( 1 )

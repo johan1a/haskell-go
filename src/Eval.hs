@@ -64,13 +64,13 @@ testState outFile = emptyState { emitter = (appendFile outFile) }
 
 -- Runs the program and writes output to a standard out
 runProgram :: SourceFile -> IO State
-runProgram (SourceFile package dd) = do
+runProgram (SourceFile package _ dd) = do
     newState <- readTopLevelDecls dd emptyState 
     runMain $ newState
 
 -- Runs the program and writes output to a file
 runTestProgram :: String -> SourceFile -> IO State
-runTestProgram outFile (SourceFile package tDecls) = readTopLevelDecls tDecls (testState outFile) >>= runMain
+runTestProgram outFile (SourceFile package _ tDecls) = readTopLevelDecls tDecls (testState outFile) >>= runMain
 
 runMain :: State -> IO State
 runMain = execFuncCall "main" []

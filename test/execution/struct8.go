@@ -1,5 +1,7 @@
 package main
+import "fmt"
 
+import "fmt"
 
 type human struct {
     name string

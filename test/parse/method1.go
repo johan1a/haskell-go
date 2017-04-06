@@ -1,4 +1,5 @@
-package main;
+package main
+import "fmt";
 
 type circle struct {
     radius int

@@ -1,4 +1,5 @@
-package main;
+package main
+import "fmt";
 
 func main(){
     var asd float32 = 2

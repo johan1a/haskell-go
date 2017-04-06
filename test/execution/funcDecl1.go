@@ -1,4 +1,5 @@
-package main;
+package main
+import "fmt";
 
 func f (x int ) int {
     return x

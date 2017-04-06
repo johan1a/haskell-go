@@ -5,11 +5,22 @@ import Data.Char (toLower)
 
 type Name = String
 
-data SourceFile = SourceFile Package [TopLevelDecl]
+data SourceFile = SourceFile Package [ImportDecl] [TopLevelDecl]
                 deriving (Eq, Show)
 
 data Package = Package String
              deriving (Eq, Show)
+
+data ImportDecl = ImportDecl [ImportSpec]
+                deriving (Eq, Show)
+
+data ImportSpec = I1 ImportPath
+                | I2 ImportPath
+                | I3 PackageName ImportPath
+                deriving (Eq, Show)
+
+type ImportPath = String
+type PackageName = String
 
 data TopLevelDecl = TopLevelDecl1 Declaration 
                   | TopLevelDecl2 FunctionDecl 

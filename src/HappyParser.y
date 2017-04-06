@@ -30,6 +30,7 @@ import Control.Monad.Except
     "map"   { Lexeme TokenMap _ }
     "fmt.Println" { Lexeme TokenPrintLn _ }
     "return"{ Lexeme TokenReturn _ }
+    "import"           { Lexeme TokenImport _        }
     "interface"{ Lexeme TokenInterface _ }
     let     { Lexeme TokenLet _ }
     in      { Lexeme TokenIn _ }
@@ -85,9 +86,24 @@ import Control.Monad.Except
 
 
 -- Unsure if the last semicolon is correct
-SourceFile : PackageClause ';' TopLevelDecls            { SourceFile $1 $3 }
+SourceFile : PackageClause ';' ImportDecls TopLevelDecls    { SourceFile $1 $3 $4 }
 
-PackageClause : "package" identifier                          { Package $2 }
+ImportDecls : ImportDecl ';'                                { [$1] }
+            | ImportDecls ImportDecl ';'                    { $1 ++ [$2]}
+            |                                               { [] }
+
+ImportDecl : "import" ImportSpec                            { ImportDecl [$2] }
+           | "import" '(' ImportSpecs ')'                   { ImportDecl $3 }
+           | "import" '(' ')'                               { ImportDecl [] }
+
+ImportSpecs : ImportSpec ';'                                { [$1]                  }
+            | ImportSpecs ImportSpec ';'                    { $1 ++ [$2]            }
+
+ImportSpec : string_lit                                     { I1 $1                 }
+           | '.' string_lit                                 { I2 $2                 }
+           | identifier string_lit                          { I3 $1 $2              }
+
+PackageClause : "package" identifier                        { Package $2 }
 
 TopLevelDecls : TopLevelDecl ';'                        { [$1] }
               | TopLevelDecls TopLevelDecl ';'          { $1 ++ [$2] }
