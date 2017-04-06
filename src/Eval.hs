@@ -64,13 +64,12 @@ testState outFile = emptyState { emitter = (appendFile outFile) }
 
 -- Runs the program and writes output to a standard out
 runProgram :: SourceFile -> IO State
-runProgram (SourceFile package _ dd) = do
-    newState <- readTopLevelDecls dd emptyState 
-    runMain $ newState
+runProgram (SourceFile package _ dd) = readTopLevelDecls dd emptyState >>= runMain
 
 -- Runs the program and writes output to a file
 runTestProgram :: String -> SourceFile -> IO State
-runTestProgram outFile (SourceFile package _ tDecls) = readTopLevelDecls tDecls (testState outFile) >>= runMain
+runTestProgram outFile (SourceFile package _ tDecls) = 
+    readTopLevelDecls tDecls (testState outFile) >>= runMain
 
 runMain :: State -> IO State
 runMain = execFuncCall "main" []
@@ -190,16 +189,14 @@ execShortVarDecl dd exprs s = do
     bindVar (getName $ head dd) obj s
     where ex = head exprs
 
--- Yikes...
 execIfStmt :: IfStmt -> State -> IO State
-execIfStmt (Ifstmt1 expr block) state = do
+execIfStmt (Ifstmt1 expr block) state = execIfStmt' expr block Nothing state
+execIfStmt (Ifstmt2 expr block els) state = execIfStmt' expr block (Just els) state
+
+execIfStmt':: Expr -> Block -> Maybe Else -> State -> IO State
+execIfStmt' expr block els state = do
     b <- evalBool expr state
-    st <- execIfStmt2 b block Nothing state
-    return st
-execIfStmt (Ifstmt2 expr block els) state = do
-    b <- evalBool expr state
-    st <- execIfStmt2 b block (Just els) state
-    return st
+    execIfStmt2 b block els state
 
 execIfStmt2 :: Bool -> Block -> Maybe Else -> State -> IO State
 execIfStmt2 cond ifBlock (Just els) state
@@ -364,7 +361,7 @@ bindObj n o s = case found of
     (Just _) -> bindVar n o s
     Nothing -> do 
         upper <- upperState 
-        return $ State { actRecs = ([vars s] ++ (actRecs upper))}
+        return $ s { actRecs = ([vars s] ++ (actRecs upper))}
     where found = Map.lookup n $ vars s
           upperState = bindObj n o (scopeAbove s) 
 
