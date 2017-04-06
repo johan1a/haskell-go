@@ -3,12 +3,10 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 import AST
 import Data.Maybe
-import Debug.Trace
-import Control.Applicative
 
 instance Show Object where
-    show (O1 t v) = show v
-    show (O2 t fields) = show $ Map.elems fields
+    show (O1 _ v) = show v
+    show (O2 _ ff) = show $ Map.elems ff
 
 instance Eq Object where
     (==) (O1 _ l) (O1 _ r) = l == r
@@ -29,7 +27,7 @@ type Objects = Map Name Object
 type Fields = Map Name Object
 
 data Object = O1 Type Value
-            | O2 Type Fields
+            | O2 {o2t :: Type, fields :: Fields}
 
 data State = State { actRecs :: [ActRec], --TODO types
                      params  :: Map Name [Name],
@@ -68,7 +66,7 @@ testState outFile = emptyState { emitter = (appendFile outFile) }
 runProgram :: SourceFile -> IO State
 runProgram (SourceFile package dd) = do
     newState <- readTopLevelDecls dd emptyState 
-    runMain $   newState
+    runMain $ newState
 
 -- Runs the program and writes output to a file
 runTestProgram :: String -> SourceFile -> IO State
@@ -79,7 +77,6 @@ runMain = execFuncCall "main" []
 
 getFuncDecl :: FunctionName -> State -> FunctionDecl
 getFuncDecl name state = fRetOrFail name $ Map.lookup name $ funcs state
-
 
 fRetOrFail name Nothing = error $ "Error: Could not find function " ++ name
 fRetOrFail name (Just x) = x
@@ -290,7 +287,20 @@ execAssign :: Assignment -> State -> IO State
 execAssign (Assign lhs rhs) = bindAssign (lhs !! 0) (rhs !! 0) 
 
 bindAssign :: Expr -> Expr -> State -> IO State
+bindAssign (UnaryExpr (PrimaryExpr (PrimaryExpr1 (Operand2 (OperandName2 qualIdent))))) rhs state =
+   bindField qualIdent rhs state
 bindAssign lhs rhs state = bindExpr (getExprName lhs) rhs state 
+
+bindField :: QualifiedIdent -> Expr -> State -> IO State
+bindField (QualifiedIdent n1 n2) rhs s = do
+    val <- eval rhs s
+    let updated = Map.insert n2 val (fields struct)
+    let newStruct = struct { fields = updated }
+    bindObj n1 newStruct s
+    where struct = (lookupIdUse n1 s)
+          
+-- type Fields = Map Name Object
+--O2 Type Fields
 
 getName (IdDecl name) = name
 
@@ -349,6 +359,15 @@ lookupIdRef name Nothing state
           inMainFunc = (currentFunc state) == "main"
           atTopLevel = (currentFunc state) == "TOPLEVEL" -- TODO refactor
 
+bindObj :: Name -> Object -> State -> IO State
+bindObj n o s = case found of 
+    (Just _) -> bindVar n o s
+    Nothing -> do 
+        upper <- upperState 
+        return $ State { actRecs = ([vars s] ++ (actRecs upper))}
+    where found = Map.lookup n $ vars s
+          upperState = bindObj n o (scopeAbove s) 
+
 isParam :: Name -> State -> Bool
 isParam name state = elem name $ fRetOrFail (currentFunc state) $ Map.lookup (currentFunc state ) $  params state
 
@@ -393,10 +412,10 @@ evalOperandName (OperandName2 (QualifiedIdent n1 n2)) s =
 
 -- TODO throw error if not found
 field :: Name -> Object -> Object
-field name (O2 t fields) = case found of 
+field name (O2 t ff) = case found of 
     (Just o) -> o
-    Nothing -> error $ "Error: field '" ++ name ++ "' not found in type " ++ (show t) ++ " vals: " ++ (show fields)
-    where found = Map.lookup name fields
+    Nothing -> error $ "Error: field '" ++ name ++ "' not found in type " ++ (show t) ++ " vals: " ++ (show ff)
+    where found = Map.lookup name ff
 
 evalLiteral :: Literal -> State -> IO Object
 evalLiteral (BasicLit bl) s = evalBasicLit bl s
@@ -440,9 +459,9 @@ bindKeyedElement2 :: Fields -> IdDecl -> Type -> Element -> State -> IO Fields
 bindKeyedElement2 f (IdDecl name) t (Element1 expr) s = insertField name expr f s 
 
 insertField :: String -> Expr -> Fields -> State -> IO Fields
-insertField fieldName expr fields s = do
+insertField fieldName expr ff s = do
     ev <- eval expr s
-    return $ Map.insert fieldName ev fields 
+    return $ Map.insert fieldName ev ff 
     
 evalBasicLit :: BasicLit -> State -> IO Object
 evalBasicLit (IntLit n) s = return $ (O1 intType (IntVal n))

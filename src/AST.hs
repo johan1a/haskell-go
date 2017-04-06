@@ -203,7 +203,7 @@ data Value = IntVal Int
 instance Show Value where
     show (IntVal num) = show num
     show (BoolVal bool) = map toLower $ show bool
-    show (StringVal string) = show string
+    show (StringVal string) = string
     show (NullVal) = "Null"
 
 {-
