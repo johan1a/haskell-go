@@ -374,8 +374,8 @@ evalUnary :: UnaryExpr -> State -> IO Object
 evalUnary (PrimaryExpr pe) = evalPrimary pe
 
 evalPrimary :: PrimaryExpr -> State -> IO Object
-evalPrimary (PrimaryExpr1 op) = evalOperand op
-evalPrimary (PrimaryExpr7 (PrimaryExpr1 (Operand2 (OperandName1 funcName))) args) = evalFuncCall funcName args
+evalPrimary (PrimaryExpr1 op) s = evalOperand op s
+evalPrimary (PrimaryExpr7 (PrimaryExpr1 (Operand2 (OperandName1 funcName))) args) s = evalFuncCall funcName args s
 
 evalOperand :: Operand -> State -> IO Object
 evalOperand (Operand1 lit) s = evalLiteral lit s
@@ -393,12 +393,15 @@ evalOperandName (OperandName2 (QualifiedIdent n1 n2)) s =
 
 -- TODO throw error if not found
 field :: Name -> Object -> Object
-field name (O2 t fields) = fromJust $ Map.lookup name fields
+field name (O2 t fields) = case found of 
+    (Just o) -> o
+    Nothing -> error $ "Error: field '" ++ name ++ "' not found in type " ++ (show t) ++ " vals: " ++ (show fields)
+    where found = Map.lookup name fields
 
 evalLiteral :: Literal -> State -> IO Object
-evalLiteral (BasicLit bl) = evalBasicLit bl
-evalLiteral (CompositeLit (LiteralType6 (TypeNameIdentifier name)) (LiteralValue2 ee)) 
- = instantiate name ee
+evalLiteral (BasicLit bl) s = evalBasicLit bl s
+evalLiteral (CompositeLit (LiteralType6 (TypeNameIdentifier name)) (LiteralValue2 ee))  s
+ = instantiate name ee s
 
 instantiate :: Name -> [KeyedElement] -> State -> IO Object
 instantiate typeName ee s = do
@@ -413,16 +416,16 @@ mapElementsLit :: TypeLit -> [KeyedElement] -> State -> IO Fields
 mapElementsLit (StructTypeLit struct) ee = mapElementsStruct struct ee
 
 mapElementsStruct :: StructType -> [KeyedElement] -> State -> IO Fields
-mapElementsStruct (StructType1 dd) ee s = bindFieldDecls Map.empty dd ee s
+mapElementsStruct (StructType1 dd) ee s = bindFieldDecls dd ee s Map.empty 
 
-bindFieldDecls :: Fields -> [FieldDecl] -> [KeyedElement] -> State -> IO Fields
-bindFieldDecls f [] [] s = return f
-bindFieldDecls f (d:dd) (e:ee) s = bindFieldDecl f d e s
+bindFieldDecls :: [FieldDecl] -> [KeyedElement] -> State -> Fields -> IO Fields
+bindFieldDecls [] [] s f = return f
+bindFieldDecls (d:dd) (e:ee) s f = bindFieldDecl d e s f >>= bindFieldDecls dd ee s  
 
 -- TODO multiple idDecls
-bindFieldDecl :: Fields -> FieldDecl -> KeyedElement -> State -> IO Fields
-bindFieldDecl v (FieldDecl1 idDecls type_) (KeyedElement2 k e) = bindKeyedElement v (head idDecls) type_ k e
-bindFieldDecl v (FieldDecl1 idDecls type_) (KeyedElement1 e) = bindKeyedElement2 v (head idDecls) type_ e
+bindFieldDecl :: FieldDecl -> KeyedElement -> State -> Fields -> IO Fields
+bindFieldDecl (FieldDecl1 idDecls type_) (KeyedElement2 k e) s f = bindKeyedElement f (head idDecls) type_ k e s
+bindFieldDecl (FieldDecl1 idDecls type_) (KeyedElement1 e) s f = bindKeyedElement2 f (head idDecls) type_ e s
 
 -- TODO types and names should match
 -- TODO should return state and Fields?
