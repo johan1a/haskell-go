@@ -250,6 +250,8 @@ data CondExpr = Eq_ Expr Expr
           | LessEq Expr Expr
           | Greater Expr Expr
           | GreaterEq Expr Expr
+          | Or Expr Expr
+          | And Expr Expr
             deriving (Eq, Show)
 
 data IdDecl = IdDecl Name

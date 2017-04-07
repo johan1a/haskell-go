@@ -42,11 +42,12 @@ tokens :-
   "<="                          { alex(const TokenLessEq) }
   ">"                           { alex(const TokenGreater) }
   ">="                          { alex(const TokenGreaterEq) }
+  "||"                          { alex(const TokenOr )                  }
   "func"                        { alex(const TokenFunc )}
   "return"                      { alex(const TokenReturn )}
   "struct"                      { alex(const TokenStruct )}
   "interface"                   { alex(const TokenInterface )}
-  "import"                      { alex(const TokenImport                )}
+  "import"                      { alex(const TokenImport               )}
   "map"                         { alex(const TokenMap )}
   \=                            { alex(const TokenEq )}
   \\                            { alex(const TokenLambda) }
@@ -68,9 +69,10 @@ tokens :-
     "*"                         { alex(const TokenOpMul )}
     "/"                         { alex(const TokenOpSlash )}
     "%"                         { alex(const TokenOpModulo )}
+    "&&"                        { alex(const TokenAnd2 )}
     "<<"                        { alex(const TokenOpLeftStream) }
     ">>"                        { alex(const TokenOpRightStream) }
-    "&"                         { alex(const TokenOpAnd )}
+    "&"                         { alex(const TokenAnd1 )}
     "&^"                        { alex(const TokenOpAndUp )}
     ":="                        { alex(const TokenShortVarDecl) }
     "++"                        { alex(const TokenInc )}
@@ -83,7 +85,7 @@ tokens :-
     "package"                   { alex(const TokenPackage) }
     ";"                         { alex(const TokenSemicolon) }
     $digit+                     { alex (TokenNum . read) }
-    \"$alpha [$white $alpha $digit \_ ]*\"           { alex( TokenString . stripQuotes . read ) }
+    \"[$whitespace $alpha $digit \_]*\"           { alex( TokenString . stripQuotes . read ) }
     $alpha [$alpha $digit \_ ]*                        { alex TokenSym  }
     .                           { alex TokenError}
 
@@ -105,6 +107,8 @@ data Token = TokenError {unknown :: String}
        | TokenContinue
        | TokenFallthrough
        | TokenInterface
+       | TokenOr
+       | TokenAnd2
        | TokenLet
        | TokenPrint 
        | TokenPrintLn
@@ -149,7 +153,7 @@ data Token = TokenError {unknown :: String}
        | TokenOpModulo 
        | TokenOpLeftStream 
        | TokenOpRightStream 
-       | TokenOpAnd
+       | TokenAnd1
        | TokenOpAndUp 
        | TokenShortVarDecl
        | TokenExclamation

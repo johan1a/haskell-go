@@ -18,6 +18,8 @@ instance Ord Object where
     (<=) (O1 _ l) (O1 _ r) = l <= r
     (<) (O1 _ l) (O1 _ r) = l < r
 
+
+
 -- Activation record
 type ActRec = Objects
 
@@ -387,7 +389,11 @@ eval (BoolExpr b) _ = return $ O1 boolType (BoolVal b)
 eval (UnaryExpr ue) s =  evalUnary ue s
 
 evalUnary :: UnaryExpr -> State -> IO Object
-evalUnary (PrimaryExpr pe) = evalPrimary pe
+evalUnary (PrimaryExpr pe) s = evalPrimary pe s
+evalUnary (BoolNegExpr expr) s = do 
+    ev <- evalBool (UnaryExpr expr) s
+    return $ (O1 boolType (BoolVal (not $ ev)))
+evalUnary x s = error $ "asdfgh: " ++ (show x)
 
 evalPrimary :: PrimaryExpr -> State -> IO Object
 evalPrimary (PrimaryExpr1 op) s = evalOperand op s
@@ -475,12 +481,20 @@ evalAritm (MulExpr l r) state = mul <$> (eval l state) <*> (eval r state)
 evalAritm (DivExpr l r) state = div_ <$> (eval l state) <*> (eval r state) 
 
 evalCond :: CondExpr -> State -> IO Object
-evalCond (Neq l r) = evalCond2 (==) l r
-evalCond (Eq_ l r) = evalCond2 (==) l r
-evalCond (Less l r) = evalCond2 (<) l r
-evalCond (LessEq l r) = evalCond2 (<=) l r
-evalCond (Greater l r) = evalCond2 (>) l r
-evalCond (GreaterEq l r) = evalCond2 (>=) l r
+evalCond (Neq l r) s = evalCond2 (==) l r s
+evalCond (Eq_ l r) s = evalCond2 (==) l r s
+evalCond (Less l r) s = evalCond2 (<) l r s
+evalCond (LessEq l r) s = evalCond2 (<=) l r s
+evalCond (Greater l r) s = evalCond2 (>) l r s
+evalCond (GreaterEq l r) s = evalCond2 (>=) l r s
+evalCond (And l r) s = evalBoolOp (&&) l r s
+evalCond (Or l r) s = evalBoolOp (||) l r s
+
+
+evalBoolOp f l r s = do
+    lBool <- evalBool l s
+    rBool <- evalBool r s
+    return $ O1 boolType (BoolVal (f lBool rBool))
 
 intType :: Type
 intType = Type "int"
@@ -499,6 +513,7 @@ evalCond2 f l r state = do
 
 add :: Object -> Object -> Object
 add (O1 _ (IntVal l)) (O1 _ (IntVal r)) = (O1 intType (IntVal (l + r)))
+add (O1 _ (StringVal l)) (O1 _ (StringVal r)) = O1 strType (StringVal (l ++ r))
 add _ _ = error "todo add"
 
 sub :: Object -> Object -> Object

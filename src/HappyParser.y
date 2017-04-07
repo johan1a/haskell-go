@@ -37,6 +37,8 @@ import Control.Monad.Except
     string_lit  { Lexeme (TokenString $$) _ }
     int_lit     { Lexeme (TokenNum $$) _ }
     identifier    { Lexeme (TokenSym $$) _ }
+    "&&"    { Lexeme TokenAnd2 _ }
+    "||"    { Lexeme TokenOr _ }
     '\\'    { Lexeme TokenLambda _ }
     '->'    { Lexeme TokenArrow _ }
     "<-"    { Lexeme TokenLeftArrow _ }
@@ -58,6 +60,7 @@ import Control.Monad.Except
     '!'     { Lexeme TokenExclamation _ }
     '+'     { Lexeme TokenAdd _ }
     '-'     { Lexeme TokenSub _ }
+    '||'    { Lexeme TokenOr _ }
     '|'     { Lexeme TokenOpPipe _ }
     '^'     { Lexeme TokenOpUpArrow _ }
     '*'     { Lexeme TokenOpMul _ }
@@ -65,7 +68,7 @@ import Control.Monad.Except
     '%'     { Lexeme TokenOpModulo _ }
     "<<"    { Lexeme TokenOpLeftStream _ }
     ">>"    { Lexeme TokenOpRightStream _ }
-    '&'     { Lexeme TokenOpAnd _ }
+    '&'     { Lexeme TokenAnd1 _ }
     "&^"    { Lexeme TokenOpAndUp _ }
     ":="    { Lexeme TokenShortVarDecl _ }
     "++"    { Lexeme TokenInc _ }
@@ -81,6 +84,7 @@ import Control.Monad.Except
 %left COMPOSITE
 %left '+' '-'
 %left '*' '/' '%'
+%nonassoc "||" "&&"
 %left HIGH
 %%
 
@@ -400,13 +404,19 @@ AritmExpr : Expr '+' Expr                                { AddExpr $1 $3 }
         | Expr '*' Expr                                  { MulExpr $1 $3 }
         | Expr '/' Expr                                  { DivExpr $1 $3 }
         | Expr '%' Expr                                  { ModExpr $1 $3 }
+--        | Expr "<<" Expr                                  { ModExpr $1 $3 }
+  --      | Expr ">>" Expr                                  { ModExpr $1 $3 }
+    --    | Expr '&' Expr                                  { ModExpr $1 $3 }
+      --  | Expr "&^" Expr                                  { ModExpr $1 $3 }
 
 CondExpr : Expr "==" Expr                                { Eq_ $1 $3 }
-        | Expr "!=" Expr                                  { Neq $1 $3 }
+        | Expr "!=" Expr                                 { Neq $1 $3 }
         | Expr "<" Expr                                  { Less $1 $3 }
-        | Expr "<=" Expr                                  { LessEq $1 $3 }
+        | Expr "<=" Expr                                 { LessEq $1 $3 }
         | Expr ">" Expr                                  { Greater $1 $3 }
-        | Expr ">=" Expr                                  { GreaterEq $1 $3 }
+        | Expr ">=" Expr                                 { GreaterEq $1 $3 }
+        | Expr "||" Expr                                 { Or $1 $3 }
+        | Expr "&&" Expr                                 { And $1 $3 }
 
 AddOp   : '+'                                           { AddOp }
         | '-'                                           { SubOp }
