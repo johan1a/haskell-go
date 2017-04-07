@@ -1,5 +1,6 @@
 module Eval where
 import Data.Map (Map)
+import Control.Monad
 import qualified Data.Map as Map
 import AST
 import Data.Maybe
@@ -170,9 +171,10 @@ execStmt (ReturnStmt expr) st = do
 
 --TODO implement types, multiple declarations
 execDecl :: Declaration -> State -> IO State
-execDecl (ConstDecl idDecls type_ exprs) = bindExpr (getName $ idDecls !! 0) ( (exprs !! 0) )  
+execDecl (ConstDecl idDecls type_ exprs) = bindIdDecls idDecls exprs  
 execDecl (TypeDecl typeSpecs) = return . bindTypeSpecs typeSpecs 
-execDecl (VarDecl idDecls type_ exprs) = bindExpr (getName $ idDecls !! 0) ( (exprs !! 0) ) 
+execDecl (VarDecl idDecls type_ exprs) = bindIdDecls idDecls exprs 
+
 
 execSimpleStmt :: SimpleStmt -> State -> IO State
 execSimpleStmt (Assignment a) = execAssign a
@@ -288,7 +290,7 @@ execAssign (Assign lhs rhs) = bindAssign (lhs !! 0) (rhs !! 0)
 bindAssign :: Expr -> Expr -> State -> IO State
 bindAssign (UnaryExpr (PrimaryExpr (PrimaryExpr1 (Operand2 (OperandName2 qualIdent))))) rhs state =
    bindField qualIdent rhs state
-bindAssign lhs rhs state = bindExpr (getExprName lhs) rhs state 
+bindAssign lhs rhs state = bindExpr lhs rhs state 
 
 bindField :: QualifiedIdent -> Expr -> State -> IO State
 bindField (QualifiedIdent n1 n2) rhs s = do
@@ -318,18 +320,26 @@ bindArgs2 _ _ state = return state
 bindVar :: Name -> Object -> State -> IO State
 bindVar n o s = return $ s { actRecs = ( [Map.insert n o $ vars s ] ++ (tail $ actRecs s))}
 
---TODO change to bindValue instead
-bindExpr :: Name -> Expr -> State -> IO State
-bindExpr name expr state = do
+
+bindExprs :: [Expr] -> [Expr] -> State -> IO State
+bindExprs [] [] s = return s
+bindExprs (l:ll) (r:rr) s = bindExpr l r s >>= bindExprs ll rr
+
+bindExpr :: Expr -> Expr -> State -> IO State
+bindExpr lhs rhs state = bindArg (getExprName lhs) rhs state
+
+
+bindIdDecls :: [IdDecl] -> [Expr] -> State -> IO State
+bindIdDecls [] [] s = return s
+bindIdDecls (l:ll) (r:rr) s = bindArg (idDeclName l) r s >>= bindIdDecls ll rr
+bindArg :: Name -> Expr -> State -> IO State
+bindArg name expr state = do
     obj <- eval expr state
     bindVar name obj state
 
-bindArg :: Name -> Expr -> State -> IO State
-bindArg  = bindExpr
-
 --TODO type
 bindDecl :: IdDecl -> Type -> Expr -> State -> IO State
-bindDecl (IdDecl name) type_ expr state = bindExpr name expr state
+bindDecl (IdDecl name) type_ expr state = bindArg name expr state
 
 paramNames :: String -> State -> [String]
 paramNames funcName state = pRetOrFail funcName $ Map.lookup funcName $ params state
