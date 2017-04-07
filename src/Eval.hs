@@ -517,23 +517,18 @@ evalCond2 f l r state = do
 
 add :: Object -> Object -> Object
 add (O1 _ (IntVal l)) (O1 _ (IntVal r)) = (O1 intType (IntVal (l + r)))
+add (O1 _ (FloatVal l)) (O1 _ (FloatVal r)) = (O1 floatType (FloatVal (l + r)))
 add (O1 _ (StringVal l)) (O1 _ (StringVal r)) = O1 strType (StringVal (l ++ r))
-add _ _ = error "todo add"
 
 sub :: Object -> Object -> Object
 sub (O1 _ (IntVal l)) (O1 _ ( IntVal r)) = (O1 intType (IntVal (l - r)))
-sub _ _ = error "todo sub"
+sub (O1 _ (FloatVal l)) (O1 _ (FloatVal r)) = (O1 floatType (FloatVal (l - r)))
 
 mul :: Object -> Object -> Object
 mul (O1 _ (IntVal l)) (O1 _ (IntVal r)) = (O1 intType (IntVal (l * r)))
-mul _ _ = error "todo mul "
+mul (O1 _ (FloatVal l)) (O1 _ (FloatVal r)) = (O1 floatType (FloatVal (l * r)))
 
 div_ :: Object -> Object -> Object
---div (Num l) (Num r) = (Num (l / r))
-div_  _ _ = error "todo div"
+div_ (O1 _ (IntVal l)) (O1 _ (IntVal r)) = (O1 intType (IntVal (l `div` r)))
+div_ (O1 _ (FloatVal l)) (O1 _ (FloatVal r)) = (O1 floatType (FloatVal (l / r)))
 
-{-
-TODO add tests for  
-eval empty (Num 5) : IntVal 5
-
--}
