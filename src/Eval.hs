@@ -233,15 +233,22 @@ execPrimaryFuncCall (PrimaryExpr1 (Operand2 (OperandName1 name))) args s =
 
 execFmtFunction :: String -> Arguments -> State -> IO State
 execFmtFunction name (Arguments5 exprs) 
-    | name == "Println" = emit exprs "\n" 
-    | name == "Print" = emit exprs "" 
+    | name == "Println" = emitMany exprs "\n" 
+    | name == "Print" = emitMany exprs "" 
     | otherwise = error $ "fmt func: " ++ name
 
-emit :: [Expr] -> String -> State -> IO State
-emit e suffix st = do
-    v <- eval (e !! 0) st
-    (emitter st) $ (show v) ++ suffix
-    return st 
+emitMany :: [Expr] -> String -> State -> IO State
+emitMany [] suffix st = emitStr suffix st
+emitMany (e:[]) suffix st = emitExpr e suffix st 
+emitMany (e:ee) suffix st = emitExpr e " " st >>= emitMany ee suffix
+
+emitStr :: String -> State -> IO State
+emitStr str state = (emitter state) str >> return state
+
+emitExpr :: Expr -> String -> State -> IO State
+emitExpr e suffix st = do
+    v <- eval e st
+    emitStr ((show v) ++ suffix) st
 
 execOperand :: Operand -> State -> IO State
 execOperand (Operand1 lit) = execLit lit

@@ -186,8 +186,6 @@ ReceiverType : TypeName                                 { ReceiverType1 $1 }
              | '(' '*' TypeName ')'                     { ReceiverType2 $3 }
              | '(' ReceiverType ')'                     { ReceiverType3 $2 }
 
-
-
 ElementList : KeyedElement                              { [$1]  }
             | ElementList ',' KeyedElement              { $1 ++ [$3] }
 
@@ -250,17 +248,17 @@ Slice : '[' Expr ':' Expr ']'                           { Slice1 $2 $4 }
 TypeAssertion : '.' '(' Type ')'                          { TypeAssertion $3 }
 
 Arguments : '(' ')'                                     { Arguments1 }
-          | '(' ExpressionList "..." ',' ')'            { Arguments2 $2 }
-          | '(' ExpressionList "..." ')'                { Arguments3 $2 }
-          | '(' ExpressionList ',' ')'                  { Arguments4 $2 }
+    --      | '(' ExpressionList "..." ',' ')'            { Arguments2 $2 }
+  --        | '(' ExpressionList "..." ')'                { Arguments3 $2 }
+--          | '(' ExpressionList ',' ')'                  { Arguments4 $2 }
           | '(' ExpressionList ')'                      { Arguments5 $2 }
-          | '(' Type ',' ExpressionList "..." ',' ')'   { Arguments6 $2 $4 }
-          | '(' Type ',' ExpressionList "..." ')'       { Arguments7 $2 $4 }
-          | '(' Type ',' ExpressionList ',' ')'         { Arguments8 $2 $4 }
-          | '(' Type ',' ExpressionList ')'             { Arguments9 $2 $4 }
-          | '(' Type "..." ',' ')'                      { Arguments10 $2 }
-          | '(' Type "..." ')'                          { Arguments11 $2 }
-          | '(' Type ',' ')'                            { Arguments12 $2 }
+      --    | '(' Type ',' ExpressionList "..." ',' ')'   { Arguments6 $2 $4 }
+    --      | '(' Type ',' ExpressionList "..." ')'       { Arguments7 $2 $4 }
+  --        | '(' Type ',' ExpressionList ',' ')'         { Arguments8 $2 $4 }
+--          | '(' Type ',' ExpressionList ')'             { Arguments9 $2 $4 }
+  --        | '(' Type "..." ',' ')'                      { Arguments10 $2 }
+--          | '(' Type "..." ')'                          { Arguments11 $2 }
+    --      | '(' Type ',' ')'                            { Arguments12 $2 }
 --          | '(' Type ')'                                { Arguments13 $2 }
 
 Assignment : ExpressionList '=' ExpressionList          { Assign $1 $3 }
