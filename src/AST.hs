@@ -178,7 +178,9 @@ type Receiver = [ParameterDecl]
 
 data Declaration = ConstDecl [IdDecl] Type [Expr]  
                  | TypeDecl [TypeSpec]
-                 | VarDecl [IdDecl] Type [Expr]
+                 | VarDecl1 [IdDecl] Type [Expr]
+                 | VarDecl2 [IdDecl] [Expr]
+                 | VarDecl3 [IdDecl] Type 
                   deriving (Eq, Show)
 
 data TypeSpec = TypeSpec Name Type

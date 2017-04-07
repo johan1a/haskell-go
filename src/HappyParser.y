@@ -323,7 +323,11 @@ TypeSpecs :  TypeSpec                                   { [$1]           }
 TypeSpec : identifier Type                              { TypeSpec $1 $2 }
 
 VarDecl : "var" VarSpec                                 { $2 }
-VarSpec : IdentifierList Type '=' ExpressionList        { VarDecl $1 $2 $4 }
+
+VarSpec : IdentifierList Type '=' ExpressionList        { VarDecl1 $1 $2 $4 }
+        | IdentifierList '=' ExpressionList             { VarDecl2 $1 $3 }
+        | IdentifierList Type                           { VarDecl3 $1 $2 }
+
 
 IdentifierList : identifier                             { [(IdDecl $1)] }
                | IdentifierList ',' identifier          { $1 ++ [(IdDecl $3)] }

@@ -95,7 +95,7 @@ readTopLevelDecl (TopLevelDecl2 fDecl) state = return $ storeFuncDecl fDecl stat
 storeDecl :: Declaration -> State -> IO State
 storeDecl (ConstDecl idDecls type_ exprs) state = bindDecls idDecls type_ exprs state 
 storeDecl (TypeDecl typeSpecs) state = return $ bindTypeSpecs typeSpecs state
-storeDecl (VarDecl idDecls type_ exprs) state = bindDecls idDecls type_ exprs state 
+storeDecl (VarDecl1 idDecls type_ exprs) state = bindDecls idDecls type_ exprs state 
 
 bindTypeSpecs :: [TypeSpec] -> State  -> State
 bindTypeSpecs [] s = s
@@ -110,6 +110,17 @@ bindDecls [] type_ [] state = return state
 bindDecls [] type_ _ state = error "mismatch1 TODO error?"
 bindDecls _ type_ [] state = error "mismatch2 TODO error?"
 bindDecls (d:dd) type_ (e:ee) state = bindDecl d type_ e state >>= bindDecls dd type_ ee 
+
+bindDeclsDefault :: [IdDecl] -> Type -> State -> IO State
+bindDeclsDefault [] type_ s = return s
+bindDeclsDefault (d:dd) type_ s = bindDeclDefault d type_ s >>= bindDeclsDefault dd type_
+
+bindDeclDefault :: IdDecl -> Type -> State -> IO State
+bindDeclDefault decl type_ s = bindVar (idDeclName decl) (O1 type_ (defaultVal type_)) s
+
+defaultVal :: Type -> Value
+defaultVal (TypeName (TypeNameIdentifier "int")) = (IntVal 0)
+defaultVal x = error $ "error: " ++ (show x)
 
 storeFuncDecl :: FunctionDecl -> State -> State
 storeFuncDecl decl state = state { funcs = (Map.insert (fName decl) decl $ funcs state),
@@ -146,7 +157,7 @@ funcDeclName (FunctionDecl2 name _ _) = name
 declName :: Declaration -> String
 declName (ConstDecl idDecls _ _) = idDeclName $ idDecls !! 0 -- TODO all names etc blabla
 declName (TypeDecl typeSpecs ) = error "declName"
-declName (VarDecl idDecls _ _) = idDeclName $ idDecls !! 0
+declName (VarDecl1 idDecls _ _) = idDeclName $ idDecls !! 0
 
 readDeclaration :: Declaration -> State -> IO State
 readDeclaration decl state = error "readdeclaration TODO"
@@ -173,8 +184,9 @@ execStmt (ReturnStmt expr) st = do
 execDecl :: Declaration -> State -> IO State
 execDecl (ConstDecl idDecls type_ exprs) = bindIdDecls idDecls exprs  
 execDecl (TypeDecl typeSpecs) = return . bindTypeSpecs typeSpecs 
-execDecl (VarDecl idDecls type_ exprs) = bindIdDecls idDecls exprs 
-
+execDecl (VarDecl1 idDecls type_ exprs) = bindIdDecls idDecls exprs 
+execDecl (VarDecl2 iddecls exprs) = bindIdDecls iddecls exprs 
+execDecl (VarDecl3 iddecls type_) = bindDeclsDefault iddecls type_ 
 
 execSimpleStmt :: SimpleStmt -> State -> IO State
 execSimpleStmt (Assignment a) = execAssign a
@@ -339,6 +351,7 @@ bindExpr lhs rhs state = bindArg (getExprName lhs) rhs state
 bindIdDecls :: [IdDecl] -> [Expr] -> State -> IO State
 bindIdDecls [] [] s = return s
 bindIdDecls (l:ll) (r:rr) s = bindArg (idDeclName l) r s >>= bindIdDecls ll rr
+
 bindArg :: Name -> Expr -> State -> IO State
 bindArg name expr state = do
     obj <- eval expr state
