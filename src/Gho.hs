@@ -46,7 +46,8 @@ insertSemicolon :: [Lexeme Token] -> [Lexeme Token]
 insertSemicolon [] = []
 insertSemicolon ls@((Lexeme prev _):_) = case prev of
     (TokenSym _) -> semicolon:ls
-    (TokenNum _) -> semicolon:ls 
+    (TokenInt _) -> semicolon:ls 
+    (TokenFloat _) -> semicolon:ls 
     (TokenString _) -> semicolon:ls 
     (TokenBreak) -> semicolon:ls
     (TokenContinue) -> semicolon:ls

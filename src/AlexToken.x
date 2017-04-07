@@ -22,7 +22,7 @@ $eol   = [\n]
 $whitespace = [\ \t\r\f\v] 
 
 
--- @int_lit = $digit [\. $digit+]?
+@float_lit = $digit \. $digit+
 
 tokens :-
 
@@ -84,7 +84,8 @@ tokens :-
     "else"                      { alex(const TokenElse) }
     "package"                   { alex(const TokenPackage) }
     ";"                         { alex(const TokenSemicolon) }
-    $digit+                     { alex (TokenNum . read) }
+    @float_lit                  { alex (TokenFloat . read) }
+    $digit+                     { alex (TokenInt . read) }
     \"[$whitespace $alpha $digit \_]*\"           { alex( TokenString . stripQuotes . read ) }
     $alpha [$alpha $digit \_ ]*                        { alex TokenSym  }
     .                           { alex TokenError}
@@ -133,7 +134,8 @@ data Token = TokenError {unknown :: String}
        | TokenType
        | TokenVar
        | TokenLambda
-       | TokenNum { tnNumber :: Int }
+       | TokenInt { tInt :: Int }
+       | TokenFloat { tFloat :: Double }
        | TokenSym String
        | TokenArrow
        | TokenEq

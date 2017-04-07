@@ -469,6 +469,7 @@ insertField fieldName expr ff s = do
 evalBasicLit :: BasicLit -> State -> IO Object
 evalBasicLit (IntLit n) s = return $ (O1 intType (IntVal n))
 evalBasicLit (StringLit str) s = return $ O1 strType (StringVal str)
+evalBasicLit (FloatLit flt) s = return $ O1 floatType (FloatVal flt)
 
 evalBin :: BinExpr -> State -> IO Object
 evalBin (AritmExpr a) state = evalAritm a state
@@ -498,6 +499,9 @@ evalBoolOp f l r s = do
 
 intType :: Type
 intType = Type "int"
+
+floatType :: Type
+floatType = Type "int"
 
 strType :: Type
 strType = Type "string"

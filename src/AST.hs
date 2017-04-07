@@ -208,11 +208,13 @@ type Tag = String
 data Value = IntVal Int
      | BoolVal Bool
      | StringVal String
+     | FloatVal Double
      | NullVal
      deriving (Ord, Eq)
 
 instance Show Value where
     show (IntVal num) = show num
+    show (FloatVal flt) = show flt
     show (BoolVal bool) = map toLower $ show bool
     show (StringVal string) = string
     show (NullVal) = "Null"
@@ -304,6 +306,7 @@ data Literal = BasicLit BasicLit
 
 data BasicLit = IntLit Int
               | StringLit String
+              | FloatLit Double
               deriving (Eq, Show)
 
 data LiteralType = LiteralType1 StructType

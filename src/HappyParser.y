@@ -25,18 +25,19 @@ import Control.Monad.Except
     "type"  { Lexeme TokenType _ }
     "func"  { Lexeme TokenFunc _ }
     "var"   { Lexeme TokenVar _ }
-    "fmt.Print" { Lexeme TokenPrint _ }
-    "chan"  { Lexeme TokenChan _ }
-    "map"   { Lexeme TokenMap _ }
-    "fmt.Println" { Lexeme TokenPrintLn _ }
-    "return"{ Lexeme TokenReturn _ }
-    "import"           { Lexeme TokenImport _        }
-    "interface"{ Lexeme TokenInterface _ }
-    let     { Lexeme TokenLet _ }
-    in      { Lexeme TokenIn _ }
-    string_lit  { Lexeme (TokenString $$) _ }
-    int_lit     { Lexeme (TokenNum $$) _ }
-    identifier    { Lexeme (TokenSym $$) _ }
+    "fmt.Print"             { Lexeme TokenPrint _ }
+    "chan"                  { Lexeme TokenChan _ }
+    "map"                   { Lexeme TokenMap _ }
+    "fmt.Println"           { Lexeme TokenPrintLn _ }
+    "return"                { Lexeme TokenReturn _ }
+    "import"                { Lexeme TokenImport _        }
+    "interface"             { Lexeme TokenInterface _ }
+    let                     { Lexeme TokenLet _ }
+    in                      { Lexeme TokenIn _ }
+    string_lit              { Lexeme (TokenString $$) _ }
+    float_lit               { Lexeme (TokenFloat $$) _ }
+    int_lit                 { Lexeme (TokenInt $$) _ }
+    identifier              { Lexeme (TokenSym $$) _ }
     "&&"    { Lexeme TokenAnd2 _ }
     "||"    { Lexeme TokenOr _ }
     '\\'    { Lexeme TokenLambda _ }
@@ -226,8 +227,8 @@ LiteralValue : '{' '}'                                  { LiteralValue1 }
 
 BasicLit : int_lit                                      { IntLit $1 }
          | string_lit                                   { StringLit $1 }
-{-
          | float_lit                                    { FloatLit $1 }
+{-
          | imaginary_lit                                { ImaginaryLit $1 }
          | rune_lit                                     { RuneLit $1 }
 -}
